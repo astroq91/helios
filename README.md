@@ -79,19 +79,17 @@ The project is very barebones, as a lot of the time was spent on integrating Vul
 to get it to a more usable state. I'm planning on fixing some things like:
 
 * The scene camera currently requires a light source to see, which is not ideal.
-* Add more collider options.
+* Improve the scripting workflow.
 * Improve lighting pipeline.
 * Tidy up the editor by making it look nicer.
 * Optimize the physics backend. Currently the way I handle resources
   can be quite bad for large scenes.
+* Add more collider options.
 
 Aside from that I also have other features I want to add such as:
 
 * Sound.
-* Hot-reloading for scripts?
 * Other rendering techniques.
-
-
 
 <!-- LICENSE -->
 ## License
