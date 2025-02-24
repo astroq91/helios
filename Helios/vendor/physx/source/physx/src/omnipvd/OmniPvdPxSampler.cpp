@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -31,6 +31,7 @@
 
 #include "foundation/PxPreprocessor.h"
 #include "foundation/PxAllocator.h"
+#include "common/PxProfileZone.h"
 
 #include "ScIterators.h"
 
@@ -46,6 +47,7 @@
 #include "NpScene.h"
 #include "NpAggregate.h"
 #include "NpRigidStatic.h"
+#include "NpArticulationReducedCoordinate.h"
 #include "NpArticulationJointReducedCoordinate.h"
 #include "NpArticulationLink.h"
 #include "NpArticulationMimicJoint.h"
@@ -79,28 +81,204 @@ bool addSharedMeshIfNotSeen(const void* geom, OmniPvdSharedMeshEnum geomEnum); /
 physx::PxMutex mSampleMutex;
 bool mIsSampling;
 
-physx::PxMutex mSampledScenesMutex;
-physx::PxHashMap<physx::NpScene*, OmniPvdPxScene*> mSampledScenes;
-
 physx::PxMutex mSharedGeomsMutex;
 physx::PxHashMap<const void*, OmniPvdSharedMeshEnum> mSharedMeshesMap;
 };
 OmniPvdSamplerInternals * samplerInternals = NULL;
 
-class OmniPvdPxScene : public physx::PxUserAllocated
+namespace physx
 {
-public:
-	OmniPvdPxScene() : mFrameId(0) {}
-	~OmniPvdPxScene() {}
+NpOmniPvdSceneClient::NpOmniPvdSceneClient(physx::PxScene& scene) : mScene(scene), mFrameId(1)
+{
+}
 
-	void sampleScene(physx::NpScene* scene)
+NpOmniPvdSceneClient::~NpOmniPvdSceneClient()
+{
+}
+
+void NpOmniPvdSceneClient::startFirstFrame(OmniPvdWriter& pvdWriter)
+{
+	pvdWriter.startFrame((OmniPvdContextHandle)(&mScene), mFrameId);
+}
+
+void NpOmniPvdSceneClient::incrementFrame(OmniPvdWriter& pvdWriter, bool recordProfileFrame)
+{
+	pvdWriter.stopFrame((OmniPvdContextHandle)(&mScene), mFrameId);
+	mFrameId++;
+	pvdWriter.startFrame((OmniPvdContextHandle)(&mScene), mFrameId);
+	if (recordProfileFrame) 
 	{
-		mFrameId++;
-		samplerInternals->mPvdStream.mOmniPvdInstance->getWriter()->startFrame((OmniPvdContextHandle)(static_cast<PxScene*>(scene)), mFrameId);
+		PX_PROFILE_FRAME("PVD", PxU64(&mScene));
 	}
+}
 
-	physx::PxU64 mFrameId;
-};
+void NpOmniPvdSceneClient::stopLastFrame(OmniPvdWriter& pvdWriter)
+{
+	pvdWriter.stopFrame((OmniPvdContextHandle)(&mScene), mFrameId);
+}
+
+void NpOmniPvdSceneClient::addRigidDynamicForceReset(const physx::PxRigidDynamic* rigidDynamic)
+{
+	mResetRigidDynamicForce.insert(rigidDynamic);
+}
+	
+void NpOmniPvdSceneClient::addRigidDynamicTorqueReset(const physx::PxRigidDynamic* rigidDynamic)
+{
+	mResetRigidDynamicTorque.insert(rigidDynamic);
+}
+
+void NpOmniPvdSceneClient::addRigidDynamicReset(const physx::PxRigidDynamic* rigidDynamic)
+{
+	mResetRigidDynamicForce.insert(rigidDynamic);
+	mResetRigidDynamicTorque.insert(rigidDynamic);
+}
+
+void NpOmniPvdSceneClient::removeRigidDynamicReset(const physx::PxRigidDynamic* rigidDynamic)
+{
+	mResetRigidDynamicForce.erase(rigidDynamic);
+	mResetRigidDynamicTorque.erase(rigidDynamic);
+	PxVec3 zeroForce(0.0f, 0.0f, 0.0f);
+	OMNI_PVD_WRITE_SCOPE_BEGIN(pvdWriter, pvdRegData)
+	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxRigidBody, force, *rigidDynamic, zeroForce);
+	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxRigidBody, torque, *rigidDynamic, zeroForce);
+	OMNI_PVD_WRITE_SCOPE_END
+}
+
+void NpOmniPvdSceneClient::addArticulationLinksForceReset(const PxArticulationReducedCoordinate* articulation)
+{
+	mResetArticulationLinksForce.insert(articulation);
+}
+
+void NpOmniPvdSceneClient::addArticulationLinksTorqueReset(const PxArticulationReducedCoordinate* articulation)
+{
+	mResetArticulationLinksTorque.insert(articulation);
+}
+
+void NpOmniPvdSceneClient::addArticulationJointsForceReset(const PxArticulationReducedCoordinate* articulation)
+{
+	mResetArticulationJointsForce.insert(articulation);
+}
+
+void NpOmniPvdSceneClient::addArticulationFromLinkFlagChangeReset(const physx::PxArticulationLink* link)
+{
+	PxArticulationReducedCoordinate& arti = link->getArticulation();
+	{
+		mResetArticulationLinksForce.insert(&arti);
+		mResetArticulationLinksTorque.insert(&arti);
+		mResetArticulationJointsForce.insert(&arti);
+	}	
+}
+
+#define SET_RIGID_BODY_ATTRIBS(resetRigidDynamic, rigiBodyAttribute, attribVal) \
+{ \
+	for(PxHashSet<const PxRigidDynamic*>::Iterator iter = resetRigidDynamic.getIterator(); !iter.done(); ++iter) \
+	{ \
+		const PxRigidDynamic* rdyn = *iter; \
+		if (!(rdyn->getRigidBodyFlags() & PxRigidBodyFlag::eRETAIN_ACCELERATIONS)) \
+		{ \
+			OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxRigidBody, rigiBodyAttribute, *rdyn, attribVal); \
+		} \
+	} \
+	resetRigidDynamic.clear(); \
+}
+
+#define SET_ARTICULATION_LINK_ATTRIBS(articulationHash, linkAttribute, attribVal) \
+{ \
+	for(PxHashSet<const PxArticulationReducedCoordinate*>::Iterator iter = articulationHash.getIterator(); !iter.done(); ++iter) \
+	{ \
+		const NpArticulationReducedCoordinate* npArticulation = static_cast<const NpArticulationReducedCoordinate*>(*iter);	\
+		const PxU32 nbLinks = npArticulation->getNbLinks(); \
+		const NpArticulationLink* const * npLinks = npArticulation->getLinks(); \
+		for(PxU32 linkId = 0; linkId < nbLinks; linkId++) \
+		{ \
+			const PxRigidBody* pxBody = static_cast<const PxRigidBody*>(npLinks[linkId]); \
+			if (!(pxBody->getRigidBodyFlags() & PxRigidBodyFlag::eRETAIN_ACCELERATIONS)) \
+			{ \
+				OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxRigidBody, linkAttribute, *pxBody, attribVal); \
+			} \
+		} \
+	} \
+	articulationHash.clear();\
+}
+
+#define SET_SINGLE_ARTICULATION_LINK_ATTRIBS_NO_RETENTION(pxArticulation, linkAttribute, attribVal) \
+{ \
+	const NpArticulationReducedCoordinate* npArticulation = static_cast<const NpArticulationReducedCoordinate*>(pxArticulation);	\
+	const PxU32 nbLinks = npArticulation->getNbLinks(); \
+	const NpArticulationLink* const * npLinks = npArticulation->getLinks(); \
+	for(PxU32 linkId = 0; linkId < nbLinks; linkId++) \
+	{ \
+		const PxRigidBody* pxBody = static_cast<const PxRigidBody*>(npLinks[linkId]); \
+		OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxRigidBody, linkAttribute, *pxBody, attribVal); \
+	} \
+}
+
+void setSingleArticulationJointForces(const PxArticulationReducedCoordinate* pxArticulation, OmniPvdWriter* pvdWriter, const OmniPvdPxCoreRegistrationData* pvdRegData,  const PxReal* dofForces)
+{
+	const NpArticulationReducedCoordinate* npArticulation = static_cast<const NpArticulationReducedCoordinate*>(pxArticulation);
+	const PxU32 nbLinks = npArticulation->getNbLinks();
+	const NpArticulationLink* const * npLinks = npArticulation->getLinks();
+	for(PxU32 linkId = 0; linkId < nbLinks; linkId++)
+	{
+		const NpArticulationLink* npLink = npLinks[linkId];
+		PxArticulationJointReducedCoordinate* pxJoint = npLink->getInboundJoint();
+		if (pxJoint)
+		{
+			const PxU32 nbrDofs = npLink->getInboundJointDof();
+			if (nbrDofs > 0)
+			{
+				OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, jointForce, *pxJoint, dofForces, nbrDofs);
+			}
+		}
+	}
+}
+
+void NpOmniPvdSceneClient::removeArticulationReset(const PxArticulationReducedCoordinate* articulation)
+{
+	OMNI_PVD_WRITE_SCOPE_BEGIN(pvdWriter, pvdRegData)
+		PxVec3 zeroForce(0.0f, 0.0f, 0.0f);
+		const PxReal dofZeroForces[PxArticulationAxis::eCOUNT] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		SET_SINGLE_ARTICULATION_LINK_ATTRIBS_NO_RETENTION(articulation, force, zeroForce)
+		SET_SINGLE_ARTICULATION_LINK_ATTRIBS_NO_RETENTION(articulation, torque, zeroForce)
+		setSingleArticulationJointForces(articulation, pvdWriter, pvdRegData, dofZeroForces);
+	OMNI_PVD_WRITE_SCOPE_END
+
+	mResetArticulationLinksForce.erase(articulation);
+	mResetArticulationLinksTorque.erase(articulation);
+	mResetArticulationJointsForce.erase(articulation);
+}
+
+void NpOmniPvdSceneClient::resetForces()
+{	
+	if ( (mResetRigidDynamicForce.size() > 0) || (mResetRigidDynamicTorque.size() > 0) ||
+		 (mResetArticulationLinksForce.size() > 0) || (mResetArticulationLinksTorque.size() > 0) || (mResetArticulationJointsForce.size() > 0)		 
+	   )
+	{		
+		OMNI_PVD_WRITE_SCOPE_BEGIN(pvdWriter, pvdRegData)		
+
+		PxVec3 zeroForce(0.0f, 0.0f, 0.0f);
+
+		// RigidDynamic
+		SET_RIGID_BODY_ATTRIBS(mResetRigidDynamicForce, force, zeroForce)
+		SET_RIGID_BODY_ATTRIBS(mResetRigidDynamicTorque, torque, zeroForce)
+
+		// Articulations
+		SET_ARTICULATION_LINK_ATTRIBS(mResetArticulationLinksForce, force, zeroForce)
+		SET_ARTICULATION_LINK_ATTRIBS(mResetArticulationLinksTorque, torque, zeroForce)
+
+		// Articulation joints
+		const PxReal dofZeroForces[PxArticulationAxis::eCOUNT] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		for(PxHashSet<const PxArticulationReducedCoordinate*>::Iterator iter = mResetArticulationJointsForce.getIterator(); !iter.done(); ++iter)
+		{
+			setSingleArticulationJointForces(*iter, pvdWriter, pvdRegData, dofZeroForces);
+		}
+		mResetArticulationJointsForce.clear();
+
+		OMNI_PVD_WRITE_SCOPE_END
+	}
+}
+
+}
 
 OmniPvdStreamContainer::OmniPvdStreamContainer()
 {
@@ -269,6 +447,70 @@ void streamCustomGeometry(const physx::PxCustomGeometry& g)
 	OMNI_PVD_WRITE_SCOPE_END
 }
 
+void streamConvexCore(const physx::PxConvexCoreGeometry& g)
+{
+	OMNI_PVD_WRITE_SCOPE_BEGIN(pvdWriter, pvdRegData)
+		switch (g.getCoreType())
+		{
+			case PxConvexCore::ePOINT:
+			{
+				const PxConvexCore::Point& c = g.getCore<PxConvexCore::Point>();
+				OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCorePoint, OmniPvdObjectHandle(&c));
+			}
+			break;
+			case PxConvexCore::eSEGMENT:
+			{
+				const PxConvexCore::Segment& c = g.getCore<PxConvexCore::Segment>();
+				OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreSegment, OmniPvdObjectHandle(&c));
+				OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreSegment, length, OmniPvdObjectHandle(&c), c.length);
+			}
+			break;
+			case PxConvexCore::eBOX:
+			{
+				const PxConvexCore::Box& c = g.getCore<PxConvexCore::Box>();
+				OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreBox, OmniPvdObjectHandle(&c));
+				OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreBox, extents, OmniPvdObjectHandle(&c), c.extents);
+			}
+			break;
+			case PxConvexCore::eELLIPSOID:
+			{
+				const PxConvexCore::Ellipsoid& c = g.getCore<PxConvexCore::Ellipsoid>();
+				OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreEllipsoid, OmniPvdObjectHandle(&c));
+				OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreEllipsoid, radii, OmniPvdObjectHandle(&c), c.radii);
+			}
+			break;
+			case PxConvexCore::eCYLINDER:
+			{
+				const PxConvexCore::Cylinder& c = g.getCore<PxConvexCore::Cylinder>();
+				OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreCylinder, OmniPvdObjectHandle(&c));
+				OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreCylinder, height, OmniPvdObjectHandle(&c), c.height);
+				OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreCylinder, radius, OmniPvdObjectHandle(&c), c.radius);
+			}
+			break;
+			case PxConvexCore::eCONE:
+			{
+				const PxConvexCore::Cone& c = g.getCore<PxConvexCore::Cone>();
+				OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreCone, OmniPvdObjectHandle(&c));
+				OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreCone, height, OmniPvdObjectHandle(&c), c.height);
+				OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreCone, radius, OmniPvdObjectHandle(&c), c.radius);
+			}
+			break;
+			default:
+				break;
+		}
+	OMNI_PVD_WRITE_SCOPE_END
+}
+
+void streamConvexCoreGeometry(const physx::PxConvexCoreGeometry& g)
+{
+	OMNI_PVD_WRITE_SCOPE_BEGIN(pvdWriter, pvdRegData)
+		OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreGeometry, g);
+		streamConvexCore(g);
+		OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreGeometry, core, g, g.getCoreData());
+		OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxConvexCoreGeometry, margin, g, g.getMargin());
+	OMNI_PVD_WRITE_SCOPE_END
+}
+
 void streamConvexMesh(const physx::PxConvexMesh& mesh)
 {		
 	if (samplerInternals->addSharedMeshIfNotSeen(&mesh, OmniPvdSharedMeshEnum::eOmniPvdConvexMesh))
@@ -429,6 +671,7 @@ void streamActorAttributes(const physx::PxActor& actor, const bool supportStanda
 	}
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxActor, dominance, actor, actor.getDominanceGroup())
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxActor, ownerClient, actor, actor.getOwnerClient())
+	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxActor, environmentID, actor, actor.getEnvironmentID());
 
 	OMNI_PVD_WRITE_SCOPE_END
 }
@@ -788,6 +1031,9 @@ void streamArticulationMimicJoint(const physx::PxArticulationMimicJoint& mj)
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationMimicJoint, axisB, mj, np.getAxisB());
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationMimicJoint, gearRatio, mj, mj.getGearRatio());
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationMimicJoint, offset, mj, mj.getOffset());
+	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationMimicJoint, naturalFrequency, mj, mj.getNaturalFrequency());
+	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationMimicJoint, dampingRatio, mj, mj.getDampingRatio());
+
 	OMNI_PVD_WRITE_SCOPE_END
 }
 
@@ -824,6 +1070,7 @@ void streamAggregate(const physx::PxAggregate& agg)
 		OMNI_PVD_ADD_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxAggregate, actors, agg, *a);
 	}
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxAggregate, selfCollision, agg, agg.getSelfCollision());
+	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxAggregate, environmentID, agg, agg.getEnvironmentID());
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxAggregate, maxNbShapes, agg, agg.getMaxNbShapes());
 	PxScene* scene = static_cast<const NpAggregate&>(agg).getNpScene();  // because PxAggregate::getScene() is not marked const
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxAggregate, scene, agg, scene);
@@ -853,14 +1100,14 @@ void streamPBDMaterial(const physx::PxPBDMaterial& m)
 	OMNI_PVD_WRITE_SCOPE_END
 }
 
-void streamFEMClothMaterial(const physx::PxFEMClothMaterial& m)
+void streamFEMClothMaterial(const physx::PxDeformableSurfaceMaterial& m)
 {
-	OMNI_PVD_CREATE(OMNI_PVD_CONTEXT_HANDLE, PxFEMClothMaterial, m);
+	OMNI_PVD_CREATE(OMNI_PVD_CONTEXT_HANDLE, PxDeformableSurfaceMaterial, m);
 }
 
-void streamFEMSoBoMaterial(const physx::PxFEMSoftBodyMaterial& m)
+void streamFEMSoBoMaterial(const physx::PxDeformableVolumeMaterial& m)
 {
-	OMNI_PVD_CREATE(OMNI_PVD_CONTEXT_HANDLE, PxFEMSoftBodyMaterial, m);
+	OMNI_PVD_CREATE(OMNI_PVD_CONTEXT_HANDLE, PxDeformableVolumeMaterial, m);
 }
 
 void streamMaterial(const physx::PxMaterial& m)
@@ -885,21 +1132,14 @@ void streamShapeMaterials(const physx::PxShape& shape, physx::PxMaterial* const 
 	OMNI_PVD_SET_ARRAY(OMNI_PVD_CONTEXT_HANDLE, PxShape, materials, shape, mats, nbrMaterials);
 }
 
-void streamShapeMaterials(const physx::PxShape& shape, physx::PxFEMClothMaterial* const * mats, physx::PxU32 nbrMaterials)
+void streamShapeMaterials(const physx::PxShape& shape, physx::PxDeformableSurfaceMaterial* const * mats, physx::PxU32 nbrMaterials)
 {
 	PX_UNUSED(shape);
 	PX_UNUSED(mats);
 	PX_UNUSED(nbrMaterials);
 }
 
-void streamShapeMaterials(const physx::PxShape& shape, physx::PxFEMMaterial* const * mats, physx::PxU32 nbrMaterials)
-{
-	PX_UNUSED(shape);
-	PX_UNUSED(mats);
-	PX_UNUSED(nbrMaterials);
-}
-
-void streamShapeMaterials(const physx::PxShape& shape, physx::PxFEMSoftBodyMaterial* const * mats, physx::PxU32 nbrMaterials)
+void streamShapeMaterials(const physx::PxShape& shape, physx::PxDeformableVolumeMaterial* const * mats, physx::PxU32 nbrMaterials)
 {
 	PX_UNUSED(shape);
 	PX_UNUSED(mats);
@@ -948,13 +1188,13 @@ void streamBVH(const physx::PxBVH& bvh)
 	OMNI_PVD_CREATE(OMNI_PVD_CONTEXT_HANDLE, PxBVH, bvh);
 }
 
-void streamSoBoMesh(const physx::PxSoftBodyMesh& mesh)
+void streamDeVoMesh(const physx::PxDeformableVolumeMesh& mesh)
 {
 	OMNI_PVD_WRITE_SCOPE_BEGIN(pvdWriter, pvdRegData)
 
-	OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxSoftBodyMesh, mesh);
-	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxSoftBodyMesh, collisionMesh, mesh, mesh.getCollisionMesh());
-	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxSoftBodyMesh, simulationMesh, mesh, mesh.getSimulationMesh());
+	OMNI_PVD_CREATE_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxDeformableVolumeMesh, mesh);
+	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxDeformableVolumeMesh, collisionMesh, mesh, mesh.getCollisionMesh());
+	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxDeformableVolumeMesh, simulationMesh, mesh, mesh.getSimulationMesh());
 
 	OMNI_PVD_WRITE_SCOPE_END
 }
@@ -1085,11 +1325,18 @@ void OmniPvdPxSampler::streamSceneContacts(physx::NpScene& scene)
 	PxArray<PxReal> pairsContactSeparations;
 	PxArray<PxShape*> pairsContactShapes;
 	PxArray<PxU32> pairsContactFacesIndices;
-	
+	PxArray<PxReal> pairsContactImpulses;
+	PxArray<PxU32> pairsFrictionAnchorCounts;
+	PxArray<PxVec3> pairsFrictionAnchorPositions;
+	PxArray<PxVec3> pairsFrictionAnchorNormals;
+	PxArray<PxVec3> pairsFrictionAnchorImpulses;
+
 	while ((pair = contactIter.getNextPair()) != NULL)
 	{
 		PxU32 pairContactCount = 0;
+		PxU32 pairFrictionAnchorCount = 0;
 		Sc::Contact* contact = NULL;
+		Sc::FrictionAnchor* anchor = NULL;
 		bool firstContact = true;
 		while ((contact = pair->getNextContact()) != NULL)
 		{
@@ -1107,11 +1354,24 @@ void OmniPvdPxSampler::streamSceneContacts(physx::NpScene& scene)
 			pairsContactShapes.pushBack(contact->shape1);
 			pairsContactFacesIndices.pushBack(contact->faceIndex0);
 			pairsContactFacesIndices.pushBack(contact->faceIndex1);
+			pairsContactImpulses.pushBack(contact->normalForce);
 		}
 		if (pairContactCount) 
 		{
 			pairsContactCounts.pushBack(pairContactCount);
 		}
+		while ((anchor = pair->getNextFrictionAnchor()) != NULL)
+		{
+			++pairFrictionAnchorCount;
+			pairsFrictionAnchorPositions.pushBack(anchor->point);
+			pairsFrictionAnchorNormals.pushBack(anchor->normal);
+			pairsFrictionAnchorImpulses.pushBack(anchor->impulse);
+		}
+		if (pairFrictionAnchorCount)
+		{
+			pairsFrictionAnchorCounts.pushBack(pairFrictionAnchorCount);
+		}
+
 	}
 
 	if (pairCount == 0) return;
@@ -1140,6 +1400,21 @@ void OmniPvdPxSampler::streamSceneContacts(physx::NpScene& scene)
 	PxU32 contactFacesIndexCount = pairsContactFacesIndices.size();
 	PxU32* contactFacesIndices = contactFacesIndexCount ? pairsContactFacesIndices.begin() : NULL;
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxScene, pairsContactFacesIndices, scene, contactFacesIndices, contactFacesIndexCount);
+	PxU32 contactImpulseCount = pairsContactImpulses.size();
+	PxReal* contactImpulses = contactImpulseCount ? pairsContactImpulses.begin() : NULL;
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxScene, pairsContactImpulses, scene, contactImpulses, contactImpulseCount);
+	PxU32 nbFrictionAnchorCount = pairsFrictionAnchorCounts.size();
+	PxU32* frictionAnchorCounts = nbFrictionAnchorCount ? pairsFrictionAnchorCounts.begin() : NULL;
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxScene, pairsFrictionAnchorCounts, scene, frictionAnchorCounts, nbFrictionAnchorCount);
+	PxU32 frictionAnchorPositionFloatCount = pairsFrictionAnchorPositions.size() * 3;
+	PxReal* frictionAnchorPositions = frictionAnchorPositionFloatCount ? &pairsFrictionAnchorPositions[0].x : NULL;
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxScene, pairsFrictionAnchorPositions, scene, frictionAnchorPositions, frictionAnchorPositionFloatCount);
+	PxU32 frictionAnchorNormalFloatCount = pairsFrictionAnchorNormals.size() * 3;
+	PxReal* frictionAnchorNormals = frictionAnchorNormalFloatCount ? &pairsFrictionAnchorNormals[0].x : NULL;
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxScene, pairsFrictionAnchorNormals, scene, frictionAnchorNormals, frictionAnchorNormalFloatCount);
+	PxU32 frictionAnchorImpulseFloatCount = pairsFrictionAnchorImpulses.size() * 3;
+	PxReal* frictionAnchorImpulses = frictionAnchorImpulseFloatCount ? &pairsFrictionAnchorImpulses[0].x : NULL;
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxScene, pairsFrictionAnchorImpulses, scene, frictionAnchorImpulses, frictionAnchorImpulseFloatCount);
 
 	OMNI_PVD_WRITE_SCOPE_END
 
@@ -1155,13 +1430,6 @@ OmniPvdPxSampler::OmniPvdPxSampler()
 
 OmniPvdPxSampler::~OmniPvdPxSampler()
 {
-	physx::PxHashMap<physx::NpScene*, OmniPvdPxScene*>::Iterator iterScenes = samplerInternals->mSampledScenes.getIterator();
-	while (!iterScenes.done())
-	{
-		OmniPvdPxScene* scene = iterScenes->second;
-		PX_DELETE(scene);
-		iterScenes++;
-	}
 	PX_DELETE(samplerInternals);
 }
 
@@ -1214,6 +1482,11 @@ void createGeometry(const physx::PxGeometry & pxGeom)
 	case physx::PxGeometryType::eTRIANGLEMESH:
 	{
 		streamTriMeshGeometry((const physx::PxTriangleMeshGeometry &)pxGeom);
+	}
+	break;
+	case physx::PxGeometryType::eCONVEXCORE:
+	{
+		streamConvexCoreGeometry((const physx::PxConvexCoreGeometry &)pxGeom);
 	}
 	break;
 	case physx::PxGeometryType::eCONVEXMESH:
@@ -1291,16 +1564,6 @@ void destroyGeometry(const physx::PxGeometry& pxGeom)
 	}
 }
 
-void OmniPvdPxSampler::sampleScene(physx::NpScene* scene)
-{
-	{
-		physx::PxMutex::ScopedLock myLock(samplerInternals->mSampleMutex);
-		if (!samplerInternals->mIsSampling) return;
-	}
-	OmniPvdPxScene* ovdScene = getSampledScene(scene);
-	ovdScene->sampleScene(scene);
-}
-
 void OmniPvdPxSampler::onObjectAdd(const physx::PxBase& object)
 {
 	if (!isSampling()) return;
@@ -1338,11 +1601,11 @@ void OmniPvdPxSampler::onObjectAdd(const physx::PxBase& object)
 			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, tetrahedronMeshes, physics, tm);
 		}
 		break;
-		case physx::PxConcreteType::eSOFTBODY_MESH:
+		case physx::PxConcreteType::eDEFORMABLE_VOLUME_MESH:
 		{
-			const PxSoftBodyMesh& sm = static_cast<const PxSoftBodyMesh&>(object);
-			streamSoBoMesh(sm);
-			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, softBodyMeshes, physics, sm);
+			const PxDeformableVolumeMesh& dm = static_cast<const PxDeformableVolumeMesh&>(object);
+			streamDeVoMesh(dm);
+			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, deformableVolumeMeshes, physics, dm);
 		}
 		break;
 		case physx::PxConcreteType::eBVH:
@@ -1367,18 +1630,18 @@ void OmniPvdPxSampler::onObjectAdd(const physx::PxBase& object)
 			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, materials, physics, mat);
 		}
 		break;
-		case physx::PxConcreteType::eSOFTBODY_MATERIAL:
+		case physx::PxConcreteType::eDEFORMABLE_SURFACE_MATERIAL:
 		{
-			const PxFEMSoftBodyMaterial& sbMat = static_cast<const PxFEMSoftBodyMaterial&>(object);
-			streamFEMSoBoMaterial(sbMat);
-			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, FEMSoftBodyMaterials, physics, sbMat);
+			const PxDeformableSurfaceMaterial& dsMat = static_cast<const PxDeformableSurfaceMaterial&>(object);
+			streamFEMClothMaterial(dsMat);
+			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, deformableSurfaceMaterials, physics, dsMat);
 		}
 		break;
-		case physx::PxConcreteType::eCLOTH_MATERIAL:
+		case physx::PxConcreteType::eDEFORMABLE_VOLUME_MATERIAL:
 		{
-			const PxFEMClothMaterial& clothMat = static_cast<const PxFEMClothMaterial&>(object);
-			streamFEMClothMaterial(clothMat);
-			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, FEMClothMaterials, physics, clothMat);
+			const PxDeformableVolumeMaterial& sbMat = static_cast<const PxDeformableVolumeMaterial&>(object);
+			streamFEMSoBoMaterial(sbMat);
+			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, deformableVolumeMaterials, physics, sbMat);
 		}
 		break;
 		case physx::PxConcreteType::ePBD_MATERIAL:
@@ -1511,11 +1774,11 @@ void OmniPvdPxSampler::onObjectRemove(const physx::PxBase& object)
 			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxTetrahedronMesh, tm);
 		}
 		break;
-		case physx::PxConcreteType::eSOFTBODY_MESH:
+		case physx::PxConcreteType::eDEFORMABLE_VOLUME_MESH:
 		{
-			const PxSoftBodyMesh& sm = static_cast<const PxSoftBodyMesh&>(object);
-			OMNI_PVD_REMOVE(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, softBodyMeshes, physics, sm);
-			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxSoftBodyMesh, sm);
+			const PxDeformableVolumeMesh& dm = static_cast<const PxDeformableVolumeMesh&>(object);
+			OMNI_PVD_REMOVE(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, deformableVolumeMeshes, physics, dm);
+			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxDeformableVolumeMesh, dm);
 		}
 		break;
 		case physx::PxConcreteType::eBVH:
@@ -1540,18 +1803,18 @@ void OmniPvdPxSampler::onObjectRemove(const physx::PxBase& object)
 			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxMaterial, mat);
 		}
 		break;
-		case physx::PxConcreteType::eSOFTBODY_MATERIAL:
+		case physx::PxConcreteType::eDEFORMABLE_SURFACE_MATERIAL:
 		{
-			const PxFEMSoftBodyMaterial& sbMat = static_cast<const PxFEMSoftBodyMaterial&>(object);
-			OMNI_PVD_REMOVE(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, FEMSoftBodyMaterials, physics, sbMat);
-			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxFEMSoftBodyMaterial, sbMat);
+			const PxDeformableSurfaceMaterial& dsMat = static_cast<const PxDeformableSurfaceMaterial&>(object);
+			OMNI_PVD_REMOVE(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, deformableSurfaceMaterials, physics, dsMat);
+			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxDeformableSurfaceMaterial, dsMat);
 		}
 		break;
-		case physx::PxConcreteType::eCLOTH_MATERIAL:
+		case physx::PxConcreteType::eDEFORMABLE_VOLUME_MATERIAL:
 		{
-			const PxFEMClothMaterial& clothMat = static_cast<const PxFEMClothMaterial&>(object);
-			OMNI_PVD_REMOVE(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, FEMClothMaterials, physics, clothMat);
-			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxFEMClothMaterial, clothMat);
+			const PxDeformableVolumeMaterial& sbMat = static_cast<const PxDeformableVolumeMaterial&>(object);
+			OMNI_PVD_REMOVE(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, deformableVolumeMaterials, physics, sbMat);
+			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxDeformableVolumeMaterial, sbMat);
 		}
 		break;
 		case physx::PxConcreteType::ePBD_MATERIAL:
@@ -1647,35 +1910,6 @@ void OmniPvdPxSampler::onObjectRemove(const physx::PxBase& object)
 	}
 }
 
-OmniPvdPxScene* OmniPvdPxSampler::getSampledScene(physx::NpScene* scene)
-{
-	physx::PxMutex::ScopedLock myLock(samplerInternals->mSampledScenesMutex);
-	const physx::PxHashMap<physx::NpScene*, OmniPvdPxScene*>::Entry* entry = samplerInternals->mSampledScenes.find(scene);
-	if (entry)
-	{
-		return entry->second;
-	}
-	else
-	{
-		OmniPvdPxScene* ovdScene = PX_NEW(OmniPvdPxScene)();
-		samplerInternals->mSampledScenes[scene] = ovdScene;
-		return ovdScene;
-	}
-}
-
-void OmniPvdPxSampler::removeSampledScene(physx::NpScene* scene)
-{
-	physx::PxMutex::ScopedLock myLock(samplerInternals->mSampledScenesMutex);
-	const physx::PxHashMap<physx::NpScene*, OmniPvdPxScene*>::Entry* entry = samplerInternals->mSampledScenes.find(scene);
-	if (entry)
-	{
-		OmniPvdPxScene* ovdScene = entry->second;
-		PX_DELETE(ovdScene);
-		samplerInternals->mSampledScenes.erase(scene);
-	}
-}
-
-
 // Returns true if the Geom was not yet seen and added
 bool OmniPvdSamplerInternals::addSharedMeshIfNotSeen(const void* geom, OmniPvdSharedMeshEnum geomEnum)
 {
@@ -1690,6 +1924,28 @@ bool OmniPvdSamplerInternals::addSharedMeshIfNotSeen(const void* geom, OmniPvdSh
 		samplerInternals->mSharedMeshesMap[geom] = geomEnum;
 		return true;
 	}
+}
+
+void OmniPvdPxSampler::reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)
+{
+	OMNI_PVD_WRITE_SCOPE_BEGIN(writer, registrationData)
+	
+	OmniPvdClassHandle handle;
+	
+	if (samplerInternals->mPvdStream.mClassesRegistered)
+	{
+		// The pvdPxErrorCode.classHandle is generate by the OMNI_PVD_ENUM_BEGIN(PxErrorCode) macro in OmniPvdTypes.h
+		// If new messages and message types are to be added and recorded, add a new enum in OmniPvdTypes.h so 
+		// the type (code) parameter can be indexed in the class data (see OmniPvdOvdParser.cpp).
+		handle = registrationData->pvdPxErrorCode.classHandle;
+	}
+	else
+	{
+		handle = OMNI_PVD_INVALID_HANDLE;
+	}
+
+	writer->recordMessage(OMNI_PVD_CONTEXT_HANDLE, message, file, line, code, handle);
+	OMNI_PVD_WRITE_SCOPE_END
 }
 
 ///////////////////////////////////////////////////////////////////////////////

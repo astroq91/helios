@@ -22,12 +22,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 // ****************************************************************************
-// NOTE: Particle cloth has been DEPRECATED. Please use PxFEMCloth instead.
+// NOTE: Particle cloth has been DEPRECATED. Please use PxDeformableSurface instead.
 // This snippet illustrates inflatable simulation using position-based dynamics
 // particle simulation. It creates an inflatable body that drops to the ground.
 // ****************************************************************************

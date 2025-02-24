@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -32,6 +32,10 @@
 #include "PxDirectGPUAPI.h"
 #include "foundation/PxUserAllocated.h"
 
+#if PX_SUPPORT_OMNI_PVD
+#include "omnipvd/NpOmniPvdSimulationControllerCallbacks.h"
+#endif
+
 namespace physx
 {
 
@@ -39,7 +43,6 @@ class NpScene;
 
 class NpDirectGPUAPI : public PxDirectGPUAPI, public PxUserAllocated
 {
-
 public:
 	NpDirectGPUAPI(NpScene& scene);
 	virtual ~NpDirectGPUAPI() { }
@@ -59,6 +62,9 @@ public:
 	//~PxDirectGPUAPI
 
 	NpScene& mNpScene;
+#if PX_SUPPORT_OMNI_PVD
+	NpOmniPvdSimulationControllerCallbacks mOvdCallback;
+#endif
 };
 
 }

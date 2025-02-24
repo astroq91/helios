@@ -7,6 +7,3 @@
 [submodule "Helios/vendor/ImGui"]
 	path = Helios/vendor/ImGui
 	url = git@gitlab.com:astroq1/imgui.git
-[submodule "Helios/vendor/luacpp"]
-	path = Helios/vendor/luacpp
-	url = git@gitlab.com:astroq1/luacpp.git

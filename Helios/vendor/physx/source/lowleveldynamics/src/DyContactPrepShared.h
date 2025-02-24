@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -38,6 +38,7 @@
 #include "PxsContactManager.h"
 #include "PxsContactManagerState.h"
 #include "PxcNpContactPrepShared.h"
+#include "DySolverContact4.h"
 
 namespace physx
 {
@@ -129,7 +130,7 @@ inline bool getFrictionPatches(CorrelationBuffer& c,
 	return true;
 }
 
-PX_FORCE_INLINE PxU32 extractContacts(PxContactBuffer& buffer, PxsContactManagerOutput& npOutput, bool& hasMaxImpulse, bool& hasTargetVelocity,
+PX_FORCE_INLINE PxU32 extractContacts(PxContactBuffer& buffer, const PxsContactManagerOutput& npOutput, bool& hasMaxImpulse, bool& hasTargetVelocity,
 							 PxReal& invMassScale0, PxReal& invMassScale1, PxReal& invInertiaScale0, PxReal& invInertiaScale1, PxReal defaultMaxImpulse)
 {
 	PxContactStreamIterator iter(npOutput.contactPatches, npOutput.contactPoints, npOutput.getInternalFaceIndice(), npOutput.nbPatches, npOutput.nbContacts);

@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -475,7 +475,7 @@ public:
 	PxVehicleDriveDynData();
 	PxVehicleDriveDynData(const PxEMPTY)  {}
 	PxU32 getNbAnalogInput() const { return eMAX_NB_ANALOG_INPUTS; }
-	PX_FORCE_INLINE void setGearChange(const PxU32 gearChange) { mTargetGear= gearChange; }
+	PX_FORCE_INLINE void setGearChange(const PxU32 gearChange) { mTargetGear = gearChange; }
 	PX_FORCE_INLINE PxU32 getGearChange() const { return mTargetGear; }
 	PX_FORCE_INLINE void setGearSwitchTime(const PxReal switchTime) { mGearSwitchTime = switchTime; }
 	PX_FORCE_INLINE void setAutoBoxSwitchTime(const PxReal autoBoxSwitchTime) { mAutoBoxSwitchTime = autoBoxSwitchTime; }

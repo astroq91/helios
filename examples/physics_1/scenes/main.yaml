@@ -50,3 +50,4 @@ entities:
       override_dynamic_physics: false
     script_component:
       path: scripts/bouncy.lua
+default_scene: scenes/main.yaml

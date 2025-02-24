@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 
 #include "foundation/PxPreprocessor.h"
 
@@ -33,7 +33,7 @@
 #include "ScScene.h"
 
 using namespace physx;
-using namespace physx::Dy;
+using namespace Dy;
 
 
 Sc::ParticleSystemSim::ParticleSystemSim(ParticleSystemCore& core, Scene& scene) :
@@ -43,7 +43,7 @@ Sc::ParticleSystemSim::ParticleSystemSim(ParticleSystemCore& core, Scene& scene)
 	
 	mLLParticleSystem = scene.createLLParticleSystem(this);
 
-	mNodeIndex = scene.getSimpleIslandManager()->addParticleSystem(mLLParticleSystem, false);
+	mNodeIndex = scene.getSimpleIslandManager()->addNode(false, false, IG::Node::ePARTICLESYSTEM_TYPE, mLLParticleSystem);
 
 	scene.getSimpleIslandManager()->activateNode(mNodeIndex);
 

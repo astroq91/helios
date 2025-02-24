@@ -22,21 +22,24 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef PXC_NP_WORK_UNIT_H
 #define PXC_NP_WORK_UNIT_H
 
-#include "PxcNpThreadContext.h"
-#include "PxcMaterialMethodImpl.h"
-#include "PxcNpCache.h"
+#include "PxConstraintDesc.h"
 
 namespace physx
 {
 struct PxsRigidCore;
 struct PxsShapeCore;
+
+namespace IG
+{
+	typedef PxU32 EdgeIndex;
+}
 
 struct PxcNpWorkUnitFlag
 {
@@ -104,7 +107,7 @@ struct PxcNpWorkUnit
 	PxU32				mTransformCache0;			//										//44	//68
 	PxU32				mTransformCache1;			//										//48	//72
 	
-	PxU32				mEdgeIndex;					//inout the island gen edge index		//52	//76
+	IG::EdgeIndex		mEdgeIndex;					//inout the island gen edge index		//52	//76
 	PxU32				mNpIndex;					//INPUT									//56	//80
 
 	PxReal				mTorsionalPatchRadius;												//60	//84

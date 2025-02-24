@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -69,6 +69,8 @@ namespace physx
 		class ArticulationFixedTendon;
 		class ArticulationTendonJoint;
 
+		typedef PxU64 ArticulationBitField;
+
 		struct ArticulationLoopConstraint
 		{
 		public:
@@ -79,12 +81,8 @@ namespace physx
 
 #define DY_ARTICULATION_LINK_NONE 0xffffffff
 
-		typedef PxU64 ArticulationBitField;
-
 		struct ArticulationLink
 		{
-			ArticulationBitField		children;		// child bitmap
-			ArticulationBitField		pathToRoot;		// path to root, including link and root
 			PxU32						mPathToRootStartIndex;
 			PxU32						mChildrenStartIndex;
 			PxU16						mPathToRootCount;

@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -184,7 +184,7 @@ void Gu::PCMCapsuleVsMeshContactGeneration::generateEE(const Vec3VArg p, const V
 	
 	// if colliding edge (p3,p4) and plane are parallel return no collision
 	const Vec3V pq = V3Sub(q, p);
-	const FloatV npq= V3Dot(n, pq); 
+	const FloatV npq = V3Dot(n, pq); 
 	if(FAllEq(npq, zero))
 		return;
 
@@ -254,7 +254,7 @@ void Gu::PCMCapsuleVsMeshContactGeneration::generateEEMTD(	const Vec3VArg p, con
 	
 	// if colliding edge (p3,p4) and plane are parallel return no collision
 	const Vec3V pq = V3Sub(q, p);
-	const FloatV npq= V3Dot(n, pq); 
+	const FloatV npq = V3Dot(n, pq); 
 	if(FAllEq(npq, zero))
 		return;
 

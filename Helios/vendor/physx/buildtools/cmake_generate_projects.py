@@ -7,12 +7,6 @@ import subprocess
 import xml.etree.ElementTree
 
 
-def packmanExt():
-    if sys.platform == 'win32':
-        return 'cmd'
-    return 'sh'
-
-
 def cmakeExt():
     if sys.platform == 'win32':
         return '.exe'
@@ -22,10 +16,10 @@ def cmakeExt():
 def filterPreset(presetName):
     winPresetFilter = ['win','switch','crosscompile']
     if sys.platform == 'win32':
-        if any(presetName.find(elem) != -1 for elem in winPresetFilter):
+        if any((presetName.find(elem) != -1 and 'windows-crosscompile' not in presetName) for elem in winPresetFilter):
             return True
     else:
-        if all(presetName.find(elem) == -1 for elem in winPresetFilter):
+        if all((presetName.find(elem) == -1 or 'windows-crosscompile' in presetName) for elem in winPresetFilter):
             return True
     return False
 
@@ -119,6 +113,8 @@ class CMakePreset:
             return False
         elif self.targetPlatform == 'linuxAarch64':
             return False
+        elif self.compiler == 'x86_64-w64-mingw32-g++':
+            return False
         return True
 
     def getCMakeSwitches(self):
@@ -162,6 +158,9 @@ class CMakePreset:
         if self.compiler in vs_versions:
             generator = '-G \"Ninja Multi-Config\"' if self.generator == 'ninja' else '-G ' + vs_versions[self.compiler]
             outString += generator
+        # Windows crosscompile
+        elif self.compiler == 'x86_64-w64-mingw32-g++':
+            outString = outString + '-G \"Ninja\"'
         # mac
         elif self.compiler == 'xcode':
             outString = outString + '-G Xcode'
@@ -178,6 +177,9 @@ class CMakePreset:
                 outString = outString + ' -Ax64'
             outString = outString + ' -DTARGET_BUILD_PLATFORM=windows'
             outString = outString + ' -DPX_OUTPUT_ARCH=x86'
+            if self.compiler == 'x86_64-w64-mingw32-g++':
+                outString = outString + ' -DCMAKE_TOOLCHAIN_FILE=' + \
+                    cmake_modules_root + '/linux/WindowsCrossToolchain.linux-unknown-x86_64.cmake'
             return outString
         elif self.targetPlatform == 'switch64':
             outString = outString + ' -DTARGET_BUILD_PLATFORM=switch'
@@ -262,35 +264,35 @@ def presetProvided(pName, physx_root_dir):
     cmakeParams = cmakeParams + ' ' + parsedPreset.getCMakeParams()
     # print(cmakeParams)
 
-    if os.path.isfile(os.environ['PHYSX_ROOT_DIR'] + '/compiler/internal/CMakeLists.txt'):
+    if os.path.isfile(physx_root_dir + '/compiler/internal/CMakeLists.txt'):
         cmakeMasterDir = 'internal'
     else:
         cmakeMasterDir = 'public'
     if parsedPreset.isMultiConfigPlatform():
         # cleanup and create output directory
-        outputDir = os.path.join('compiler', parsedPreset.presetName)
+        outputDir = os.path.join(physx_root_dir, 'compiler', parsedPreset.presetName)
         cleanupCompilerDir(outputDir)
 
         # run the cmake script
         #print('Cmake params:' + cmakeParams)
-        os.chdir(os.path.join(os.environ['PHYSX_ROOT_DIR'], outputDir))
+        os.chdir(outputDir)
         os.system(cmakeExec + ' \"' +
-                  os.environ['PHYSX_ROOT_DIR'] + '/compiler/' + cmakeMasterDir + '\"' + cmakeParams)
-        os.chdir(os.environ['PHYSX_ROOT_DIR'])
+                  physx_root_dir + '/compiler/' + cmakeMasterDir + '\"' + cmakeParams)
+        os.chdir(physx_root_dir)
     else:
         configs = ['debug', 'checked', 'profile', 'release']
         for config in configs:
             # cleanup and create output directory
-            outputDir = os.path.join('compiler', parsedPreset.presetName + '-' + config)
+            outputDir = os.path.join(physx_root_dir, 'compiler', parsedPreset.presetName + '-' + config)
             cleanupCompilerDir(outputDir)
 
             # run the cmake script
             #print('Cmake params:' + cmakeParams)
-            os.chdir(os.path.join(os.environ['PHYSX_ROOT_DIR'], outputDir))
-            # print(cmakeExec + ' \"' + os.environ['PHYSX_ROOT_DIR'] + '/compiler/' + cmakeMasterDir + '\"' + cmakeParams + ' -DCMAKE_BUILD_TYPE=' + config)
-            os.system(cmakeExec + ' \"' + os.environ['PHYSX_ROOT_DIR'] + '/compiler/' +
+            os.chdir(outputDir)
+            # print(cmakeExec + ' \"' + physx_root_dir + '/compiler/' + cmakeMasterDir + '\"' + cmakeParams + ' -DCMAKE_BUILD_TYPE=' + config)
+            os.system(cmakeExec + ' \"' + physx_root_dir + '/compiler/' +
                       cmakeMasterDir + '\"' + cmakeParams + ' -DCMAKE_BUILD_TYPE=' + config)
-            os.chdir(os.environ['PHYSX_ROOT_DIR'])
+            os.chdir(physx_root_dir)
     pass
 
 

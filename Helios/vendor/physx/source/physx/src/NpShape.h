@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -80,12 +80,12 @@ public:
 	virtual			void						setQueryFilterData(const PxFilterData& data)	PX_OVERRIDE PX_FINAL;
 	virtual			PxFilterData				getQueryFilterData() const	PX_OVERRIDE PX_FINAL;
 	virtual			void						setMaterials(PxMaterial*const* materials, PxU16 materialCount)	PX_OVERRIDE PX_FINAL;
-	virtual			void						setSoftBodyMaterials(PxFEMSoftBodyMaterial*const* materials, PxU16 materialCount)	PX_OVERRIDE PX_FINAL;
-	virtual			void						setClothMaterials(PxFEMClothMaterial*const* materials, PxU16 materialCount)	PX_OVERRIDE PX_FINAL;
+	virtual			void						setDeformableSurfaceMaterials(PxDeformableSurfaceMaterial*const* materials, PxU16 materialCount)	PX_OVERRIDE PX_FINAL;
+	virtual			void						setDeformableVolumeMaterials(PxDeformableVolumeMaterial* const* materials, PxU16 materialCount)	PX_OVERRIDE PX_FINAL;
 	virtual			PxU16						getNbMaterials()															const	PX_OVERRIDE PX_FINAL;
 	virtual			PxU32						getMaterials(PxMaterial** userBuffer, PxU32 bufferSize, PxU32 startIndex=0)	const	PX_OVERRIDE PX_FINAL;
-	virtual			PxU32						getSoftBodyMaterials(PxFEMSoftBodyMaterial** userBuffer, PxU32 bufferSize, PxU32 startIndex = 0)	const	PX_OVERRIDE PX_FINAL;
-	virtual			PxU32						getClothMaterials(PxFEMClothMaterial** userBuffer, PxU32 bufferSize, PxU32 startIndex = 0)	const	PX_OVERRIDE PX_FINAL;
+	virtual			PxU32						getDeformableSurfaceMaterials(PxDeformableSurfaceMaterial** userBuffer, PxU32 bufferSize, PxU32 startIndex = 0) const	PX_OVERRIDE PX_FINAL;
+	virtual			PxU32						getDeformableVolumeMaterials(PxDeformableVolumeMaterial** userBuffer, PxU32 bufferSize, PxU32 startIndex = 0)	const	PX_OVERRIDE PX_FINAL;
 	virtual			PxBaseMaterial*				getMaterialFromInternalFaceIndex(PxU32 faceIndex)							const	PX_OVERRIDE PX_FINAL;
 	virtual			void						setContactOffset(PxReal)	PX_OVERRIDE PX_FINAL;
 	virtual			PxReal						getContactOffset() const	PX_OVERRIDE PX_FINAL;

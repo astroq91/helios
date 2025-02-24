@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -807,7 +807,7 @@ private:
 
 	const PxContactPatch* mContactPatches;
 	const PxFrictionPatch* mFrictionPatches;
-	const PxU32 mPatchCount;
+	PxU32 mPatchCount;
 	PxI32 mFrictionAnchorIndex;
 	PxI32 mPatchIndex;
 };

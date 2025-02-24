@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -58,6 +58,7 @@ bool CustomConvex::generateContacts(const PxGeometry& geom0, const PxGeometry& g
 	case PxGeometryType::eSPHERE:
 	case PxGeometryType::eCAPSULE:
 	case PxGeometryType::eBOX:
+	case PxGeometryType::eCONVEXCORE:
 	case PxGeometryType::eCONVEXMESH:
 	{
 		PxGjkQueryExt::ConvexGeomSupport geomSupport(geom1);

@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -330,6 +330,46 @@ void OMNI_PVD_CALL OmniPvdWriterImpl::stopFrame(OmniPvdContextHandle contextHand
 		writeCommand(OmniPvdCommand::eSTOP_FRAME);
 		writeWithStatus((const uint8_t*)&contextHandle, sizeof(OmniPvdContextHandle));
 		writeWithStatus((const uint8_t*)&timeStamp, sizeof(uint64_t));
+	}
+}
+
+void OMNI_PVD_CALL OmniPvdWriterImpl::recordMessage(OmniPvdContextHandle contextHandle, const char* message, const char* file, uint32_t line, uint32_t type, OmniPvdClassHandle handle)
+{
+	setVersionHelper();
+	if (mStream)
+	{
+		writeCommand(OmniPvdCommand::eRECORD_MESSAGE);
+		writeWithStatus((const uint8_t*)&contextHandle, sizeof(OmniPvdContextHandle));
+
+		int messageLength = 0;
+
+		if (message)
+		{
+			messageLength = (int)strlen(message);
+			writeWithStatus((const uint8_t*)&messageLength, sizeof(uint16_t));
+			writeWithStatus((const uint8_t*)message, messageLength);
+		}
+		else
+		{
+			writeWithStatus((const uint8_t*)&messageLength, sizeof(uint16_t));
+		}
+
+		int filenameLength = 0;
+
+		if (file)
+		{
+			filenameLength = (int)strlen(file);
+			writeWithStatus((const uint8_t*)&filenameLength, sizeof(uint16_t));
+			writeWithStatus((const uint8_t*)file, filenameLength);
+		}
+		else
+		{
+			writeWithStatus((const uint8_t*)&filenameLength, sizeof(uint16_t));
+		}
+
+		writeWithStatus((const uint8_t*)&line, sizeof(uint32_t));
+		writeWithStatus((const uint8_t*)&type, sizeof(uint32_t));
+		writeWithStatus((const uint8_t*)&handle, sizeof(OmniPvdClassHandle));
 	}
 }
 

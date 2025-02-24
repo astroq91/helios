@@ -17,10 +17,10 @@ option(PHYSX_BUILD_TYPE "The build type of PhysX, i.e., one of {debug, checked, 
 
 if(CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("Building snippet in debug configuration")
-    set(PHYSX "${CMAKE_SOURCE_DIR}/Helios/vendor/physx/bin/linux.clang/debug")
+    set(PHYSX "${CMAKE_SOURCE_DIR}/Helios/vendor/physx/bin/linux.x86_64/debug")
 else()
     message("Building snippet in release configuration with PhysX ${PHYSX_BUILD_TYPE} configuration")
-    set(PHYSX "${CMAKE_SOURCE_DIR}/Helios/vendor/physx/bin/linux.clang/debug/${PHYSX_BUILD_TYPE}")
+    set(PHYSX "${CMAKE_SOURCE_DIR}/Helios/vendor/physx/bin/linux.x86_64/debug/${PHYSX_BUILD_TYPE}")
 endif()
 
 

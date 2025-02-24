@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -59,12 +59,13 @@ enum SolverConstraintType
 
 enum SolverConstraintFlags
 {
-	DY_SC_FLAG_OUTPUT_FORCE		= (1<<1),
-	DY_SC_FLAG_KEEP_BIAS		= (1<<2),
-	DY_SC_FLAG_ROT_EQ			= (1<<3),
-	DY_SC_FLAG_ORTHO_TARGET		= (1<<4),
-	DY_SC_FLAG_SPRING			= (1<<5),
-	DY_SC_FLAG_INEQUALITY		= (1<<6)
+	DY_SC_FLAG_OUTPUT_FORCE			= (1<<1),
+	DY_SC_FLAG_KEEP_BIAS			= (1<<2),
+	DY_SC_FLAG_ROT_EQ				= (1<<3),
+	DY_SC_FLAG_ORTHO_TARGET			= (1<<4),
+	DY_SC_FLAG_SPRING				= (1<<5),
+	DY_SC_FLAG_INEQUALITY			= (1<<6),
+	DY_SC_FLAG_ACCELERATION_SPRING	= (1<<7)
 };
 
 }

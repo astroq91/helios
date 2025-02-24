@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 
 #include "foundation/PxErrorCallback.h"
 #include "extensions/PxDefaultStreams.h"
@@ -798,7 +798,7 @@ bool Sn::ConvX::convertCollection(const void* buffer, int fileSize, int nbObject
 
 	const int ptrSize_Src = mSrcPtrSize;
 	const int ptrSize_Dst = mDstPtrSize;
-	Item* objects = PX_NEW(Item)[PxU32(nbObjects)];
+	Item* objects = (nbObjects != 0) ? PX_NEW(Item)[PxU32(nbObjects)] : NULL;
 
 	for(PxU32 i=0;i<PxU32(nbObjects);i++)
 	{

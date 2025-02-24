@@ -22,7 +22,7 @@
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ## OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##
-## Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+## Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 
 #
 # Build PhysXFoundation common
@@ -39,7 +39,6 @@ SET(PHYSXFOUNDATION_HEADERS
 	${PHYSX_ROOT_DIR}/include/foundation/PxAssert.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxFoundationConfig.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxMathUtils.h
-	${PHYSX_ROOT_DIR}/include/foundation/Px.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxAlignedMalloc.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxAllocatorCallback.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxProfiler.h
@@ -54,6 +53,7 @@ SET(PHYSXFOUNDATION_HEADERS
 	${PHYSX_ROOT_DIR}/include/foundation/PxBitUtils.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxBounds3.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxBroadcast.h
+	${PHYSX_ROOT_DIR}/include/foundation/PxConstructor.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxErrorCallback.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxErrors.h
 	${PHYSX_ROOT_DIR}/include/foundation/PxFlags.h

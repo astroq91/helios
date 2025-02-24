@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -34,9 +34,9 @@
 #include "geometry/PxTriangleMeshGeometry.h"
 #include "geometry/PxConvexMeshGeometry.h"
 #include "geometry/PxHeightFieldGeometry.h"
-#include "geometry/PxHairSystemGeometry.h"
 #include "geometry/PxParticleSystemGeometry.h"
 #include "geometry/PxCustomGeometry.h"
+#include "geometry/PxConvexCoreGeometry.h"
 #include "foundation/PxAtomic.h"
 
 #include "GuInternal.h"
@@ -76,12 +76,12 @@ bool PxGeometryQuery::isValid(const PxGeometry& g)
 		case PxGeometryType::ePLANE:			return static_cast<const PxPlaneGeometry&>(g).isValid();
 		case PxGeometryType::eCAPSULE:			return static_cast<const PxCapsuleGeometry&>(g).isValid();
 		case PxGeometryType::eBOX:				return static_cast<const PxBoxGeometry&>(g).isValid();
+		case PxGeometryType::eCONVEXCORE:		return static_cast<const PxConvexCoreGeometry&>(g).isValid();
 		case PxGeometryType::eCONVEXMESH:		return static_cast<const PxConvexMeshGeometry&>(g).isValid();
 		case PxGeometryType::eTRIANGLEMESH:		return static_cast<const PxTriangleMeshGeometry&>(g).isValid();
 		case PxGeometryType::eHEIGHTFIELD:		return static_cast<const PxHeightFieldGeometry&>(g).isValid();
 		case PxGeometryType::eTETRAHEDRONMESH:	return static_cast<const PxTetrahedronMeshGeometry&>(g).isValid();
 		case PxGeometryType::ePARTICLESYSTEM:	return static_cast<const PxParticleSystemGeometry&>(g).isValid();
-		case PxGeometryType::eHAIRSYSTEM:		return static_cast<const PxHairSystemGeometry&>(g).isValid();
 		case PxGeometryType::eCUSTOM:			return static_cast<const PxCustomGeometry&>(g).isValid();
 	}
 	return false;

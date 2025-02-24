@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -37,7 +37,6 @@ Alternatively, one can instead directly #include a subset of the below files.
 */
 
 // Foundation SDK 
-#include "foundation/Px.h"
 #include "foundation/PxAlignedMalloc.h"
 #include "foundation/PxAlloca.h"
 #include "foundation/PxAllocatorCallback.h"
@@ -50,6 +49,7 @@ Alternatively, one can instead directly #include a subset of the below files.
 #include "foundation/PxBitUtils.h"
 #include "foundation/PxBounds3.h"
 #include "foundation/PxBroadcast.h"
+#include "foundation/PxConstructor.h"
 #include "foundation/PxErrorCallback.h"
 #include "foundation/PxErrors.h"
 #include "foundation/PxFlags.h"
@@ -159,8 +159,12 @@ Alternatively, one can instead directly #include a subset of the below files.
 #include "PxConstraintDesc.h"
 #include "PxContact.h"
 #include "PxContactModifyCallback.h"
+#include "PxDeformableSurface.h"
+#include "PxDeformableSurfaceMaterial.h"
+#include "PxDeformableVolume.h"
+#include "PxDeformableVolumeMaterial.h"
 #include "PxDeletionListener.h"
-#include "PxFEMSoftBodyMaterial.h"
+#include "PxFEMSoftBodyMaterial.h" // deprecated, include PxDeformableVolumeMaterial.h
 #include "PxFiltering.h"
 #include "PxForceMode.h"
 #include "PxLockedData.h"
@@ -183,14 +187,9 @@ Alternatively, one can instead directly #include a subset of the below files.
 #include "PxShape.h"
 #include "PxSimulationEventCallback.h"
 #include "PxSimulationStatistics.h"
-#include "PxSoftBody.h"
+#include "PxSoftBody.h" //deprecated, include PxDeformableVolume.h
 #include "PxVisualizationParameter.h"
 #include "PxPruningStructure.h"
-#if PX_ENABLE_FEATURES_UNDER_CONSTRUCTION
-#include "PxFEMCloth.h"
-#include "PxFEMClothMaterial.h"
-#include "PxHairSystem.h"
-#endif
 
 //Character Controller
 #include "characterkinematic/PxBoxController.h"

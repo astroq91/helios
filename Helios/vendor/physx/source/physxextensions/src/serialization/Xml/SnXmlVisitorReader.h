@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -292,6 +292,9 @@ namespace physx { namespace Sn {
 					case PxGeometryType::eBOX :
 						static_cast<PxBoxGeometry*>(geometry)->~PxBoxGeometry();
 						break;
+					case PxGeometryType::eCONVEXCORE:
+						static_cast<PxConvexCoreGeometry*>(geometry)->~PxConvexCoreGeometry();
+						break;
 					case PxGeometryType::eCONVEXMESH :
 						static_cast<PxConvexMeshGeometry*>(geometry)->~PxConvexMeshGeometry();
 						break;
@@ -306,9 +309,6 @@ namespace physx { namespace Sn {
 						break;
 					case PxGeometryType::ePARTICLESYSTEM:
 						static_cast<PxParticleSystemGeometry*>(geometry)->~PxParticleSystemGeometry();
-						break;
-					case PxGeometryType::eHAIRSYSTEM:
-						static_cast<PxHairSystemGeometry*>(geometry)->~PxHairSystemGeometry();
 						break;
 					case PxGeometryType::eCUSTOM :
 						static_cast<PxCustomGeometry*>(geometry)->~PxCustomGeometry();

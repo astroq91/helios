@@ -22,23 +22,26 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef DY_SOLVER_CONSTRAINT_1D_STEP_H
 #define DY_SOLVER_CONSTRAINT_1D_STEP_H
 
+#include "CmSpatialVector.h"
 #include "foundation/PxVec3.h"
-#include "PxvConfig.h"
 #include "DySolverConstraintTypes.h"
-#include "DySolverBody.h"
 #include "PxConstraintDesc.h"
-#include "DySolverConstraintDesc.h"
+#include "DyCpuGpu1dConstraint.h"
 
 
 namespace physx
 {
+	namespace Sc
+	{
+		class ShapeInteraction;
+	}
 	namespace Dy
 	{
 		struct SolverContactHeaderStep

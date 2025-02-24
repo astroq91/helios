@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -452,7 +452,7 @@ public:
 	*/
 	virtual 	PxRigidDynamicGPUIndex	getGPUIndex() const = 0;
 
-	virtual		const char*			getConcreteTypeName() const { return "PxRigidDynamic"; }
+	virtual		const char*			getConcreteTypeName() const	PX_OVERRIDE	PX_FINAL	{ return "PxRigidDynamic"; }
 
 protected:
 	PX_INLINE						PxRigidDynamic(PxType concreteType, PxBaseFlags baseFlags) : PxRigidBody(concreteType, baseFlags) { }

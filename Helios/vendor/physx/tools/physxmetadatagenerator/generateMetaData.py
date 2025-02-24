@@ -22,7 +22,7 @@
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ## OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##
-## Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+## Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 
 import argparse
 import os
@@ -135,7 +135,7 @@ includes += includeString(sdkRoot + '/tools/physxmetadatagenerator')
 
 print("platform:", platform.system())
 
-commonFlags = '-DNDEBUG -DPX_GENERATE_META_DATA -DPX_ENABLE_FEATURES_UNDER_CONSTRUCTION=0 -x c++-header -w -Wno-c++11-narrowing -fms-extensions '
+commonFlags = '-DNDEBUG -DPX_GENERATE_META_DATA -x c++-header -w -Wno-c++11-narrowing -fms-extensions '
 
 
 if platform.system() == "Windows":

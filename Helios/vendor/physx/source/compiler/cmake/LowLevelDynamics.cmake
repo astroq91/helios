@@ -22,7 +22,7 @@
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ## OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##
-## Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+## Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 
 #
 # Build LowLevelDynamics common
@@ -39,15 +39,14 @@ SET(LLDYNAMICS_BASE_DIR ${PHYSX_ROOT_DIR}/source/lowleveldynamics)
 
 SET(LLDYNAMICS_INCLUDES
 	${LLDYNAMICS_BASE_DIR}/include/DyArticulationCore.h
-	${LLDYNAMICS_BASE_DIR}/include/DyVArticulation.h		
+	${LLDYNAMICS_BASE_DIR}/include/DyVArticulation.h
 	${LLDYNAMICS_BASE_DIR}/include/DyArticulationTendon.h
 	${LLDYNAMICS_BASE_DIR}/include/DyArticulationMimicJointCore.h
-	${LLDYNAMICS_BASE_DIR}/include/DySoftBodyCore.h
-	${LLDYNAMICS_BASE_DIR}/include/DySoftBody.h
-	${LLDYNAMICS_BASE_DIR}/include/DyFEMClothCore.h
-	${LLDYNAMICS_BASE_DIR}/include/DyFEMCloth.h
-    ${LLDYNAMICS_BASE_DIR}/include/DyHairSystemCore.h
-	${LLDYNAMICS_BASE_DIR}/include/DyHairSystem.h
+	${LLDYNAMICS_BASE_DIR}/include/DyDeformableBodyCore.h
+	${LLDYNAMICS_BASE_DIR}/include/DyDeformableSurface.h
+	${LLDYNAMICS_BASE_DIR}/include/DyDeformableSurfaceCore.h
+	${LLDYNAMICS_BASE_DIR}/include/DyDeformableVolume.h
+	${LLDYNAMICS_BASE_DIR}/include/DyDeformableVolumeCore.h
 	${LLDYNAMICS_BASE_DIR}/include/DyFeatherstoneArticulation.h
 	${LLDYNAMICS_BASE_DIR}/include/DyFeatherstoneArticulationJointData.h
 	${LLDYNAMICS_BASE_DIR}/include/DyFeatherstoneArticulationUtils.h
@@ -60,6 +59,7 @@ SET(LLDYNAMICS_INCLUDES
 	${LLDYNAMICS_BASE_DIR}/include/DyParticleSystemCore.h
 	${LLDYNAMICS_BASE_DIR}/include/DyParticleSystem.h
 	${LLDYNAMICS_BASE_DIR}/include/DyResidualAccumulator.h
+	${LLDYNAMICS_BASE_DIR}/include/DyIslandManager.h
 )
 SOURCE_GROUP("include" FILES ${LLDYNAMICS_INCLUDES})
 

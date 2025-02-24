@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 
 #ifndef SC_PARTICLESYSTEM_SHAPE_SIM_H
 #define SC_PARTICLESYSTEM_SHAPE_SIM_H
@@ -36,39 +36,35 @@
 
 namespace physx
 {
-	namespace Sc
-	{
-		class ParticleSystemSim;
-		class ParticleSystemShapeCore;
+namespace Sc
+{
 
-		/**
-		A collision detection primitive for soft body.
-		*/
-		class ParticleSystemShapeSim : public ShapeSimBase
-		{
-			ParticleSystemShapeSim& operator=(const ParticleSystemShapeSim &);
-		public:
-													ParticleSystemShapeSim(ParticleSystemSim& particleSystem, const ParticleSystemShapeCore* core);
-			virtual									~ParticleSystemShapeSim();
+class ParticleSystemSim;
+class ParticleSystemShapeCore;
 
-			// ElementSim implementation
-			virtual		void						getFilterInfo(PxFilterObjectAttributes& filterAttr, PxFilterData& filterData) const;
-			// ~ElementSim
+/**
+A collision detection primitive for particles.
+*/
+class ParticleSystemShapeSim : public ShapeSimBase
+{
+	ParticleSystemShapeSim& operator=(const ParticleSystemShapeSim &);
+public:
+											ParticleSystemShapeSim(ParticleSystemSim& particleSystem, const ParticleSystemShapeCore* core);
+	virtual									~ParticleSystemShapeSim();
 
-			ParticleSystemSim&						getBodySim() const;
+	ParticleSystemSim&						getBodySim() const;
 
+	void									updateBounds();
+	void									updateBoundsInAABBMgr();
+	PxBounds3								getBounds() const;
 
-			void									updateBounds();
-			void									updateBoundsInAABBMgr();
-			PxBounds3								getBounds() const;
+	void									createLowLevelVolume();
+	void									destroyLowLevelVolume();
 
-			void									createLowLevelVolume();
-			void									destroyLowLevelVolume();
+};
 
-		};
+} // namespace Sc
+} // namespace physx
 
-	} // namespace Sc
-}
-#endif
-
-#endif
+#endif // PX_SUPPORT_GPU_PHYSX
+#endif // SC_PARTICLESYSTEM_SHAPE_SIM_H

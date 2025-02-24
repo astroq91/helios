@@ -22,14 +22,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
 #ifndef SC_INTERACTION_H
 #define SC_INTERACTION_H
 
-#include "foundation/Px.h"
 #include "ScInteractionFlags.h"
 #include "ScActorSim.h"
 #include "foundation/PxUserAllocated.h"
@@ -129,7 +128,7 @@ namespace Sc
 	protected:
 		const			PxU8			mInteractionType;	// PT: stored on a byte to save space, should be InteractionType enum, 5/6 bits needed here
 						PxU8			mInteractionFlags;	// PT: 6 bits needed here, see InteractionFlag enum
-						PxU8			mDirtyFlags;		// PT: 6 bits needed here, see InteractionDirtyFlag enum
+						PxU8			mDirtyFlags;		// PT: 5 bits needed here, see InteractionDirtyFlag enum
 						PxU8			mPadding8;
 	};
 

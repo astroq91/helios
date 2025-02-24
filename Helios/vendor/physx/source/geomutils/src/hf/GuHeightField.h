@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -46,6 +46,7 @@
 namespace physx
 {
 class PxHeightFieldDesc;
+class PxInputStream;
 
 namespace Gu
 {
@@ -232,9 +233,7 @@ public:
 																		PX_ASSERT(isValidVertex(vertexIndex));
 																		return mData.samples[vertexIndex];
 																	}
-#ifdef __CUDACC__
-	PX_CUDA_CALLABLE					void						setSamplePtr(PxHeightFieldSample* s) { mData.samples = s; }
-#endif
+
 										Gu::HeightFieldData			mData;
 										PxU32						mSampleStride;
 										PxU32						mNbSamples;	// PT: added for platform conversion. Try to remove later.

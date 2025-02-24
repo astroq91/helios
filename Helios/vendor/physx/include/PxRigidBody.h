@@ -22,7 +22,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Copyright (c) 2008-2024 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2025 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -89,6 +89,7 @@ struct PxRigidBodyFlag
 		individual interactions. 
 
 		\note kinematic actors are incompatible with CCD so this flag will be cleared automatically when raised on a kinematic actor
+		\note PxConvexCoreGeometry geometry type only supports eENABLE_SPECULATIVE_CCD at the moment. eENABLE_CCD will be ignored
 		*/
 		eENABLE_CCD	= (1<<2),		//!< Enable CCD for the body.
 
