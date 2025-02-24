@@ -1,0 +1,59 @@
+entities:
+  - name_component:
+      name: Cube
+    transform_component:
+      position: [0, 0, -1.50226378]
+      rotation: [-0.00163559383, 0.187420696, 0.00857188553, 0.982240975]
+      scale: [1, 1, 1]
+    mesh_component:
+      mesh: Cube
+      material:
+        diffuse: ""
+        specular: ""
+        emission: ""
+        shininess: 32.000000
+  - name_component:
+      name: Room 2
+    transform_component:
+      position: [8.78488159, 0.66010052, -16.39114]
+      rotation: [-0.622295022, 0.00219725282, -0.00276381802, 0.782774806]
+      scale: [3.00098491, 2.99978757, 2.99999356]
+    mesh_component:
+      mesh: models/viking_room.obj
+      material:
+        diffuse: images/viking_room.png
+        specular: ""
+        emission: ""
+        shininess: 32.000000
+  - name_component:
+      name: Room 1
+    transform_component:
+      position: [-1.18576539, -0.5841133, -7.09583139]
+      rotation: [-0.270598084, -0.65328145, -0.65328145, 0.270598024]
+      scale: [2.99999714, 2.99999642, 2.99999738]
+    mesh_component:
+      mesh: models/viking_room.obj
+      material:
+        diffuse: images/viking_room.png
+        specular: ""
+        emission: ""
+        shininess: 32.000000
+    script_component:
+      path: scripts/script.lua
+  - name_component:
+      name: Light
+    directional_light_component:
+      direction: [1, 1, 1]
+      ambient: [1, 1, 1]
+      diffuse: [1, 1, 1]
+      specular: [1, 1, 1]
+  - name_component:
+      name: Camera
+    transform_component:
+      position: [-8.24663544, 5.97545195, -0.569950998]
+      rotation: [-0.22868517, -0.364416003, -0.00263277907, 0.902716517]
+      scale: [0.999995351, 1.00000083, 0.999993503]
+    camera_component:
+      fov_y: 120
+      near: 0.100000001
+      far: 100

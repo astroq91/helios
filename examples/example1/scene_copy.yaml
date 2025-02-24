@@ -1,0 +1,50 @@
+entities:
+  - name_component:
+      name: Floor
+    transform_component:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [11.8731031, 0.253236592, 10.7992649]
+    mesh_component:
+      mesh: Cube
+      material:
+        diffuse: images/cobblestone.png
+        specular: ""
+        emission: ""
+        shininess: 32.000000
+    rigid_body_component:
+      type: static
+      mass: 1
+      kinematic: false
+      static_friction: 0.5
+      dynamic_friction: 0.5
+      restitution: 0.600000024
+      override_dynamic_physics: false
+  - name_component:
+      name: Light
+    directional_light_component:
+      direction: [1, 1, 1]
+      ambient: [1, 1, 1]
+      diffuse: [1, 1, 1]
+      specular: [1, 1, 1]
+  - name_component:
+      name: Object
+    transform_component:
+      position: [0, 4.52331257, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    mesh_component:
+      mesh: Cube
+      material:
+        diffuse: images/container2.png
+        specular: ""
+        emission: ""
+        shininess: 32.000000
+    rigid_body_component:
+      type: dynamic
+      mass: 1
+      kinematic: false
+      static_friction: 0.5
+      dynamic_friction: 0.5
+      restitution: 0.600000024
+      override_dynamic_physics: false

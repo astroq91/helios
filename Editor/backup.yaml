@@ -1,0 +1,44 @@
+Entities:
+  - NameComponent:
+      Name: DirLight
+    DirectionalLightComponent:
+      Direction: [1, 1, 1]
+      Ambient: [1, 1, 1]
+      Diffuse: [1, 1, 1]
+      Specular: [1, 1, 1]
+  - NameComponent:
+      Name: Cube
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Mesh: Cube
+      Material:
+        Diffuse: Assets/Images/container2.png
+        Specular: Assets/Images/container2_specular.png
+        Emission: ""
+        Shininess: 32.000000
+  - NameComponent:
+      Name: Camera
+    TransformComponent:
+      Position: [0, 0, 20]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      FovY: 120
+      Near: 0.100000001
+      Far: 100
+  - NameComponent:
+      Name: Viking room
+    TransformComponent:
+      Position: [5, 0, 0]
+      Rotation: [-90, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Mesh: Assets/Models/viking_room.obj
+      Material:
+        Diffuse: Assets/Images/viking_room.png
+        Specular: ""
+        Emission: ""
+        Shininess: 32.000000

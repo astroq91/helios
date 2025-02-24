@@ -1,0 +1,12 @@
+[submodule "Helios/vendor/sol2"]
+	path = Helios/vendor/sol2
+	url = git@gitlab.com:astroq1/sol2.git
+[submodule "Editor/vendor/ImGuizmo"]
+	path = Editor/vendor/ImGuizmo
+	url = git@gitlab.com:astroq1/ImGuizmo.git
+[submodule "Helios/vendor/ImGui"]
+	path = Helios/vendor/ImGui
+	url = git@gitlab.com:astroq1/imgui.git
+[submodule "Helios/vendor/luacpp"]
+	path = Helios/vendor/luacpp
+	url = git@gitlab.com:astroq1/luacpp.git

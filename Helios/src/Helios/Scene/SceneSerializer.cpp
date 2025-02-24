@@ -1,0 +1,428 @@
+﻿#include "SceneSerializer.h"
+
+#include <fstream>
+#include <glm/glm.hpp>
+#include <yaml-cpp/yaml.h>
+
+#include "Entity.h"
+#include "Helios/Core/Application.h"
+#include "Helios/Core/IOUtils.h"
+#include "Helios/ECSComponents/Components.h"
+#include "yaml-cpp/emittermanip.h"
+
+namespace YAML {
+template <> struct convert<glm::vec3> {
+    static Node encode(const glm::vec3& rhs) {
+        Node node;
+        node.push_back(rhs.x);
+        node.push_back(rhs.y);
+        node.push_back(rhs.z);
+        return node;
+    }
+
+    static bool decode(const Node& node, glm::vec3& rhs) {
+        if (!node.IsSequence() || node.size() != 3) {
+            return false;
+        }
+
+        rhs.x = node[0].as<float>();
+        rhs.y = node[1].as<float>();
+        rhs.z = node[2].as<float>();
+        return true;
+    }
+};
+
+template <> struct convert<glm::quat> {
+    static Node encode(const glm::quat& rhs) {
+        Node node;
+        node.push_back(rhs.x);
+        node.push_back(rhs.y);
+        node.push_back(rhs.z);
+        node.push_back(rhs.w);
+        return node;
+    }
+
+    static bool decode(const Node& node, glm::quat& rhs) {
+        if (!node.IsSequence() || node.size() != 4) {
+            return false;
+        }
+
+        rhs.x = node[0].as<float>();
+        rhs.y = node[1].as<float>();
+        rhs.z = node[2].as<float>();
+        rhs.w = node[3].as<float>();
+        return true;
+    }
+};
+} // namespace YAML
+
+namespace Helios {
+YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& value) {
+    out << YAML::Flow;
+    out << YAML::BeginSeq << value.x << value.y << value.z << YAML::EndSeq;
+    return out;
+}
+
+YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& value) {
+    out << YAML::Flow;
+    out << YAML::BeginSeq << value.x << value.y << value.z << value.w
+        << YAML::EndSeq;
+    return out;
+}
+
+void SerializeEntity(YAML::Emitter& out, Entity entity) {
+    out << YAML::BeginMap;
+    if (entity.has_component<NameComponent>()) {
+        const auto& component = entity.get_component<NameComponent>();
+        out << YAML::Key << "name_component" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "name" << YAML::Value << component.name;
+
+        out << YAML::EndMap;
+    }
+
+    if (entity.has_component<TransformComponent>()) {
+        const auto& component = entity.get_component<TransformComponent>();
+        out << YAML::Key << "transform_component" << YAML::Value
+            << YAML::BeginMap;
+
+        out << YAML::Key << "position" << YAML::Value << component.position;
+        out << YAML::Key << "rotation" << YAML::Value << component.rotation;
+
+        out << YAML::Key << "scale" << YAML::Value << component.scale;
+
+        out << YAML::EndMap;
+    }
+
+    if (entity.has_component<CameraComponent>()) {
+        const auto& component = entity.get_component<CameraComponent>();
+        out << YAML::Key << "camera_component" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "fov_y" << YAML::Value << component.fovY;
+        out << YAML::Key << "near" << YAML::Value << component.near;
+        out << YAML::Key << "far" << YAML::Value << component.far;
+
+        out << YAML::EndMap;
+    }
+
+    if (entity.has_component<DirectionalLightComponent>()) {
+        const auto& component =
+            entity.get_component<DirectionalLightComponent>();
+        out << YAML::Key << "directional_light_component" << YAML::Value
+            << YAML::BeginMap;
+
+        out << YAML::Key << "direction" << YAML::Value << component.direction;
+        out << YAML::Key << "ambient" << YAML::Value << component.ambient;
+        out << YAML::Key << "diffuse" << YAML::Value << component.diffuse;
+        out << YAML::Key << "specular" << YAML::Value << component.specular;
+
+        out << YAML::EndMap;
+    }
+
+    if (entity.has_component<PointLightComponent>()) {
+        const auto& component = entity.get_component<PointLightComponent>();
+        out << YAML::Key << "point_light_component" << YAML::Value
+            << YAML::BeginMap;
+
+        out << YAML::Key << "position" << YAML::Value << component.position;
+
+        out << YAML::Key << "constant" << YAML::Value << component.constant;
+        out << YAML::Key << "linear" << YAML::Value << component.linear;
+        out << YAML::Key << "quadratic" << YAML::Value << component.quadratic;
+
+        out << YAML::Key << "ambient" << YAML::Value << component.ambient;
+        out << YAML::Key << "diffuse" << YAML::Value << component.diffuse;
+        out << YAML::Key << "specular" << YAML::Value << component.specular;
+
+        out << YAML::EndMap;
+    }
+
+    if (entity.has_component<MeshComponent>()) {
+        const auto& component = entity.get_component<MeshComponent>();
+        out << YAML::Key << "mesh_component" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "mesh";
+        if (component.mesh) {
+            out << YAML::Value << component.mesh->get_name();
+        } else {
+            out << YAML::Value << "";
+        }
+
+        out << YAML::Key << "material" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "diffuse";
+        if (component.material.diffuse) {
+            out << YAML::Value << component.material.diffuse->get_name();
+        } else {
+            out << YAML::Value << "";
+        }
+
+        out << YAML::Key << "specular";
+        if (component.material.specular) {
+            out << YAML::Value << component.material.specular->get_name();
+        } else {
+            out << YAML::Value << "";
+        }
+
+        out << YAML::Key << "emission";
+        if (component.material.emission) {
+            out << YAML::Value << component.material.emission->get_name();
+        } else {
+            out << YAML::Value << "";
+        }
+
+        out << YAML::Key << "shininess" << YAML::Value
+            << std::to_string(component.material.shininess);
+        out << YAML::EndMap;
+
+        out << YAML::EndMap;
+    }
+
+    if (entity.has_component<RigidBodyComponent>()) {
+        const auto& component = entity.get_component<RigidBodyComponent>();
+        out << YAML::Key << "rigid_body_component" << YAML::Value
+            << YAML::BeginMap;
+
+        out << YAML::Key << "type";
+        switch (component.type) {
+        case RigidBodyType::Static:
+            out << YAML::Value << "static";
+            break;
+        case RigidBodyType::Dynamic:
+            out << YAML::Value << "dynamic";
+            break;
+        }
+
+        out << YAML::Key << "mass" << YAML::Value << component.mass;
+        out << YAML::Key << "kinematic" << YAML::Value << component.kinematic;
+        out << YAML::Key << "static_friction" << YAML::Value
+            << component.static_friction;
+        out << YAML::Key << "dynamic_friction" << YAML::Value
+            << component.dynamic_friction;
+        out << YAML::Key << "restitution" << YAML::Value
+            << component.restitution;
+        out << YAML::Key << "override_dynamic_physics" << YAML::Value
+            << component.override_dynamic_physics;
+
+        out << YAML::EndMap;
+    }
+
+    if (entity.has_component<ScriptComponent>()) {
+        const auto& component = entity.get_component<ScriptComponent>();
+        out << YAML::Key << "script_component" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "path";
+        if (component.script) {
+            out << YAML::Value << component.script->get_name();
+        } else {
+            out << YAML::Value << "";
+        }
+
+        out << YAML::EndMap;
+    }
+
+    out << YAML::EndMap;
+}
+
+void SceneSerializer::serialize(const std::string& path) {
+    YAML::Emitter out;
+
+    out << YAML::BeginMap;
+    out << YAML::Key << "entities" << YAML::Value << YAML::BeginSeq;
+
+    // Make sure entities are in the correct order
+    m_scene->sort_component<entt::entity>();
+    for (auto& entity : m_scene->get_view<entt::entity>()) {
+        SerializeEntity(out,
+                        m_scene->get_entity(static_cast<uint32_t>(entity)));
+    }
+
+    out << YAML::EndSeq;
+    out << YAML::EndMap;
+
+    std::ofstream file;
+    file.open(
+        IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
+    file << out.c_str();
+    file.close();
+}
+
+void SceneSerializer::deserialize(const std::string& path) {
+    std::ifstream stream(
+        IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
+    std::stringstream str_stream;
+    str_stream << stream.rdbuf();
+
+    YAML::Node data = YAML::Load(str_stream.str());
+
+    auto entities = data["entities"];
+    if (entities) {
+        // The entities need to be read backwards to be in the correct order in
+        // the UI entity list
+        for (auto entity : entities) {
+            std::string name;
+            auto name_component = entity["name_component"];
+            if (name_component) {
+                name = name_component["name"].as<std::string>();
+            }
+
+            Entity deserialized_entity = m_scene->create_entity(name);
+
+            auto transform_component = entity["transform_component"];
+            if (transform_component) {
+                auto& tc =
+                    deserialized_entity.add_component<TransformComponent>();
+                tc.position = transform_component["position"].as<glm::vec3>();
+                tc.rotation = transform_component["rotation"].as<glm::quat>();
+                tc.scale = transform_component["scale"].as<glm::vec3>();
+            }
+
+            auto camera_component = entity["camera_component"];
+            if (camera_component) {
+                auto& cc = deserialized_entity.add_component<CameraComponent>();
+                cc.fovY = camera_component["fov_y"].as<float>();
+                cc.near = camera_component["near"].as<float>();
+                cc.far = camera_component["far"].as<float>();
+            }
+
+            auto directional_light_component =
+                entity["directional_light_component"];
+            if (directional_light_component) {
+                auto& dlc = deserialized_entity
+                                .add_component<DirectionalLightComponent>();
+                dlc.direction =
+                    directional_light_component["direction"].as<glm::vec3>();
+                dlc.ambient =
+                    directional_light_component["ambient"].as<glm::vec3>();
+                dlc.diffuse =
+                    directional_light_component["diffuse"].as<glm::vec3>();
+                dlc.specular =
+                    directional_light_component["specular"].as<glm::vec3>();
+            }
+
+            auto point_light_component = entity["point_light_component"];
+            if (point_light_component) {
+                auto& plc =
+                    deserialized_entity.add_component<PointLightComponent>();
+                plc.position =
+                    point_light_component["position"].as<glm::vec3>();
+
+                plc.constant = point_light_component["constant"].as<float>();
+                plc.linear = point_light_component["linear"].as<float>();
+                plc.quadratic = point_light_component["quadratic"].as<float>();
+
+                plc.ambient = point_light_component["ambient"].as<glm::vec3>();
+                plc.diffuse = point_light_component["diffuse"].as<glm::vec3>();
+                plc.specular =
+                    point_light_component["specular"].as<glm::vec3>();
+            }
+
+            auto mesh_component = entity["mesh_component"];
+            if (mesh_component) {
+                auto& mc = deserialized_entity.add_component<MeshComponent>();
+
+                // TODO: Fix all this
+
+                std::string mesh_name =
+                    mesh_component["mesh"].as<std::string>();
+
+                if (mesh_name == "Cube") {
+                    mc.mesh = Application::get().get_renderer().get_cube_mesh();
+                }
+                // Some file path
+                else if (!mesh_name.empty()) {
+                    auto mesh = Application::get().get_asset_manager().get_mesh(
+                        mesh_name);
+                    if (mesh == nullptr) {
+                        mc.mesh = Mesh::create(mesh_name);
+                        Application::get().get_asset_manager().add_mesh(
+                            mc.mesh);
+                    } else {
+                        mc.mesh = mesh;
+                    }
+                }
+
+                auto material = mesh_component["material"];
+
+                std::string diffuse_name =
+                    material["diffuse"].as<std::string>();
+                if (!diffuse_name.empty()) {
+                    auto texture =
+                        Application::get().get_asset_manager().get_texture(
+                            diffuse_name);
+                    if (texture == nullptr) {
+                        mc.material.diffuse = Texture::create(diffuse_name);
+                        Application::get().get_asset_manager().add_texture(
+                            mc.material.diffuse);
+                    } else {
+                        mc.material.diffuse = texture;
+                    }
+                }
+
+                std::string specular_name =
+                    material["specular"].as<std::string>();
+                if (!specular_name.empty()) {
+                    auto texture =
+                        Application::get().get_asset_manager().get_texture(
+                            specular_name);
+                    if (texture == nullptr) {
+                        mc.material.specular = Texture::create(specular_name);
+                        Application::get().get_asset_manager().add_texture(
+                            mc.material.specular);
+                    } else {
+                        mc.material.specular = texture;
+                    }
+                }
+
+                std::string emission_name =
+                    material["emission"].as<std::string>();
+                if (!emission_name.empty()) {
+                    auto texture =
+                        Application::get().get_asset_manager().get_texture(
+                            emission_name);
+                    if (texture == nullptr) {
+                        mc.material.emission = Texture::create(emission_name);
+                        Application::get().get_asset_manager().add_texture(
+                            mc.material.emission);
+                    } else {
+                        mc.material.emission = texture;
+                    }
+                }
+
+                mc.material.shininess = material["shininess"].as<float>();
+            }
+
+            auto rb_component = entity["rigid_body_component"];
+            if (rb_component) {
+                auto& rb =
+                    deserialized_entity.add_component<RigidBodyComponent>();
+                std::string type = rb_component["type"].as<std::string>();
+                if (type == "static") {
+                    rb.type = RigidBodyType::Static;
+                } else if (type == "dynamic") {
+                    rb.type = RigidBodyType::Dynamic;
+                }
+
+                rb.mass = rb_component["mass"].as<float>();
+                rb.kinematic = rb_component["kinematic"].as<bool>();
+                rb.static_friction =
+                    rb_component["static_friction"].as<float>();
+                rb.dynamic_friction =
+                    rb_component["dynamic_friction"].as<float>();
+                rb.restitution = rb_component["restitution"].as<float>();
+                rb.override_dynamic_physics =
+                    rb_component["override_dynamic_physics"].as<bool>();
+            }
+
+            auto script_component = entity["script_component"];
+            if (script_component) {
+                auto& sc = deserialized_entity.add_component<ScriptComponent>();
+                std::string path = script_component["path"].as<std::string>();
+                if (!path.empty()) {
+                    sc.script = std::make_unique<Script>(
+                        path, deserialized_entity, ScriptLoadType::File);
+                }
+            }
+        }
+    }
+}
+} // namespace Helios
