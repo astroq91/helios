@@ -1,0 +1,31 @@
+entities:
+  - name_component:
+      name: Camera
+    transform_component:
+      position: [0, 1.47199011, 22.3256359]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    camera_component:
+      fov_y: 80
+      near: 0.100000001
+      far: 100
+  - name_component:
+      name: Light
+    directional_light_component:
+      direction: [1, 1, 1]
+      ambient: [1, 1, 1]
+      diffuse: [1, 1, 1]
+      specular: [1, 1, 1]
+  - name_component:
+      name: Box
+    transform_component:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    mesh_component:
+      mesh: Cube
+      material:
+        diffuse: ""
+        specular: ""
+        emission: ""
+        shininess: 32.000000

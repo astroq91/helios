@@ -6,12 +6,14 @@
 #include "Helios/Assets/Asset.h"
 #include "Helios/Scene/Entity.h"
 
+enum class ScriptType { Entity, Global };
 enum class ScriptLoadType { Source, File };
 
 namespace Helios {
 class Script : public Asset {
   public:
-    Script(const std::string& src, Entity entity, ScriptLoadType load_type);
+    Script(const std::string& src, Entity entity, ScriptLoadType load_type,
+           ScriptType type = ScriptType::Entity);
 
     void on_start();
     void on_update(float ts);

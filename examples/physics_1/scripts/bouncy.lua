@@ -1,5 +1,5 @@
 require("lua.helios")
 
 function on_start()
-  Components:get_rigid_body().restitution = 1
+  RootEntity:get_components():get_rigid_body().restitution = 1
 end

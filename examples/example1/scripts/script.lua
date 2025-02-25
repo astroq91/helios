@@ -7,7 +7,7 @@ end
 function on_update(ts)
   local speed = 8.0
 
-  local transform = Components:get_transform()
+  local transform = RootEntity:get_components():get_transform()
 
   if transform then
     if Input.is_key_pressed(Key.W) then

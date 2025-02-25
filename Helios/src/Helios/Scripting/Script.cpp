@@ -44,7 +44,18 @@ class Components {
     Entity m_entity;
 };
 
-Script::Script(const std::string& src, Entity entity, ScriptLoadType load_type)
+class ScriptEntity {
+  public:
+    ScriptEntity(Entity entity) : m_entity(entity), m_components(entity) {}
+    Components* get_components() { return &m_components; }
+
+  private:
+    Entity m_entity;
+    Components m_components;
+};
+
+Script::Script(const std::string& src, Entity entity, ScriptLoadType load_type,
+               ScriptType type)
     : m_entity(entity) {
     m_state.open_libraries(sol::lib::base, sol::lib::package);
 
@@ -54,11 +65,11 @@ Script::Script(const std::string& src, Entity entity, ScriptLoadType load_type)
         init_asset("Loaded from source");
     }
 
-    expose_basic_types();
-    expose_functions();
-    expose_helios_user_types();
     expose_component_user_types();
     expose_key_codes();
+    expose_functions();
+    expose_basic_types();
+    expose_helios_user_types();
     set_globals();
 
     // Add the base dir to the package path to access the type annotations
@@ -150,6 +161,9 @@ void Script::expose_functions() {
 }
 
 void Script::expose_helios_user_types() {
+    m_state.new_usertype<ScriptEntity>("Entity", "get_components",
+                                       &ScriptEntity::get_components);
+
     m_state.new_usertype<Components>(
         "Components", "get_transform", &Components::get_transform, "get_name",
         &Components::get_name, "get_camera", &Components::get_camera,
@@ -272,6 +286,6 @@ void Script::expose_key_codes() {
                      MouseButton::Right, "Middle", MouseButton::Middle);
 }
 
-void Script::set_globals() { m_state["Components"] = Components(m_entity); }
+void Script::set_globals() { m_state["RootEntity"] = ScriptEntity(m_entity); }
 
 } // namespace Helios
