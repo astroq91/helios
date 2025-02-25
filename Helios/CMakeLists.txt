@@ -5,11 +5,9 @@ find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
 # Dependencies
-add_subdirectory("vendor/Glad")
 add_subdirectory("vendor/ImGui")
 add_subdirectory("vendor/yaml-cpp")
 add_subdirectory("vendor/lua-5.4.6")
-add_subdirectory("vendor/luacpp")
 add_subdirectory("vendor/tinyfiledialogs")
 
 option(PHYSX_BUILD_TYPE "The build type of PhysX, i.e., one of {debug, checked, profile, release}" "checked")
@@ -52,11 +50,9 @@ target_include_directories(Helios PUBLIC
 target_link_libraries(Helios PUBLIC 
     glfw
     ${Vulkan_LIBRARIES} 
-    Glad
     ImGui
     yaml-cpp
     lua
-    #Luacpp
     Tinyfiledialogs
     $<$<PLATFORM_ID:Linux>:uuid>
 
