@@ -206,6 +206,16 @@ void SerializeEntity(YAML::Emitter& out, Entity entity) {
         out << YAML::EndMap;
     }
 
+    if (entity.has_component<BoxColliderComponent>()) {
+        const auto& component = entity.get_component<BoxColliderComponent>();
+        out << YAML::Key << "box_collider_component" << YAML::Value
+            << YAML::BeginMap;
+
+        out << YAML::Key << "size" << YAML::Value << component.size;
+
+        out << YAML::EndMap;
+    }
+
     if (entity.has_component<ScriptComponent>()) {
         const auto& component = entity.get_component<ScriptComponent>();
         out << YAML::Key << "script_component" << YAML::Value << YAML::BeginMap;
@@ -411,6 +421,13 @@ void SceneSerializer::deserialize(const std::string& path) {
                 rb.restitution = rb_component["restitution"].as<float>();
                 rb.override_dynamic_physics =
                     rb_component["override_dynamic_physics"].as<bool>();
+            }
+
+            auto bc_component = entity["box_collider_component"];
+            if (bc_component) {
+                auto& bc =
+                    deserialized_entity.add_component<BoxColliderComponent>();
+                bc.size = bc_component["size"].as<glm::vec3>();
             }
 
             auto script_component = entity["script_component"];

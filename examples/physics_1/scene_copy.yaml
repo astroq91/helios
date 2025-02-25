@@ -4,7 +4,7 @@ entities:
     transform_component:
       position: [0, 0, 0]
       rotation: [0, 0, 0, 1]
-      scale: [11.8731031, 0.253236592, 10.7992649]
+      scale: [10, 0.5, 10]
     mesh_component:
       mesh: Cube
       material:
