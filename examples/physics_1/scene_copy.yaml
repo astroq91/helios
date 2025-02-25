@@ -4,7 +4,7 @@ entities:
     transform_component:
       position: [0, 0, 0]
       rotation: [0, 0, 0, 1]
-      scale: [10, 0.5, 10]
+      scale: [10, 1, 10]
     mesh_component:
       mesh: Cube
       material:
@@ -20,6 +20,8 @@ entities:
       dynamic_friction: 0.5
       restitution: 0.600000024
       override_dynamic_physics: false
+    box_collider_component:
+      size: [5, 0.5, 5]
   - name_component:
       name: Light
     directional_light_component:
@@ -48,5 +50,7 @@ entities:
       dynamic_friction: 0.5
       restitution: 0.100000001
       override_dynamic_physics: false
+    box_collider_component:
+      size: [0.5, 0.5, 0.5]
     script_component:
       path: scripts/bouncy.lua
