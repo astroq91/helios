@@ -52,7 +52,7 @@ struct CameraComponent {
 
 struct MeshComponent {
     Ref<Mesh> mesh = nullptr;
-    Material material;
+    Ref<Material> material = nullptr;
 };
 
 struct DirectionalLightComponent {

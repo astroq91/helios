@@ -1,4 +1,5 @@
 ﻿#include "ComponentsBrowser.h"
+#include <fstream>
 #include <functional>
 #include <imgui.h>
 #include <string>
@@ -8,6 +9,8 @@
 #include "Helios/Renderer/Renderer.h"
 #include "Helios/Scene/Entity.h"
 #include "Helios/Scene/Scene.h"
+
+#include <yaml-cpp/yaml.h>
 
 #include "Helios/Core/Application.h"
 #include "Helios/Core/IOUtils.h"
@@ -185,9 +188,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 static bool show_choose_mesh_modal = false;
 
                 char mesh_name_buffer[256];
-                char diffuse_buffer[256];
-                char specular_buffer[256];
-                char emission_buffer[256];
+                char material_name_buffer[256];
 
                 if (ImGui::TreeNode("Mesh")) {
                     if (component->mesh) {
@@ -264,131 +265,42 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
                 // TODO: More mesh types?
 
-                TextureType currentTextureType = TextureType::Diffuse;
                 if (ImGui::TreeNode("Material")) {
-                    if (component->material.diffuse) {
-                        strcpy(diffuse_buffer,
-                               component->material.diffuse->get_name().c_str());
+                    if (component->material) {
+                        strcpy(material_name_buffer,
+                               component->material->get_name().c_str());
                     } else {
-                        strcpy(diffuse_buffer, "None");
+                        strcpy(material_name_buffer, "None");
                     }
 
-                    if (component->material.specular) {
-                        strcpy(
-                            specular_buffer,
-                            component->material.specular->get_name().c_str());
-                    } else {
-                        strcpy(specular_buffer, "None");
-                    }
-
-                    if (component->material.emission) {
-                        strcpy(
-                            emission_buffer,
-                            component->material.emission->get_name().c_str());
-                    } else {
-                        strcpy(emission_buffer, "None");
-                    }
-
-                    // DIFFUSE
-                    ImGui::PushID("diffuse");
                     if (ImGui::Button("Choose")) {
-                        DialogReturn dialog_ret =
-                            IOUtils::open_file({"*.png", "*.jpg", "*.jpeg"},
-                                               project.get_project_path());
+                        DialogReturn dialog_ret = IOUtils::open_file(
+                            {"*.mat"}, project.get_project_path());
                         if (!dialog_ret.path.empty()) {
                             std::string relative_path = IOUtils::relative_path(
                                 project.get_project_path(), dialog_ret.path);
-
-                            auto texture = Application::get()
-                                               .get_asset_manager()
-                                               .get_texture(relative_path);
-                            if (texture == nullptr) {
-                                component->material.diffuse =
-                                    Texture::create(relative_path);
+                            auto mat = Application::get()
+                                           .get_asset_manager()
+                                           .get_material(relative_path);
+                            if (mat == nullptr) {
+                                component->material =
+                                    Material::create(relative_path);
                                 Application::get()
                                     .get_asset_manager()
-                                    .add_texture(component->material.diffuse);
+                                    .add_material(component->material);
                             } else {
-                                component->material.diffuse = texture;
+                                component->material = mat;
                             }
                         }
                     }
 
                     ImGui::SameLine();
                     if (ImGui::Button("Clear")) {
-                        component->material.diffuse = nullptr;
+                        component->material = nullptr;
                     }
+
                     ImGui::SameLine();
-                    ImGui::Text("diffuse (Current: %s)", diffuse_buffer);
-                    ImGui::PopID();
-
-                    ImGui::NewLine();
-
-                    // SPECULAR
-                    ImGui::PushID("specular");
-                    if (ImGui::Button("Choose")) {
-                        DialogReturn dialog_ret =
-                            IOUtils::open_file({"*.png", "*.jpg", "*.jpeg"},
-                                               project.get_project_path());
-                        if (!dialog_ret.path.empty()) {
-                            std::string relative_path = IOUtils::relative_path(
-                                project.get_project_path(), dialog_ret.path);
-
-                            auto texture = Application::get()
-                                               .get_asset_manager()
-                                               .get_texture(relative_path);
-                            if (texture == nullptr) {
-                                component->material.specular =
-                                    Texture::create(relative_path);
-                                Application::get()
-                                    .get_asset_manager()
-                                    .add_texture(component->material.specular);
-                            } else {
-                                component->material.specular = texture;
-                            }
-                        }
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Clear")) {
-                        component->material.specular = nullptr;
-                    }
-                    ImGui::SameLine();
-                    ImGui::Text("specular (Current: %s)", specular_buffer);
-                    ImGui::PopID();
-
-                    ImGui::NewLine();
-
-                    // EMISSION
-                    ImGui::PushID("emission");
-                    if (ImGui::Button("Choose")) {
-                        DialogReturn dialog_ret =
-                            IOUtils::open_file({"*.png", "*.jpg", "*.jpeg"},
-                                               project.get_project_path());
-                        if (!dialog_ret.path.empty()) {
-                            std::string relative_path = IOUtils::relative_path(
-                                project.get_project_path(), dialog_ret.path);
-
-                            auto texture = Application::get()
-                                               .get_asset_manager()
-                                               .get_texture(relative_path);
-                            if (texture == nullptr) {
-                                component->material.emission =
-                                    Texture::create(relative_path);
-                                Application::get()
-                                    .get_asset_manager()
-                                    .add_texture(component->material.emission);
-                            } else {
-                                component->material.emission = texture;
-                            }
-                        }
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Clear")) {
-                        component->material.emission = nullptr;
-                    }
-                    ImGui::SameLine();
-                    ImGui::Text("emission (Current: %s)", emission_buffer);
-                    ImGui::PopID();
+                    ImGui::Text("(Current: %s)", material_name_buffer);
 
                     ImGui::TreePop();
                 }
@@ -488,7 +400,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                         std::string relative_path = IOUtils::relative_path(
                             project.get_project_path(), dialogRet.path);
                         component->script = std::make_unique<Script>(
-                            dialogRet.path, ScriptLoadType::File, scene,
+                            relative_path, ScriptLoadType::File, scene,
                             selected_entity);
                     }
                 }

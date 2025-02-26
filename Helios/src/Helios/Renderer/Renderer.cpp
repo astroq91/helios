@@ -814,18 +814,23 @@ void Renderer::draw_mesh(const Ref<Mesh>& mesh,
             {.model = instance.transform.ToMat4(),
              .material = ShaderMaterial{
                  .diffuse_texture_unit =
-                     instance.material.diffuse == nullptr
+                     instance.material == nullptr ||
+                             instance.material->get_diffuse() == nullptr
                          ? m_gray_texture->GetTextureIndex()
-                         : instance.material.diffuse->GetTextureIndex(),
+                         : instance.material->get_diffuse()->GetTextureIndex(),
                  .specular_texture_unit =
-                     instance.material.specular == nullptr
+                     instance.material == nullptr ||
+                             instance.material->get_specular() == nullptr
                          ? m_black_texture->GetTextureIndex()
-                         : instance.material.specular->GetTextureIndex(),
+                         : instance.material->get_specular()->GetTextureIndex(),
                  .emission_texture_unit =
-                     instance.material.emission == nullptr
+                     instance.material == nullptr ||
+                             instance.material->get_emission() == nullptr
                          ? m_black_texture->GetTextureIndex()
-                         : instance.material.emission->GetTextureIndex(),
-                 .shininess = instance.material.shininess,
+                         : instance.material->get_emission()->GetTextureIndex(),
+                 .shininess = instance.material == nullptr
+                                  ? 32.0f
+                                  : instance.material->get_shininess(),
              }});
     }
 }

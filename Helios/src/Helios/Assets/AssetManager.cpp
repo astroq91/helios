@@ -55,9 +55,16 @@ std::vector<uint32_t> cube_indices = {
 
 namespace Helios {
 void AssetManager::init() {
-    add_mesh(Mesh::create("Cube", cube_vertices.data(),
-                          sizeof(Vertex) * cube_vertices.size(), cube_indices.data(),
-                          sizeof(uint32_t) * cube_indices.size(),
-                          cube_indices.size()));
+    add_mesh(Mesh::create(
+        "Cube", cube_vertices.data(), sizeof(Vertex) * cube_vertices.size(),
+        cube_indices.data(), sizeof(uint32_t) * cube_indices.size(),
+        cube_indices.size()));
+}
+
+void AssetManager::clear_assets() {
+    m_meshes.clear();
+    m_shaders.clear();
+    m_textures.clear();
+    m_materials.clear();
 }
 } // namespace Helios

@@ -20,6 +20,10 @@ void Texture::init(const std::string& path) {
 
     m_name = path;
 
+    if (path.empty()) {
+        return;
+    }
+
     int tex_width, tex_height, tex_channels;
     stbi_uc* pixles = stbi_load(
         IOUtils::resolve_path(Application::get().get_asset_base_path(), path)

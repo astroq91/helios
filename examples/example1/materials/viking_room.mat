@@ -1,0 +1,7 @@
+diffuse:
+  image: "images/viking_room.png"
+specular:
+  image: ""
+emission:
+  image: ""
+shininess: 32.0

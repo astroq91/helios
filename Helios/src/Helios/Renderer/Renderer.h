@@ -64,7 +64,7 @@ struct MeshInstances {
 // Used to describe an instance's properties.
 struct MeshInstance {
     Transform transform;
-    Material material;
+    Ref<Material> material;
 };
 
 constexpr int MAX_MESHES = 10000;

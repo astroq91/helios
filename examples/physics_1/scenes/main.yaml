@@ -7,11 +7,7 @@ entities:
       scale: [10, 1, 10]
     mesh_component:
       mesh: Cube
-      material:
-        diffuse: images/cobblestone.png
-        specular: ""
-        emission: ""
-        shininess: 32.000000
+      material: "materials/floor.mat"
     rigid_body_component:
       type: static
       mass: 1
@@ -37,11 +33,7 @@ entities:
       scale: [1.00000012, 1.00000036, 1]
     mesh_component:
       mesh: Cube
-      material:
-        diffuse: images/container2.png
-        specular: ""
-        emission: ""
-        shininess: 32.000000
+      material: "materials/box.mat"
     rigid_body_component:
       type: dynamic
       mass: 1

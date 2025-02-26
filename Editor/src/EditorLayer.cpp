@@ -1287,4 +1287,5 @@ void EditorLayer::reset_editor() {
     g_current_welcome_modal_step = WelcomeModalStep::Welcome;
     g_previous_welcome_modal_step = WelcomeModalStep::Welcome;
     update_window_title(std::nullopt);
+    Application::get().get_asset_manager().clear_assets();
 }

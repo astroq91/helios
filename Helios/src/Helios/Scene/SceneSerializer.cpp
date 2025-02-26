@@ -9,6 +9,7 @@
 #include "Helios/Core/IOUtils.h"
 #include "Helios/ECSComponents/Components.h"
 #include "yaml-cpp/emittermanip.h"
+#include "yaml-cpp/exceptions.h"
 
 namespace YAML {
 template <> struct convert<glm::vec3> {
@@ -148,31 +149,8 @@ void SerializeEntity(YAML::Emitter& out, Entity entity) {
             out << YAML::Value << "";
         }
 
-        out << YAML::Key << "material" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "diffuse";
-        if (component.material.diffuse) {
-            out << YAML::Value << component.material.diffuse->get_name();
-        } else {
-            out << YAML::Value << "";
-        }
-
-        out << YAML::Key << "specular";
-        if (component.material.specular) {
-            out << YAML::Value << component.material.specular->get_name();
-        } else {
-            out << YAML::Value << "";
-        }
-
-        out << YAML::Key << "emission";
-        if (component.material.emission) {
-            out << YAML::Value << component.material.emission->get_name();
-        } else {
-            out << YAML::Value << "";
-        }
-
-        out << YAML::Key << "shininess" << YAML::Value
-            << std::to_string(component.material.shininess);
-        out << YAML::EndMap;
+        out << YAML::Key << "material" << YAML::Value
+            << component.material->get_name();
 
         out << YAML::EndMap;
     }
@@ -262,185 +240,171 @@ void SceneSerializer::deserialize(const std::string& path) {
     std::stringstream str_stream;
     str_stream << stream.rdbuf();
 
-    YAML::Node data = YAML::Load(str_stream.str());
+    try {
+        YAML::Node data = YAML::Load(str_stream.str());
 
-    auto entities = data["entities"];
-    if (entities) {
-        // The entities need to be read backwards to be in the correct order in
-        // the UI entity list
-        for (auto entity : entities) {
-            std::string name;
-            auto name_component = entity["name_component"];
-            if (name_component) {
-                name = name_component["name"].as<std::string>();
-            }
-
-            Entity deserialized_entity = m_scene->create_entity(name);
-
-            auto transform_component = entity["transform_component"];
-            if (transform_component) {
-                auto& tc =
-                    deserialized_entity.add_component<TransformComponent>();
-                tc.position = transform_component["position"].as<glm::vec3>();
-                tc.rotation = transform_component["rotation"].as<glm::quat>();
-                tc.scale = transform_component["scale"].as<glm::vec3>();
-            }
-
-            auto camera_component = entity["camera_component"];
-            if (camera_component) {
-                auto& cc = deserialized_entity.add_component<CameraComponent>();
-                cc.fovY = camera_component["fov_y"].as<float>();
-                cc.near = camera_component["near"].as<float>();
-                cc.far = camera_component["far"].as<float>();
-            }
-
-            auto directional_light_component =
-                entity["directional_light_component"];
-            if (directional_light_component) {
-                auto& dlc = deserialized_entity
-                                .add_component<DirectionalLightComponent>();
-                dlc.direction =
-                    directional_light_component["direction"].as<glm::vec3>();
-                dlc.ambient =
-                    directional_light_component["ambient"].as<glm::vec3>();
-                dlc.diffuse =
-                    directional_light_component["diffuse"].as<glm::vec3>();
-                dlc.specular =
-                    directional_light_component["specular"].as<glm::vec3>();
-            }
-
-            auto point_light_component = entity["point_light_component"];
-            if (point_light_component) {
-                auto& plc =
-                    deserialized_entity.add_component<PointLightComponent>();
-                plc.position =
-                    point_light_component["position"].as<glm::vec3>();
-
-                plc.constant = point_light_component["constant"].as<float>();
-                plc.linear = point_light_component["linear"].as<float>();
-                plc.quadratic = point_light_component["quadratic"].as<float>();
-
-                plc.ambient = point_light_component["ambient"].as<glm::vec3>();
-                plc.diffuse = point_light_component["diffuse"].as<glm::vec3>();
-                plc.specular =
-                    point_light_component["specular"].as<glm::vec3>();
-            }
-
-            auto mesh_component = entity["mesh_component"];
-            if (mesh_component) {
-                auto& mc = deserialized_entity.add_component<MeshComponent>();
-
-                // TODO: Fix all this
-
-                std::string mesh_name =
-                    mesh_component["mesh"].as<std::string>();
-
-                if (mesh_name == "Cube") {
-                    mc.mesh = Application::get().get_renderer().get_cube_mesh();
+        auto entities = data["entities"];
+        if (entities) {
+            // The entities need to be read backwards to be in the correct order
+            // in the UI entity list
+            for (auto entity : entities) {
+                std::string name;
+                auto name_component = entity["name_component"];
+                if (name_component) {
+                    name = name_component["name"].as<std::string>();
                 }
-                // Some file path
-                else if (!mesh_name.empty()) {
-                    auto mesh = Application::get().get_asset_manager().get_mesh(
-                        mesh_name);
-                    if (mesh == nullptr) {
-                        mc.mesh = Mesh::create(mesh_name);
-                        Application::get().get_asset_manager().add_mesh(
-                            mc.mesh);
-                    } else {
-                        mc.mesh = mesh;
+
+                Entity deserialized_entity = m_scene->create_entity(name);
+
+                auto transform_component = entity["transform_component"];
+                if (transform_component) {
+                    auto& tc =
+                        deserialized_entity.add_component<TransformComponent>();
+                    tc.position =
+                        transform_component["position"].as<glm::vec3>();
+                    tc.rotation =
+                        transform_component["rotation"].as<glm::quat>();
+                    tc.scale = transform_component["scale"].as<glm::vec3>();
+                }
+
+                auto camera_component = entity["camera_component"];
+                if (camera_component) {
+                    auto& cc =
+                        deserialized_entity.add_component<CameraComponent>();
+                    cc.fovY = camera_component["fov_y"].as<float>();
+                    cc.near = camera_component["near"].as<float>();
+                    cc.far = camera_component["far"].as<float>();
+                }
+
+                auto directional_light_component =
+                    entity["directional_light_component"];
+                if (directional_light_component) {
+                    auto& dlc = deserialized_entity
+                                    .add_component<DirectionalLightComponent>();
+                    dlc.direction = directional_light_component["direction"]
+                                        .as<glm::vec3>();
+                    dlc.ambient =
+                        directional_light_component["ambient"].as<glm::vec3>();
+                    dlc.diffuse =
+                        directional_light_component["diffuse"].as<glm::vec3>();
+                    dlc.specular =
+                        directional_light_component["specular"].as<glm::vec3>();
+                }
+
+                auto point_light_component = entity["point_light_component"];
+                if (point_light_component) {
+                    auto& plc = deserialized_entity
+                                    .add_component<PointLightComponent>();
+                    plc.position =
+                        point_light_component["position"].as<glm::vec3>();
+
+                    plc.constant =
+                        point_light_component["constant"].as<float>();
+                    plc.linear = point_light_component["linear"].as<float>();
+                    plc.quadratic =
+                        point_light_component["quadratic"].as<float>();
+
+                    plc.ambient =
+                        point_light_component["ambient"].as<glm::vec3>();
+                    plc.diffuse =
+                        point_light_component["diffuse"].as<glm::vec3>();
+                    plc.specular =
+                        point_light_component["specular"].as<glm::vec3>();
+                }
+
+                auto mesh_component = entity["mesh_component"];
+                if (mesh_component) {
+                    auto& mc =
+                        deserialized_entity.add_component<MeshComponent>();
+
+                    // TODO: Fix all this
+
+                    std::string mesh_name =
+                        mesh_component["mesh"].as<std::string>();
+
+                    if (mesh_name == "Cube") {
+                        mc.mesh =
+                            Application::get().get_renderer().get_cube_mesh();
+                    }
+                    // Some file path
+                    else if (!mesh_component["mesh"].IsNull() &&
+                             !mesh_name.empty()) {
+                        auto mesh =
+                            Application::get().get_asset_manager().get_mesh(
+                                mesh_name);
+                        if (mesh == nullptr) {
+                            mc.mesh = Mesh::create(mesh_name);
+                            Application::get().get_asset_manager().add_mesh(
+                                mc.mesh);
+                        } else {
+                            mc.mesh = mesh;
+                        }
+                    }
+
+                    auto material = mesh_component["material"];
+                    if (material && !material.IsNull()) {
+                        std::string material_path = material.as<std::string>();
+                        if (!material_path.empty()) {
+                            auto mat = Application::get()
+                                           .get_asset_manager()
+                                           .get_material(material_path);
+                            if (mat == nullptr) {
+                                mc.material = Material::create(material_path);
+                                Application::get()
+                                    .get_asset_manager()
+                                    .add_material(mc.material);
+                            } else {
+                                mc.material = mat;
+                            }
+                        }
                     }
                 }
 
-                auto material = mesh_component["material"];
-
-                std::string diffuse_name =
-                    material["diffuse"].as<std::string>();
-                if (!diffuse_name.empty()) {
-                    auto texture =
-                        Application::get().get_asset_manager().get_texture(
-                            diffuse_name);
-                    if (texture == nullptr) {
-                        mc.material.diffuse = Texture::create(diffuse_name);
-                        Application::get().get_asset_manager().add_texture(
-                            mc.material.diffuse);
-                    } else {
-                        mc.material.diffuse = texture;
+                auto rb_component = entity["rigid_body_component"];
+                if (rb_component) {
+                    auto& rb =
+                        deserialized_entity.add_component<RigidBodyComponent>();
+                    std::string type = rb_component["type"].as<std::string>();
+                    if (type == "static") {
+                        rb.type = RigidBodyType::Static;
+                    } else if (type == "dynamic") {
+                        rb.type = RigidBodyType::Dynamic;
                     }
+
+                    rb.mass = rb_component["mass"].as<float>();
+                    rb.kinematic = rb_component["kinematic"].as<bool>();
+                    rb.static_friction =
+                        rb_component["static_friction"].as<float>();
+                    rb.dynamic_friction =
+                        rb_component["dynamic_friction"].as<float>();
+                    rb.restitution = rb_component["restitution"].as<float>();
+                    rb.override_dynamic_physics =
+                        rb_component["override_dynamic_physics"].as<bool>();
                 }
 
-                std::string specular_name =
-                    material["specular"].as<std::string>();
-                if (!specular_name.empty()) {
-                    auto texture =
-                        Application::get().get_asset_manager().get_texture(
-                            specular_name);
-                    if (texture == nullptr) {
-                        mc.material.specular = Texture::create(specular_name);
-                        Application::get().get_asset_manager().add_texture(
-                            mc.material.specular);
-                    } else {
-                        mc.material.specular = texture;
+                auto bc_component = entity["box_collider_component"];
+                if (bc_component) {
+                    auto& bc = deserialized_entity
+                                   .add_component<BoxColliderComponent>();
+                    bc.size = bc_component["size"].as<glm::vec3>();
+                }
+
+                auto script_component = entity["script_component"];
+                if (script_component) {
+                    auto& sc =
+                        deserialized_entity.add_component<ScriptComponent>();
+                    std::string path =
+                        script_component["path"].as<std::string>();
+                    if (!script_component["path"].IsNull() && !path.empty()) {
+                        sc.script = std::make_unique<Script>(
+                            path, ScriptLoadType::File, m_scene,
+                            deserialized_entity);
                     }
-                }
-
-                std::string emission_name =
-                    material["emission"].as<std::string>();
-                if (!emission_name.empty()) {
-                    auto texture =
-                        Application::get().get_asset_manager().get_texture(
-                            emission_name);
-                    if (texture == nullptr) {
-                        mc.material.emission = Texture::create(emission_name);
-                        Application::get().get_asset_manager().add_texture(
-                            mc.material.emission);
-                    } else {
-                        mc.material.emission = texture;
-                    }
-                }
-
-                mc.material.shininess = material["shininess"].as<float>();
-            }
-
-            auto rb_component = entity["rigid_body_component"];
-            if (rb_component) {
-                auto& rb =
-                    deserialized_entity.add_component<RigidBodyComponent>();
-                std::string type = rb_component["type"].as<std::string>();
-                if (type == "static") {
-                    rb.type = RigidBodyType::Static;
-                } else if (type == "dynamic") {
-                    rb.type = RigidBodyType::Dynamic;
-                }
-
-                rb.mass = rb_component["mass"].as<float>();
-                rb.kinematic = rb_component["kinematic"].as<bool>();
-                rb.static_friction =
-                    rb_component["static_friction"].as<float>();
-                rb.dynamic_friction =
-                    rb_component["dynamic_friction"].as<float>();
-                rb.restitution = rb_component["restitution"].as<float>();
-                rb.override_dynamic_physics =
-                    rb_component["override_dynamic_physics"].as<bool>();
-            }
-
-            auto bc_component = entity["box_collider_component"];
-            if (bc_component) {
-                auto& bc =
-                    deserialized_entity.add_component<BoxColliderComponent>();
-                bc.size = bc_component["size"].as<glm::vec3>();
-            }
-
-            auto script_component = entity["script_component"];
-            if (script_component) {
-                auto& sc = deserialized_entity.add_component<ScriptComponent>();
-                std::string path = script_component["path"].as<std::string>();
-                if (!path.empty()) {
-                    sc.script =
-                        std::make_unique<Script>(path, ScriptLoadType::File,
-                                                 m_scene, deserialized_entity);
                 }
             }
         }
+    } catch (YAML::Exception& e) {
+        HL_ERROR("Failed to parse scene file: {}", e.what());
     }
 }
 } // namespace Helios

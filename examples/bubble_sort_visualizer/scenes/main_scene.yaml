@@ -10,7 +10,7 @@ entities:
       near: 0.100000001
       far: 100
     script_component:
-      path: /home/joli/dev/c++/Helios/examples/bubble_sort_visualizer/scripts/main.lua
+      path:
   - name_component:
       name: Light
     directional_light_component:
@@ -27,7 +27,3 @@ entities:
     mesh_component:
       mesh: Cube
       material:
-        diffuse: ""
-        specular: ""
-        emission: ""
-        shininess: 32.000000

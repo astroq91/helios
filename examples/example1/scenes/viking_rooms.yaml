@@ -7,11 +7,7 @@ entities:
       scale: [1, 1, 1]
     mesh_component:
       mesh: Cube
-      material:
-        diffuse: ""
-        specular: ""
-        emission: ""
-        shininess: 32.000000
+      material: "null"
   - name_component:
       name: Room 2
     transform_component:
@@ -20,11 +16,7 @@ entities:
       scale: [3.00098491, 2.99978757, 2.99999356]
     mesh_component:
       mesh: models/viking_room.obj
-      material:
-        diffuse: images/viking_room.png
-        specular: ""
-        emission: ""
-        shininess: 32.000000
+      material: materials/viking_room.mat
   - name_component:
       name: Room 1
     transform_component:
@@ -33,11 +25,7 @@ entities:
       scale: [2.99999714, 2.99999642, 2.99999738]
     mesh_component:
       mesh: models/viking_room.obj
-      material:
-        diffuse: images/viking_room.png
-        specular: ""
-        emission: ""
-        shininess: 32.000000
+      material: materials/viking_room.mat
     script_component:
       path: scripts/script.lua
   - name_component:

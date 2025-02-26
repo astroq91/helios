@@ -113,6 +113,7 @@ void Script::load_script(const std::string& src, ScriptLoadType load_type) {
 
         if (file.fail()) {
             HL_ERROR("[Scripting] Could not open script file: {0}", src);
+            return;
         }
 
         size_t file_size = (size_t)file.tellg();
