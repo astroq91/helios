@@ -435,8 +435,9 @@ void SceneSerializer::deserialize(const std::string& path) {
                 auto& sc = deserialized_entity.add_component<ScriptComponent>();
                 std::string path = script_component["path"].as<std::string>();
                 if (!path.empty()) {
-                    sc.script = std::make_unique<Script>(
-                        path, deserialized_entity, ScriptLoadType::File);
+                    sc.script =
+                        std::make_unique<Script>(path, ScriptLoadType::File,
+                                                 m_scene, deserialized_entity);
                 }
             }
         }

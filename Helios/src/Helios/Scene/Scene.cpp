@@ -202,6 +202,11 @@ void Scene::start_runtime() {
                                transform.to_transform());
     }
 
+    // Lastly run the startup script
+    if (m_start_script) {
+        m_start_script->on_start();
+    }
+
     m_runtime = true;
 }
 
@@ -246,4 +251,5 @@ void Scene::on_rigid_body_destroyed(entt::registry& registry,
         pm.remove_actor(static_cast<uint32_t>(entity));
     }
 }
+
 } // namespace Helios

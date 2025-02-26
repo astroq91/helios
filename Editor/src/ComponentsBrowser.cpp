@@ -126,9 +126,10 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
                 auto rb =
                     selected_entity.try_get_component<RigidBodyComponent>();
-                bool disable_transform =
-                    scene->is_running() && rb->type == RigidBodyType::Dynamic &&
-                    !rb->kinematic && !rb->override_dynamic_physics;
+                bool disable_transform = scene->is_running() && rb &&
+                                         rb->type == RigidBodyType::Dynamic &&
+                                         !rb->kinematic &&
+                                         !rb->override_dynamic_physics;
 
                 if (disable_transform) {
                     ImGui::BeginDisabled();
@@ -470,7 +471,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
         Utils::render_component<ScriptComponent>(
             "Script", selected_entity,
-            [&project, selected_entity](auto component) {
+            [&project, selected_entity, scene](auto component) {
                 char script_name_buffer[256];
 
                 if (component->script) {
@@ -487,8 +488,8 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                         std::string relative_path = IOUtils::relative_path(
                             project.get_project_path(), dialogRet.path);
                         component->script = std::make_unique<Script>(
-                            dialogRet.path, selected_entity,
-                            ScriptLoadType::File);
+                            dialogRet.path, ScriptLoadType::File, scene,
+                            selected_entity);
                     }
                 }
 

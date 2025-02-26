@@ -5,6 +5,7 @@
 #include "Helios/ECSComponents/Components.h"
 #include "Helios/Events/Input.h"
 #include "Helios/Scene/Entity.h"
+#include "Helios/Scene/Scene.h"
 #include "sol/variadic_args.hpp"
 #include <fstream>
 #include <glm/glm.hpp>
@@ -44,6 +45,9 @@ class Components {
     Entity m_entity;
 };
 
+/**
+ * Interface for a single entity.
+ */
 class ScriptEntity {
   public:
     ScriptEntity(Entity entity) : m_entity(entity), m_components(entity) {}
@@ -54,9 +58,26 @@ class ScriptEntity {
     Components m_components;
 };
 
-Script::Script(const std::string& src, Entity entity, ScriptLoadType load_type,
-               ScriptType type)
-    : m_entity(entity) {
+/**
+ * Used to manage all the entities in the scene.
+ */
+class ScriptEntities {
+  public:
+    ScriptEntities(Scene* scene, sol::state* state)
+        : m_scene(scene), m_state(state) {}
+    ScriptEntity create_entity(const std::string& name) {
+        Entity entity = m_scene->create_entity(name);
+        return ScriptEntity(entity);
+    }
+
+  private:
+    Scene* m_scene;
+    sol::state* m_state;
+};
+
+Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
+               Entity entity)
+    : m_scene(scene), m_entity(entity) {
     m_state.open_libraries(sol::lib::base, sol::lib::package);
 
     if (load_type == ScriptLoadType::File) {
@@ -163,6 +184,9 @@ void Script::expose_functions() {
 void Script::expose_helios_user_types() {
     m_state.new_usertype<ScriptEntity>("Entity", "get_components",
                                        &ScriptEntity::get_components);
+
+    m_state.new_usertype<ScriptEntities>("Entities", "create_entity",
+                                         &ScriptEntities::create_entity);
 
     m_state.new_usertype<Components>(
         "Components", "get_transform", &Components::get_transform, "get_name",
@@ -286,6 +310,12 @@ void Script::expose_key_codes() {
                      MouseButton::Right, "Middle", MouseButton::Middle);
 }
 
-void Script::set_globals() { m_state["RootEntity"] = ScriptEntity(m_entity); }
+void Script::set_globals() {
+    // Only have a root entity if the script is bound to an entity
+    if (m_entity != k_no_entity) {
+        m_state["RootEntity"] = ScriptEntity(m_entity);
+    }
+    m_state["Entities"] = ScriptEntities(m_scene, &m_state);
+}
 
 } // namespace Helios

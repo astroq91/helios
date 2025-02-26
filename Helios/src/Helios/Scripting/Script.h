@@ -12,8 +12,13 @@ enum class ScriptLoadType { Source, File };
 namespace Helios {
 class Script : public Asset {
   public:
-    Script(const std::string& src, Entity entity, ScriptLoadType load_type,
-           ScriptType type = ScriptType::Entity);
+    /**
+     * Creates a new script. If entity is not specified, the script is assumed
+     * to be a scene start script (ie. runs outside the context of an entity at
+     * the start of the runtime)
+     */
+    Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
+           Entity entity = {});
 
     void on_start();
     void on_update(float ts);
@@ -29,6 +34,7 @@ class Script : public Asset {
 
   private:
     sol::state m_state;
+    Scene* m_scene;
     Entity m_entity;
 };
 } // namespace Helios

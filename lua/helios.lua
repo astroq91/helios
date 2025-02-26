@@ -60,6 +60,11 @@ require("lua.key_codes")
 ---@field get_components fun():Components Gets the components object
 RootEntity = RootEntity or {}
 
+---@class Entities
+---The collection of entities
+---@field create_entity fun(self: Entities, name: string):Entity Creates a new entity with the given name
+Entities = Entities or {}
+
 ---@class Transform
 ---@field position vec3 The position
 ---@field rotation vec3 The rotation 
