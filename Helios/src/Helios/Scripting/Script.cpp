@@ -133,7 +133,7 @@ class ScriptEntities {
 Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
                Entity entity)
     : m_scene(scene), m_entity(entity) {
-    m_state.open_libraries(sol::lib::base, sol::lib::package);
+    m_state.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math);
 
     if (load_type == ScriptLoadType::File) {
         init_asset(src);

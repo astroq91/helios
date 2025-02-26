@@ -21,7 +21,7 @@ entities:
   - name_component:
       name: Box
     transform_component:
-      position: [-1.7511816, 0, 0]
+      position: [0, 0, 0]
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
     mesh_component:
