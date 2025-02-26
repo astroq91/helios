@@ -63,10 +63,6 @@ class Scene {
     void update_rigid_body_dynamic_friction(Entity entity, float value);
     void update_rigid_body_restitution(Entity entity, float value);
 
-    void set_start_script(Unique<Script>&& script) {
-        m_start_script = std::move(script);
-    };
-
   private:
     // SYSTEMS //
 
@@ -91,8 +87,6 @@ class Scene {
     bool m_has_vaild_camera = false;
 
     bool m_destroyed = false;
-
-    Unique<Script> m_start_script = nullptr;
 
     friend class Entity;
 };

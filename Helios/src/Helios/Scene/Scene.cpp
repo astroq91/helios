@@ -202,11 +202,6 @@ void Scene::start_runtime() {
                                transform.to_transform());
     }
 
-    // Lastly run the startup script
-    if (m_start_script) {
-        m_start_script->on_start();
-    }
-
     m_runtime = true;
 }
 

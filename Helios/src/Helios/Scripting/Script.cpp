@@ -311,10 +311,7 @@ void Script::expose_key_codes() {
 }
 
 void Script::set_globals() {
-    // Only have a root entity if the script is bound to an entity
-    if (m_entity != k_no_entity) {
-        m_state["RootEntity"] = ScriptEntity(m_entity);
-    }
+    m_state["RootEntity"] = ScriptEntity(m_entity);
     m_state["Entities"] = ScriptEntities(m_scene, &m_state);
 }
 
