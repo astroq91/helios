@@ -32,7 +32,7 @@ In order to successfully compile, the following dependencies need to be installe
 
 1. Clone the repo with the submodules
    ```sh
-    git clone --recurse-submodules https://gitlab.com/astroq1/helios
+    git clone --recurse-submodules https://gitlab.com/astroq/helios
    ```
 2. Build the PhysX libraries. This might take some tinkering, as the build process can be a bit weird. 
     The general gist is that you generate the make files for your platform, and the generate the library files
