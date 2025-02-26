@@ -35,7 +35,7 @@ private:
   Helios::Ref<Helios::Texture> m_texture;
   Helios::Ref<Helios::Texture> m_texture_2;
 
-  Helios::Ref<Helios::Mesh> m_viking_mesh;
+  Helios::Ref<Helios::Geometry> m_viking_mesh;
   Helios::Ref<Helios::Texture> m_viking_texture;
 
   Helios::Transform m_mesh_transform;

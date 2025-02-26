@@ -46,6 +46,11 @@ require("lua.key_codes")
 ---@field dynamic_friction number The dynamic friction
 ---@field restitution number The restitution
 
+---@class Mesh
+---@field load_geometry fun(self: Mesh, name: string) Loads a geometry from a relative (based on project path), or absolute path.
+---                                                   You can also specify default geometries like "Cube"
+---@field load_material fun(self: Mesh, name: string) Loads a material from a relative (based on project path), or aboslute path.
+
 ---@class Components
 ---Contains functions for accessing the components
 ---@field get_transform fun():Transform Gets the transform
@@ -54,6 +59,16 @@ require("lua.key_codes")
 ---@field get_directional_light fun():DirectionalLight Gets the transform
 ---@field get_point_light fun():PointLight Gets the transform
 ---@field get_rigid_body fun():RigidBody Gets the rigid body 
+---@field get_mesh fun():Mesh Gets the mesh 
+---
+---@field add_transform fun():Transform Adds a transform component
+---@field add_camera fun():Camera Adds a camera component
+---@field add_directional_light fun():DirectionalLight Adds a transform component
+---@field add_point_light fun():PointLight Adds a point light component
+---@field add_rigid_body fun():RigidBody Adds a mesh component 
+---@field add_mesh fun():Mesh Adds a mesh component 
+
+
 
 ---@class Entity
 ---An entity object

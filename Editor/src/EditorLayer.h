@@ -24,7 +24,7 @@ struct EntityPickingShaderData {
 
 // Used to keep track of a matching entity's mesh, from EntityPickingShaderData.
 struct EntityPickingData {
-    Helios::Ref<Helios::Mesh> mesh;
+    Helios::Ref<Helios::Geometry> mesh;
 };
 
 struct ViewportData {

@@ -6,7 +6,7 @@ entities:
       rotation: [0, 0, 0, 1]
       scale: [10, 1, 10]
     mesh_component:
-      mesh: Cube
+      geometry: Cube
       material: "materials/floor.mat"
     rigid_body_component:
       type: static
@@ -32,7 +32,7 @@ entities:
       rotation: [-0.666240871, -0.0073246439, 0.732958138, 0.137265623]
       scale: [1.00000012, 1.00000036, 1]
     mesh_component:
-      mesh: Cube
+      geometry: Cube
       material: "materials/box.mat"
     rigid_body_component:
       type: dynamic

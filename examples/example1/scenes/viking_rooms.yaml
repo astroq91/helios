@@ -6,7 +6,7 @@ entities:
       rotation: [-0.00163559383, 0.187420696, 0.00857188553, 0.982240975]
       scale: [1, 1, 1]
     mesh_component:
-      mesh: Cube
+      geometry: Cube
       material: "null"
   - name_component:
       name: Room 2
@@ -15,7 +15,7 @@ entities:
       rotation: [-0.622295022, 0.00219725282, -0.00276381802, 0.782774806]
       scale: [3.00098491, 2.99978757, 2.99999356]
     mesh_component:
-      mesh: models/viking_room.obj
+      geometry: models/viking_room.obj
       material: materials/viking_room.mat
   - name_component:
       name: Room 1
@@ -24,7 +24,7 @@ entities:
       rotation: [-0.270598084, -0.65328145, -0.65328145, 0.270598024]
       scale: [2.99999714, 2.99999642, 2.99999738]
     mesh_component:
-      mesh: models/viking_room.obj
+      geometry: models/viking_room.obj
       material: materials/viking_room.mat
     script_component:
       path: scripts/script.lua

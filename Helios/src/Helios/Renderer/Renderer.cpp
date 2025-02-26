@@ -287,7 +287,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
             });
     }
 
-    m_meshes_vertices_description = VertexBufferDescription(
+    m_geometries_vertices_description = VertexBufferDescription(
         VertexInputRate::Vertex, 0, object_vertex_attributes);
     m_instance_vertices_description = VertexBufferDescription(
         VertexInputRate::Instance, 1, object_instance_attributes);
@@ -299,11 +299,11 @@ void Renderer::init(uint32_t max_frames_in_flight) {
 
     for (uint32_t i = 0; i < m_max_frames_in_flight; i++) {
         m_mesh_instances_buffers[i] = VertexBuffer::create(
-            nullptr, sizeof(MeshShaderInstanceData) * MAX_MESHES);
+            nullptr, sizeof(GeometryShaderInstanceData) * MAX_MESHES);
     }
 
     // Cube //
-    m_cube_mesh = Application::get().get_asset_manager().get_mesh("Cube");
+    m_cube_geometry = Application::get().get_asset_manager().get_geometry("Cube");
 
     // Lastly, set up the pipelines for our different default drawable objects.
     setup_quad_pipeline();
@@ -441,11 +441,11 @@ void Renderer::submit_instances(
 
         memcpy(m_instance_staging_buffer->get_mapped_memory(),
                m_mesh_shader_instances[m_current_frame].data(),
-               sizeof(MeshShaderInstanceData) *
+               sizeof(GeometryShaderInstanceData) *
                    m_mesh_shader_instances[m_current_frame].size());
 
         VkBufferCopy copy_region{};
-        copy_region.size = sizeof(MeshShaderInstanceData) *
+        copy_region.size = sizeof(GeometryShaderInstanceData) *
                            m_mesh_shader_instances[m_current_frame].size();
         vkCmdCopyBuffer(
             m_command_buffers[m_current_frame]->get_command_buffer(),
@@ -767,11 +767,11 @@ void Renderer::draw_quad(const Transform& transform, const glm::vec3& color,
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(
         m_command_buffers[m_current_frame]->get_command_buffer(), 0, 1,
-        &m_quad_mesh->get_vertex_buffer()->get_vk_buffer(), offsets);
+        &m_quad_geometry->get_vertex_buffer()->get_vk_buffer(), offsets);
 
     vkCmdBindIndexBuffer(
         m_command_buffers[m_current_frame]->get_command_buffer(),
-        m_quad_mesh->get_index_buffer()->get_vk_buffer(), 0,
+        m_quad_geometry->get_index_buffer()->get_vk_buffer(), 0,
         VK_INDEX_TYPE_UINT32);
 
     QuadPushConstant push_constants = {.texture_index =
@@ -796,15 +796,15 @@ void Renderer::draw_quad(const Transform& transform, const glm::vec3& color,
                      static_cast<uint32_t>(quad_indices.size()), 1, 0, 0, 0);
 }
 
-void Renderer::draw_cube(const std::vector<MeshInstance>& instances) {
-    draw_mesh(m_cube_mesh, instances);
+void Renderer::draw_cube(const std::vector<GeometryInstance>& instances) {
+    draw_mesh(m_cube_geometry, instances);
 }
 
-void Renderer::draw_mesh(const Ref<Mesh>& mesh,
-                         const std::vector<MeshInstance>& instances) {
+void Renderer::draw_mesh(const Ref<Geometry>& geometry,
+                         const std::vector<GeometryInstance>& instances) {
     m_mesh_instances[m_current_frame].push_back(
-        {.mesh = mesh,
-         .offset = sizeof(MeshShaderInstanceData) *
+        {.geometry = geometry,
+         .offset = sizeof(GeometryShaderInstanceData) *
                    m_mesh_shader_instances[m_current_frame].size(),
          .instance_count = instances.size()});
 
@@ -876,18 +876,18 @@ void Renderer::draw_meshes() {
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
                       m_lighting_pipeline->get_vk_pipeline());
 
-    for (auto& mesh_instances : m_mesh_instances[m_current_frame]) {
+    for (auto& geometry_instances : m_mesh_instances[m_current_frame]) {
         VkBuffer buffers[2] = {
-            mesh_instances.mesh->get_vertex_buffer()->get_vk_buffer(),
+            geometry_instances.geometry->get_vertex_buffer()->get_vk_buffer(),
             m_mesh_instances_buffers[m_current_frame]->get_vk_buffer()};
-        VkDeviceSize offsets[2] = {0, mesh_instances.offset};
+        VkDeviceSize offsets[2] = {0, geometry_instances.offset};
         vkCmdBindVertexBuffers(
             m_command_buffers[m_current_frame]->get_command_buffer(), 0, 2,
             buffers, offsets);
 
         vkCmdBindIndexBuffer(
             m_command_buffers[m_current_frame]->get_command_buffer(),
-            mesh_instances.mesh->get_index_buffer()->get_vk_buffer(), 0,
+            geometry_instances.geometry->get_index_buffer()->get_vk_buffer(), 0,
             VK_INDEX_TYPE_UINT32);
 
         VkDescriptorSet sets[] = {
@@ -914,8 +914,8 @@ void Renderer::draw_meshes() {
 
         vkCmdDrawIndexed(
             m_command_buffers[m_current_frame]->get_command_buffer(),
-            mesh_instances.mesh->get_index_buffer()->get_index_count(),
-            static_cast<uint32_t>(mesh_instances.instance_count), 0, 0, 0);
+            geometry_instances.geometry->get_index_buffer()->get_index_count(),
+            static_cast<uint32_t>(geometry_instances.instance_count), 0, 0, 0);
     }
 }
 
@@ -986,7 +986,7 @@ void Renderer::load_default_shaders(const Ref<ShaderLibrary>& shader_lib) {
 }
 
 void Renderer::setup_quad_pipeline() {
-    m_quad_mesh = Mesh::create(
+    m_quad_geometry = Geometry::create(
         "Quad", quad_vertices.data(), sizeof(float) * quad_vertices.size(),
         quad_indices.data(), sizeof(uint32_t) * quad_indices.size(),
         quad_indices.size());
@@ -1044,7 +1044,7 @@ void Renderer::setup_quad_pipeline() {
 
 void Renderer::setup_lighting_pipeline() {
     m_instance_staging_buffer =
-        Buffer::create_unique(sizeof(MeshShaderInstanceData) * MAX_MESHES,
+        Buffer::create_unique(sizeof(GeometryShaderInstanceData) * MAX_MESHES,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -1092,7 +1092,7 @@ void Renderer::setup_lighting_pipeline() {
          m_lights_set_layout},
         m_lighting_vertex_shader,
         m_lighting_fragment_shader,
-        {m_meshes_vertices_description, m_instance_vertices_description},
+        {m_geometries_vertices_description, m_instance_vertices_description},
         {
             VkPushConstantRange{.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
                                 .offset = 0,

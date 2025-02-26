@@ -4,9 +4,9 @@
 
 #include "Helios/Physics/PhysicsManager.h"
 #include "Helios/Physics/RigidBody.h"
+#include "Helios/Renderer/Geometry.h"
 #include "Helios/Renderer/Light.h"
 #include "Helios/Renderer/Material.h"
-#include "Helios/Renderer/Mesh.h"
 #include "Helios/Scene/Transform.h"
 #include "Helios/Scripting/Script.h"
 
@@ -51,7 +51,7 @@ struct CameraComponent {
 };
 
 struct MeshComponent {
-    Ref<Mesh> mesh = nullptr;
+    Ref<Geometry> geometry = nullptr;
     Ref<Material> material = nullptr;
 };
 

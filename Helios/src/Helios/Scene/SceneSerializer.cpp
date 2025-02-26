@@ -142,15 +142,19 @@ void SerializeEntity(YAML::Emitter& out, Entity entity) {
         const auto& component = entity.get_component<MeshComponent>();
         out << YAML::Key << "mesh_component" << YAML::Value << YAML::BeginMap;
 
-        out << YAML::Key << "mesh";
-        if (component.mesh) {
-            out << YAML::Value << component.mesh->get_name();
+        out << YAML::Key << "geometry";
+        if (component.geometry) {
+            out << YAML::Value << component.geometry->get_name();
         } else {
-            out << YAML::Value << "";
+            out << YAML::Value << YAML::Null;
         }
 
-        out << YAML::Key << "material" << YAML::Value
-            << component.material->get_name();
+        out << YAML::Key << "material";
+        if (component.material) {
+            out << YAML::Value << component.material->get_name();
+        } else {
+            out << YAML::Value << YAML::Null;
+        }
 
         out << YAML::EndMap;
     }
@@ -319,25 +323,25 @@ void SceneSerializer::deserialize(const std::string& path) {
 
                     // TODO: Fix all this
 
-                    std::string mesh_name =
-                        mesh_component["mesh"].as<std::string>();
+                    std::string geometry_name =
+                        mesh_component["geometry"].as<std::string>();
 
-                    if (mesh_name == "Cube") {
-                        mc.mesh =
+                    if (geometry_name == "Cube") {
+                        mc.geometry =
                             Application::get().get_renderer().get_cube_mesh();
                     }
                     // Some file path
                     else if (!mesh_component["mesh"].IsNull() &&
-                             !mesh_name.empty()) {
-                        auto mesh =
-                            Application::get().get_asset_manager().get_mesh(
-                                mesh_name);
-                        if (mesh == nullptr) {
-                            mc.mesh = Mesh::create(mesh_name);
-                            Application::get().get_asset_manager().add_mesh(
-                                mc.mesh);
+                             !geometry_name.empty()) {
+                        auto geometry =
+                            Application::get().get_asset_manager().get_geometry(
+                                geometry_name);
+                        if (geometry == nullptr) {
+                            mc.geometry = Geometry::create(geometry_name);
+                            Application::get().get_asset_manager().add_geometry(
+                                mc.geometry);
                         } else {
-                            mc.mesh = mesh;
+                            mc.geometry = geometry;
                         }
                     }
 

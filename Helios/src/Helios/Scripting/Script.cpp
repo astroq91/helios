@@ -13,9 +13,34 @@
 
 namespace Helios {
 
+/**
+ * Used to interface with a mesh component
+ */
+class ScriptMesh {
+  public:
+    ScriptMesh(MeshComponent* component) : m_component(component) {}
+
+    void load_geometry(const std::string& path) {
+        if (path == "Cube") {
+            m_component->geometry =
+                Application::get().get_asset_manager().get_geometry("Cube");
+        } else {
+            m_component->geometry = Geometry::create(path);
+        }
+    }
+    void load_material(const std::string& path) {
+        m_component->material = Material::create(path);
+    }
+
+  private:
+    MeshComponent* m_component;
+};
+
 class Components {
   public:
     Components(Entity entity) : m_entity(entity) {}
+
+    /* Getters */
 
     TransformComponent* get_transform() {
         return m_entity.try_get_component<TransformComponent>();
@@ -39,6 +64,36 @@ class Components {
 
     RigidBodyComponent* get_rigid_body() {
         return m_entity.try_get_component<RigidBodyComponent>();
+    }
+
+    ScriptMesh get_mesh() {
+        return ScriptMesh(m_entity.try_get_component<MeshComponent>());
+    }
+
+    /* Adders */
+
+    TransformComponent* add_transform() {
+        return &m_entity.add_component<TransformComponent>();
+    }
+
+    CameraComponent* add_camera() {
+        return &m_entity.add_component<CameraComponent>();
+    }
+
+    DirectionalLightComponent* add_directional_light() {
+        return &m_entity.add_component<DirectionalLightComponent>();
+    }
+
+    PointLightComponent* add_point_light() {
+        return &m_entity.add_component<PointLightComponent>();
+    }
+
+    RigidBodyComponent* add_rigid_body() {
+        return &m_entity.add_component<RigidBodyComponent>();
+    }
+
+    ScriptMesh add_mesh() {
+        return ScriptMesh(&m_entity.add_component<MeshComponent>());
     }
 
   private:
@@ -124,7 +179,13 @@ void Script::load_script(const std::string& src, ScriptLoadType load_type) {
 
         std::string script(src.begin(), src.end());
 
-        m_state.script(script);
+        try {
+
+            m_state.script(script);
+        } catch (sol::error& error) {
+            HL_ERROR("Failed to parse script ({}): {}", src.data(),
+                     error.what());
+        }
     }
 }
 
@@ -188,13 +249,18 @@ void Script::expose_helios_user_types() {
 
     m_state.new_usertype<ScriptEntities>("Entities", "create_entity",
                                          &ScriptEntities::create_entity);
-
     m_state.new_usertype<Components>(
-        "Components", "get_transform", &Components::get_transform, "get_name",
-        &Components::get_name, "get_camera", &Components::get_camera,
-        "get_directional_light", &Components::get_directional_light,
-        "get_point_light", &Components::get_point_light, "get_rigid_body",
-        &Components::get_rigid_body);
+        "Components", "get_name", &Components::get_name, "get_transform",
+        &Components::get_transform, "add_transform", &Components::add_transform,
+        "get_camera", &Components::get_camera, "add_camera",
+        &Components::add_camera, "get_directional_light",
+        &Components::get_directional_light, "add_directional_light",
+        &Components::add_directional_light, "get_point_light",
+        &Components::get_point_light, "add_point_light",
+        &Components::add_point_light, "get_rigid_body",
+        &Components::get_rigid_body, "add_rigid_body",
+        &Components::add_rigid_body, "get_mesh", &Components::get_mesh,
+        "add_mesh", &Components::add_mesh);
 
     m_state.new_usertype<Input>("Input", "is_key_pressed",
                                 &Input::is_key_pressed, "is_key_released",
@@ -262,7 +328,9 @@ void Script::expose_component_user_types() {
                 m_entity.update_rigid_body_restitution(value);
             }));
 
-    // TODO: Maybe Mesh?
+    m_state.new_usertype<ScriptMesh>(
+        "Mesh", "load_geometry", &ScriptMesh::load_geometry, "load_material",
+        &ScriptMesh::load_material);
 }
 
 void Script::expose_key_codes() {

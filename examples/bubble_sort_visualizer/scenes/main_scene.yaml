@@ -10,7 +10,7 @@ entities:
       near: 0.100000001
       far: 100
     script_component:
-      path:
+      path: ""
   - name_component:
       name: Light
     directional_light_component:
@@ -25,5 +25,7 @@ entities:
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
     mesh_component:
-      mesh: Cube
-      material:
+      geometry: Cube
+      material: ~
+    script_component:
+      path: scripts/init.lua

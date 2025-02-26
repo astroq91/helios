@@ -418,8 +418,8 @@ void EditorLayer::on_imgui_render() {
                         m_selected_entity =
                             m_scene->get_entity(m_selected_entity);
                         m_selected_entity_transform =
-                            &m_selected_entity
-                                 .get_component<TransformComponent>();
+                            m_selected_entity
+                                .try_get_component<TransformComponent>();
                     }
                 }
                 ImGui::EndDisabled();
@@ -798,7 +798,8 @@ void EditorLayer::update_entity_picking() {
             for (auto [entity, transform_component, mesh_component] :
                  view.each()) {
                 VkBuffer buffers[2] = {
-                    mesh_component.mesh->get_vertex_buffer()->get_vk_buffer(),
+                    mesh_component.geometry->get_vertex_buffer()
+                        ->get_vk_buffer(),
                     m_entity_picking_buffers[app.get_current_frame()]
                         ->get_vk_buffer()};
                 VkDeviceSize offsets[2] = {0, offset};
@@ -808,8 +809,9 @@ void EditorLayer::update_entity_picking() {
 
                 vkCmdBindIndexBuffer(
                     renderer.get_current_command_buffer()->get_command_buffer(),
-                    mesh_component.mesh->get_index_buffer()->get_vk_buffer(), 0,
-                    VK_INDEX_TYPE_UINT32);
+                    mesh_component.geometry->get_index_buffer()
+                        ->get_vk_buffer(),
+                    0, VK_INDEX_TYPE_UINT32);
 
                 VkDescriptorSet sets[] = {
                     m_scene_camera_descriptor_sets[app.get_current_frame()]
@@ -824,7 +826,8 @@ void EditorLayer::update_entity_picking() {
 
                 vkCmdDrawIndexed(
                     renderer.get_current_command_buffer()->get_command_buffer(),
-                    mesh_component.mesh->get_index_buffer()->get_index_count(),
+                    mesh_component.geometry->get_index_buffer()
+                        ->get_index_count(),
                     1, 0, 0, 0);
 
                 offset += sizeof(EntityPickingShaderData);

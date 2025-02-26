@@ -9,23 +9,23 @@
 
 namespace Helios
 {
-	class Mesh : public Resource, public Asset
+	class Geometry : public Resource, public Asset
 	{
 	public:
-		static Ref<Mesh> create(const std::string& file)
+		static Ref<Geometry> create(const std::string& file)
 		{
-			Ref<Mesh> obj = make_ref<Mesh>();
+			Ref<Geometry> obj = make_ref<Geometry>();
             obj->init_uuid();
             obj->init_asset(file);
             obj->init(file);
 			return obj;
 		}
 
-		static Ref<Mesh> create(const std::string& name, void* vertices, size_t vertices_size, void* indices,
+		static Ref<Geometry> create(const std::string& name, void* vertices, size_t vertices_size, void* indices,
                                 size_t indices_size,
                                 size_t indices_count)
 		{
-			Ref<Mesh> obj = make_ref<Mesh>();
+			Ref<Geometry> obj = make_ref<Geometry>();
             obj->init_uuid();
             obj->init_asset(name);
             obj->init(vertices, vertices_size, indices, indices_size, indices_count);
@@ -35,13 +35,13 @@ namespace Helios
 		const Ref<VertexBuffer>& get_vertex_buffer() const { return m_vertex_buffer; }
 		const Ref<IndexBuffer>& get_index_buffer() const { return m_index_buffer; }
 
-		Mesh() = default;
-		~Mesh() = default;
+		Geometry() = default;
+		~Geometry() = default;
 
-		Mesh(const Mesh&) = delete;
-		Mesh& operator=(const Mesh&) = delete;
-		Mesh(Mesh&&) = delete;
-		Mesh& operator=(Mesh&&) = delete;
+		Geometry(const Geometry&) = delete;
+		Geometry& operator=(const Geometry&) = delete;
+		Geometry(Geometry&&) = delete;
+		Geometry& operator=(Geometry&&) = delete;
 
 	private:
 		void init(const std::string& file);

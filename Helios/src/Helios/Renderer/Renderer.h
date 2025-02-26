@@ -4,12 +4,12 @@
 
 #include "CommandBuffer.h"
 #include "DescriptorSet.h"
+#include "Geometry.h"
 #include "Helios/Scene/Camera.h"
 #include "Helios/Scene/Transform.h"
 #include "Helios/Vulkan/VulkanContext.h"
 #include "Light.h"
 #include "Material.h"
-#include "Mesh.h"
 #include "Pipeline.h"
 #include "Shader.h"
 #include "ShaderLibrary.h"
@@ -48,21 +48,21 @@ struct ShaderMaterial {
     alignas(4) float shininess;
 };
 
-// Used as per-instance vertex attributes when rendering meshes.
-struct MeshShaderInstanceData {
+// Used as per-instance vertex attributes when rendering geometries.
+struct GeometryShaderInstanceData {
     alignas(16) glm::mat4 model;
     ShaderMaterial material;
 };
 
-// Used to store the mesh used for a set of instances.
-struct MeshInstances {
-    Ref<Mesh> mesh;
+// Used to store the geometries used for a set of instances.
+struct GeometryInstances {
+    Ref<Geometry> geometry;
     size_t offset;
     size_t instance_count;
 };
 
 // Used to describe an instance's properties.
-struct MeshInstance {
+struct GeometryInstance {
     Transform transform;
     Ref<Material> material;
 };
@@ -141,10 +141,10 @@ class Renderer {
      * \brief Record cube instances.
      * \param instances The instances.
      */
-    void draw_cube(const std::vector<MeshInstance>& instances);
+    void draw_cube(const std::vector<GeometryInstance>& instances);
 
-    void draw_mesh(const Ref<Mesh>& mesh,
-                   const std::vector<MeshInstance>& instances);
+    void draw_mesh(const Ref<Geometry>& geometry,
+                   const std::vector<GeometryInstance>& instances);
 
     void set_camera(const Camera& camera);
 
@@ -189,10 +189,10 @@ class Renderer {
         return m_main_fences[m_current_frame];
     }
 
-    Ref<Mesh> get_cube_mesh() const { return m_cube_mesh; }
+    Ref<Geometry> get_cube_mesh() const { return m_cube_geometry; }
 
     const VertexBufferDescription& get_meshes_vertices_description() const {
-        return m_meshes_vertices_description;
+        return m_geometries_vertices_description;
     }
 
   private:
@@ -245,7 +245,7 @@ class Renderer {
     Ref<Shader> m_lighting_vertex_shader;
     Ref<Shader> m_lighting_fragment_shader;
 
-    VertexBufferDescription m_meshes_vertices_description;
+    VertexBufferDescription m_geometries_vertices_description;
 
     Unique<Image> m_depth_image;
 
@@ -256,9 +256,9 @@ class Renderer {
     Ref<TextureLibrary> m_textures;
 
     // Object Instances //
-    std::vector<std::vector<MeshShaderInstanceData>>
+    std::vector<std::vector<GeometryShaderInstanceData>>
         m_mesh_shader_instances; // One for each frame in flight
-    std::vector<std::vector<MeshInstances>>
+    std::vector<std::vector<GeometryInstances>>
         m_mesh_instances; // One for each frame in flight
     std::vector<Ref<VertexBuffer>>
         m_mesh_instances_buffers; // One for each frame in flight
@@ -273,10 +273,10 @@ class Renderer {
         m_camera_uniform_buffers; // One for each frame in flight
 
     //  Cube  //
-    Ref<Mesh> m_cube_mesh;
+    Ref<Geometry> m_cube_geometry;
 
     // Quad //
-    Ref<Mesh> m_quad_mesh;
+    Ref<Geometry> m_quad_geometry;
 
     Unique<Pipeline> m_quad_pipeline;
     VertexBufferDescription m_quad_vertices_description;

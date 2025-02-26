@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "AssetLibrary.h"
+#include "Helios/Renderer/Geometry.h"
 #include "Helios/Renderer/Material.h"
-#include "Helios/Renderer/Mesh.h"
 #include "Helios/Renderer/Shader.h"
 #include "Helios/Renderer/Texture.h"
 
@@ -16,7 +16,7 @@ class AssetManager {
         m_textures.add_asset(texture);
     }
 
-    void add_mesh(const Ref<Mesh>& mesh) { m_meshes.add_asset(mesh); }
+    void add_geometry(const Ref<Geometry>& geometry) { m_geometries.add_asset(geometry); }
 
     void add_shader(const Ref<Shader>& shader) { m_shaders.add_asset(shader); }
 
@@ -28,8 +28,8 @@ class AssetManager {
         return m_textures.get_asset(name);
     }
 
-    Ref<Mesh> get_mesh(const std::string& name) {
-        return m_meshes.get_asset(name);
+    Ref<Geometry> get_geometry(const std::string& name) {
+        return m_geometries.get_asset(name);
     }
 
     Ref<Shader> get_shader(const std::string& name) {
@@ -42,7 +42,7 @@ class AssetManager {
 
   private:
     AssetLibrary<Texture> m_textures;
-    AssetLibrary<Mesh> m_meshes;
+    AssetLibrary<Geometry> m_geometries;
     AssetLibrary<Shader> m_shaders;
     AssetLibrary<Material> m_materials;
 };

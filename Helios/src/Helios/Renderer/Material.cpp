@@ -8,6 +8,12 @@ namespace Helios {
 void Material::init(const std::string& path) {
     std::ifstream stream(
         IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
+
+    if (stream.fail()) {
+        HL_ERROR("Failed to load material {0}", path);
+        return;
+    }
+
     std::stringstream str_stream;
     str_stream << stream.rdbuf();
 
