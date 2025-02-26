@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.25)
 project(Helios)
 
 find_package(glfw3 REQUIRED)
-find_package(Vulkan REQUIRED)
 
 # Dependencies
+add_subdirectory("vendor/vulkan")
 add_subdirectory("vendor/ImGui")
 add_subdirectory("vendor/yaml-cpp")
 add_subdirectory("vendor/lua-5.4.6")
 add_subdirectory("vendor/tinyfiledialogs")
+
 
 option(PHYSX_BUILD_TYPE "The build type of PhysX, i.e., one of {debug, checked, profile, release}" "checked")
 
@@ -36,7 +37,6 @@ target_precompile_headers(Helios PRIVATE
 
 target_include_directories(Helios PUBLIC
     "src"
-    ${Vulkan_INCLUDE_DIRS}
     "vendor/glm/include"
     "vendor/stb_image/include"
     "vendor/entt/include"
@@ -44,16 +44,18 @@ target_include_directories(Helios PUBLIC
     "vendor/stduuid/include"
     "vendor/sol2/include"
     "vendor/spdlog/include"
-    "vendor/physx/include"
+    "vendor/physx/include" 
 )
 
 target_link_libraries(Helios PUBLIC 
     glfw
-    ${Vulkan_LIBRARIES} 
+    Volk
+    Vulkan
     ImGui
     yaml-cpp
     lua
     Tinyfiledialogs
+
     $<$<PLATFORM_ID:Linux>:uuid>
 
     # This is horrible. But this linking order works for my system

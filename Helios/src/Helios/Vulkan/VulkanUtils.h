@@ -1,13 +1,11 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
+#include <volk/volk.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include <vulkan/vulkan.h>
 
 struct QueueFamilyIndices;
 struct SwapChainSupportDetails;

@@ -1,6 +1,6 @@
 #include "Renderer.h"
 #include "Helios/Vulkan/VulkanUtils.h"
-#include <vulkan/vulkan_core.h>
+#include <volk/volk.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>

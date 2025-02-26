@@ -9,7 +9,7 @@
 #include <Helios/Events/KeyEvents.h>
 #include <Helios/Renderer/Renderer.h>
 #include <optional>
-#include <vulkan/vulkan_core.h>
+#include <volk/volk.h>
 
 #include "Helios/Core/Application.h"
 #include "Helios/Core/IOUtils.h"

@@ -8,6 +8,7 @@
 #include <set>
 #include <stdexcept>
 #include <vector>
+#include <volk/volk.h>
 #include <vulkan/vulkan_core.h>
 
 #include "Helios/Core/Application.h"
@@ -62,6 +63,12 @@ namespace Helios {
 void VulkanUtils::create_instance(bool use_validation_layers,
                                   const VulkanInstanceProps& props,
                                   VkInstance& instance) {
+
+    if (volkInitialize() != VK_SUCCESS) {
+        HL_ERROR("Could not find the loader for Vulkan!");
+        return;
+    }
+
     if (use_validation_layers && !check_validation_layer_support()) {
         HL_ERROR("Validation layers requested, but not available!");
     }
@@ -103,6 +110,8 @@ void VulkanUtils::create_instance(bool use_validation_layers,
     if (vkCreateInstance(&create_info, nullptr, &instance) != VK_SUCCESS) {
         HL_ERROR("Failed to create instance!");
     }
+
+    volkLoadInstance(instance);
 }
 
 void VulkanUtils::populate_debug_messenger_create_info(
@@ -242,6 +251,8 @@ void VulkanUtils::create_logical_device(bool use_validation_layers,
         VK_SUCCESS) {
         HL_ERROR("Failed to create logical device!");
     }
+
+    volkLoadDevice(device);
 
     vkGetDeviceQueue(device, indices.graphics_family.value(), 0,
                      &graphics_queue);
