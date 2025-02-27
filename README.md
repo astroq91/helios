@@ -20,9 +20,9 @@ The problem is that I don't have any equivalent bat scripts for compiling the pr
 
 ### Prerequisites
 
-In order to successfully compile, the following dependencies need to be installed/downloaded:
+In order to successfully compile, the following dependencies need to be installed:
 * gcc13 and g++13, or any other c++20 capable compiler.
-* clang (for PhysX library generation)
+* clang (for PhysX library generation).
 * CMake (min version 3.25).
 * glfw3.
 * glslc (for compiling shaders).
