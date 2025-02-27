@@ -5,7 +5,7 @@
 Helios is a general purpose 3D game engine written in C++20. It currently has the following features:
 
 * Instance based rendering, using Vulkan.
-* Physics using [PhysX], for simulating rigidbodies (currently only boxes)
+* Physics using [Nvidia PhysX], for simulating rigidbodies (currently only boxes)
 * Scripting using [Lua].
 * ECS using [entt].
 * Simple project system.
