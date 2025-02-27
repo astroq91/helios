@@ -3,7 +3,6 @@ require("lua.helios")
 function on_start()
 
   for i=-50, 50, 4 do
-    print("herer")
     local ent = Entities:create_entity("Entity " .. tostring(i + 50))
     local components = ent:get_components()
 
