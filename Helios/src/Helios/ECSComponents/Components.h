@@ -53,6 +53,7 @@ struct CameraComponent {
 struct MeshComponent {
     Ref<Geometry> geometry = nullptr;
     Ref<Material> material = nullptr;
+    glm::vec4 tint_color = glm::vec4(1);
 };
 
 struct DirectionalLightComponent {

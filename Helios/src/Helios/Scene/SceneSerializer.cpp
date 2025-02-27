@@ -33,6 +33,29 @@ template <> struct convert<glm::vec3> {
     }
 };
 
+template <> struct convert<glm::vec4> {
+    static Node encode(const glm::vec4& rhs) {
+        Node node;
+        node.push_back(rhs.x);
+        node.push_back(rhs.y);
+        node.push_back(rhs.z);
+        node.push_back(rhs.w);
+        return node;
+    }
+
+    static bool decode(const Node& node, glm::vec4& rhs) {
+        if (!node.IsSequence() || node.size() != 4) {
+            return false;
+        }
+
+        rhs.x = node[0].as<float>();
+        rhs.y = node[1].as<float>();
+        rhs.z = node[2].as<float>();
+        rhs.w = node[3].as<float>();
+        return true;
+    }
+};
+
 template <> struct convert<glm::quat> {
     static Node encode(const glm::quat& rhs) {
         Node node;
@@ -64,7 +87,15 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& value) {
     return out;
 }
 
+YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& value) {
+    out << YAML::Flow;
+    out << YAML::BeginSeq << value.x << value.y << value.z << value.w
+        << YAML::EndSeq;
+    return out;
+}
+
 YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& value) {
+
     out << YAML::Flow;
     out << YAML::BeginSeq << value.x << value.y << value.z << value.w
         << YAML::EndSeq;
@@ -155,6 +186,8 @@ void SerializeEntity(YAML::Emitter& out, Entity entity) {
         } else {
             out << YAML::Value << YAML::Null;
         }
+
+        out << YAML::Key << "tint_color" << YAML::Value << component.tint_color;
 
         out << YAML::EndMap;
     }
@@ -361,6 +394,11 @@ void SceneSerializer::deserialize(const std::string& path) {
                                 mc.material = mat;
                             }
                         }
+                    }
+
+                    auto tint_color = mesh_component["tint_color"];
+                    if (tint_color) {
+                        mc.tint_color = tint_color.as<glm::vec4>();
                     }
                 }
 

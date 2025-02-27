@@ -138,7 +138,7 @@ void Scene::draw_meshes() {
     auto meshes_view =
         m_registry.view<const TransformComponent, const MeshComponent>();
 
-    std::unordered_map<uuids::uuid, std::vector<GeometryInstance>> mesh_groups;
+    std::unordered_map<uuids::uuid, std::vector<MeshInstance>> mesh_groups;
     std::unordered_map<uuids::uuid, Ref<Geometry>> meshes;
 
     for (auto [entity, transform, mesh] : meshes_view.each()) {
@@ -147,7 +147,9 @@ void Scene::draw_meshes() {
         }
 
         mesh_groups[mesh.geometry->get_uuid()].push_back(
-            {.transform = transform.to_transform(), .material = mesh.material});
+            {.transform = transform.to_transform(),
+             .material = mesh.material,
+             .tint_color = mesh.tint_color});
         meshes[mesh.geometry->get_uuid()] = mesh.geometry;
     }
 

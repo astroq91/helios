@@ -2,13 +2,13 @@ entities:
   - name_component:
       name: Camera
     transform_component:
-      position: [0, 1.47199011, 22.3256359]
+      position: [0, 1.47199011, 200]
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
     camera_component:
       fov_y: 80
       near: 0.100000001
-      far: 100
+      far: 1000
     script_component:
       path: ""
   - name_component:

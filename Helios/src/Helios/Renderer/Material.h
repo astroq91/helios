@@ -2,6 +2,7 @@
 #include "Helios/Assets/Asset.h"
 #include "Helios/Core/Core.h"
 #include "Texture.h"
+#include <glm/glm.hpp>
 
 namespace Helios {
 class Material : public Asset {

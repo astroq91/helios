@@ -47,6 +47,8 @@ layout(location = 7) in flat float inShininess;
 
 layout(location = 8) in vec3 viewPos;
 
+layout(location = 9) in vec4 tintColor;
+
 
 layout(set = 1, binding = 0) uniform sampler samp;
 layout (set = 1, binding = 1) uniform texture2D textures[32];
@@ -113,7 +115,7 @@ void main()
 	//diffuse *= intensity;
 	//specular *= intensity;
 
-	outColor = delinearizeSRGB(vec4(result, 1.0));
+	outColor = delinearizeSRGB(vec4(result, 1.0)) * tintColor;
   //outColor = vec4(normalize(inNormal) * 0.5 + 0.5, 1.0);
 } 
 

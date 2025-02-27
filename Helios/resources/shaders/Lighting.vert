@@ -13,6 +13,8 @@ layout(location = 8) in int inSpecularIndex;
 layout(location = 9) in int inEmissionIndex;
 layout(location = 10) in float inShininess;
 
+layout(location = 11) in vec4 inTintColor;
+
 layout (set = 0, binding = 0) uniform UniformBuffer {
     	mat4 view;
     	mat4 proj;
@@ -31,6 +33,7 @@ layout(location = 7) out flat float shininess;
 
 layout(location = 8) out vec3 viewPos;
 
+layout(location = 9) out vec4 tintColor;
 
 void main() 
 {
@@ -47,6 +50,8 @@ void main()
 	specularIndex = inSpecularIndex;
 	emissionIndex = inEmissionIndex;
 	shininess = inShininess;
+
+  tintColor = inTintColor;
 
 	viewPos = ubo.pos;
 }

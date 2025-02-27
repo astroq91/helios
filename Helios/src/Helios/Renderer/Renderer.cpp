@@ -133,6 +133,8 @@ std::vector<VertexAttribute> object_instance_attributes = {
     {VertexAttributeFormat::INT32, 8},  // specular
     {VertexAttributeFormat::INT32, 9},  // emission
     {VertexAttributeFormat::FLOAT, 10}, // shininess
+
+    {VertexAttributeFormat::FLOAT4, 11} // tint_color
 };
 
 struct CameraUniformBuffer {
@@ -299,11 +301,12 @@ void Renderer::init(uint32_t max_frames_in_flight) {
 
     for (uint32_t i = 0; i < m_max_frames_in_flight; i++) {
         m_mesh_instances_buffers[i] = VertexBuffer::create(
-            nullptr, sizeof(GeometryShaderInstanceData) * MAX_MESHES);
+            nullptr, sizeof(MeshShaderInstanceData) * MAX_MESHES);
     }
 
     // Cube //
-    m_cube_geometry = Application::get().get_asset_manager().get_geometry("Cube");
+    m_cube_geometry =
+        Application::get().get_asset_manager().get_geometry("Cube");
 
     // Lastly, set up the pipelines for our different default drawable objects.
     setup_quad_pipeline();
@@ -441,11 +444,11 @@ void Renderer::submit_instances(
 
         memcpy(m_instance_staging_buffer->get_mapped_memory(),
                m_mesh_shader_instances[m_current_frame].data(),
-               sizeof(GeometryShaderInstanceData) *
+               sizeof(MeshShaderInstanceData) *
                    m_mesh_shader_instances[m_current_frame].size());
 
         VkBufferCopy copy_region{};
-        copy_region.size = sizeof(GeometryShaderInstanceData) *
+        copy_region.size = sizeof(MeshShaderInstanceData) *
                            m_mesh_shader_instances[m_current_frame].size();
         vkCmdCopyBuffer(
             m_command_buffers[m_current_frame]->get_command_buffer(),
@@ -796,42 +799,48 @@ void Renderer::draw_quad(const Transform& transform, const glm::vec3& color,
                      static_cast<uint32_t>(quad_indices.size()), 1, 0, 0, 0);
 }
 
-void Renderer::draw_cube(const std::vector<GeometryInstance>& instances) {
+void Renderer::draw_cube(const std::vector<MeshInstance>& instances) {
     draw_mesh(m_cube_geometry, instances);
 }
 
 void Renderer::draw_mesh(const Ref<Geometry>& geometry,
-                         const std::vector<GeometryInstance>& instances) {
+                         const std::vector<MeshInstance>& instances) {
     m_mesh_instances[m_current_frame].push_back(
         {.geometry = geometry,
-         .offset = sizeof(GeometryShaderInstanceData) *
+         .offset = sizeof(MeshShaderInstanceData) *
                    m_mesh_shader_instances[m_current_frame].size(),
          .instance_count = instances.size()});
 
     // Prepare the instances
     for (auto& instance : instances) {
-        m_mesh_shader_instances[m_current_frame].push_back(
-            {.model = instance.transform.ToMat4(),
-             .material = ShaderMaterial{
-                 .diffuse_texture_unit =
-                     instance.material == nullptr ||
-                             instance.material->get_diffuse() == nullptr
-                         ? m_gray_texture->GetTextureIndex()
-                         : instance.material->get_diffuse()->GetTextureIndex(),
-                 .specular_texture_unit =
-                     instance.material == nullptr ||
-                             instance.material->get_specular() == nullptr
-                         ? m_black_texture->GetTextureIndex()
-                         : instance.material->get_specular()->GetTextureIndex(),
-                 .emission_texture_unit =
-                     instance.material == nullptr ||
-                             instance.material->get_emission() == nullptr
-                         ? m_black_texture->GetTextureIndex()
-                         : instance.material->get_emission()->GetTextureIndex(),
-                 .shininess = instance.material == nullptr
-                                  ? 32.0f
-                                  : instance.material->get_shininess(),
-             }});
+        m_mesh_shader_instances[m_current_frame].push_back({
+            .model = instance.transform.ToMat4(),
+            .material =
+                ShaderMaterial{
+                    .diffuse_texture_unit =
+                        instance.material == nullptr ||
+                                instance.material->get_diffuse() == nullptr
+                            ? m_gray_texture->GetTextureIndex()
+                            : instance.material->get_diffuse()
+                                  ->GetTextureIndex(),
+                    .specular_texture_unit =
+                        instance.material == nullptr ||
+                                instance.material->get_specular() == nullptr
+                            ? m_black_texture->GetTextureIndex()
+                            : instance.material->get_specular()
+                                  ->GetTextureIndex(),
+                    .emission_texture_unit =
+                        instance.material == nullptr ||
+                                instance.material->get_emission() == nullptr
+                            ? m_black_texture->GetTextureIndex()
+                            : instance.material->get_emission()
+                                  ->GetTextureIndex(),
+                    .shininess = instance.material == nullptr
+                                     ? 32.0f
+                                     : instance.material->get_shininess(),
+                },
+            .tint_color = instance.tint_color,
+        });
     }
 }
 
@@ -1044,7 +1053,7 @@ void Renderer::setup_quad_pipeline() {
 
 void Renderer::setup_lighting_pipeline() {
     m_instance_staging_buffer =
-        Buffer::create_unique(sizeof(GeometryShaderInstanceData) * MAX_MESHES,
+        Buffer::create_unique(sizeof(MeshShaderInstanceData) * MAX_MESHES,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,

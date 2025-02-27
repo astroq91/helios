@@ -234,9 +234,10 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                             project.get_project_path(),
                                             dialogRet.path);
 
-                                    auto geometry = Application::get()
-                                                    .get_asset_manager()
-                                                    .get_geometry(relative_path);
+                                    auto geometry =
+                                        Application::get()
+                                            .get_asset_manager()
+                                            .get_geometry(relative_path);
                                     if (geometry == nullptr) {
                                         component->geometry =
                                             Geometry::create(relative_path);
@@ -263,42 +264,49 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     ImGui::TreePop();
                 }
 
-                if (ImGui::TreeNode("Material")) {
-                    if (component->material) {
-                        strcpy(material_name_buffer,
-                               component->material->get_name().c_str());
-                    } else {
-                        strcpy(material_name_buffer, "None");
-                    }
+                if (ImGui::TreeNode("Rendering")) {
+                    if (ImGui::TreeNode("Material")) {
+                        if (component->material) {
+                            strcpy(material_name_buffer,
+                                   component->material->get_name().c_str());
+                        } else {
+                            strcpy(material_name_buffer, "None");
+                        }
 
-                    if (ImGui::Button("Choose")) {
-                        DialogReturn dialog_ret = IOUtils::open_file(
-                            {"*.mat"}, project.get_project_path());
-                        if (!dialog_ret.path.empty()) {
-                            std::string relative_path = IOUtils::relative_path(
-                                project.get_project_path(), dialog_ret.path);
-                            auto mat = Application::get()
-                                           .get_asset_manager()
-                                           .get_material(relative_path);
-                            if (mat == nullptr) {
-                                component->material =
-                                    Material::create(relative_path);
-                                Application::get()
-                                    .get_asset_manager()
-                                    .add_material(component->material);
-                            } else {
-                                component->material = mat;
+                        if (ImGui::Button("Choose")) {
+                            DialogReturn dialog_ret = IOUtils::open_file(
+                                {"*.mat"}, project.get_project_path());
+                            if (!dialog_ret.path.empty()) {
+                                std::string relative_path =
+                                    IOUtils::relative_path(
+                                        project.get_project_path(),
+                                        dialog_ret.path);
+                                auto mat = Application::get()
+                                               .get_asset_manager()
+                                               .get_material(relative_path);
+                                if (mat == nullptr) {
+                                    component->material =
+                                        Material::create(relative_path);
+                                    Application::get()
+                                        .get_asset_manager()
+                                        .add_material(component->material);
+                                } else {
+                                    component->material = mat;
+                                }
                             }
                         }
-                    }
 
-                    ImGui::SameLine();
-                    if (ImGui::Button("Clear")) {
-                        component->material = nullptr;
-                    }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Clear")) {
+                            component->material = nullptr;
+                        }
 
-                    ImGui::SameLine();
-                    ImGui::Text("(Current: %s)", material_name_buffer);
+                        ImGui::SameLine();
+                        ImGui::Text("(Current: %s)", material_name_buffer);
+
+                        ImGui::TreePop();
+                    }
+                    ImGui::ColorEdit4("Tint color", &component->tint_color.r);
 
                     ImGui::TreePop();
                 }

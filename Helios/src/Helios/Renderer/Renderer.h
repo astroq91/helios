@@ -49,9 +49,10 @@ struct ShaderMaterial {
 };
 
 // Used as per-instance vertex attributes when rendering geometries.
-struct GeometryShaderInstanceData {
+struct MeshShaderInstanceData {
     alignas(16) glm::mat4 model;
     ShaderMaterial material;
+    glm::vec4 tint_color;
 };
 
 // Used to store the geometries used for a set of instances.
@@ -62,9 +63,10 @@ struct GeometryInstances {
 };
 
 // Used to describe an instance's properties.
-struct GeometryInstance {
+struct MeshInstance {
     Transform transform;
     Ref<Material> material;
+    glm::vec4 tint_color;
 };
 
 constexpr int MAX_MESHES = 10000;
@@ -141,10 +143,10 @@ class Renderer {
      * \brief Record cube instances.
      * \param instances The instances.
      */
-    void draw_cube(const std::vector<GeometryInstance>& instances);
+    void draw_cube(const std::vector<MeshInstance>& instances);
 
     void draw_mesh(const Ref<Geometry>& geometry,
-                   const std::vector<GeometryInstance>& instances);
+                   const std::vector<MeshInstance>& instances);
 
     void set_camera(const Camera& camera);
 
@@ -256,7 +258,7 @@ class Renderer {
     Ref<TextureLibrary> m_textures;
 
     // Object Instances //
-    std::vector<std::vector<GeometryShaderInstanceData>>
+    std::vector<std::vector<MeshShaderInstanceData>>
         m_mesh_shader_instances; // One for each frame in flight
     std::vector<std::vector<GeometryInstances>>
         m_mesh_instances; // One for each frame in flight
