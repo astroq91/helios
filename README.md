@@ -76,9 +76,9 @@ need to add a camera component to an entity to be able to see.
 
 ## Current problems and aspirations
 
-The project is very barebones, as a lot of the time was spent on integrating Vulkan, but I still want to continue working on Helios
-to get it to a more usable state. I'm planning on fixing some things like:
+The project is very barebones, but I'm planning on fixing some things like:
 
+* Improve the error handling. A lot of things can cause the program to crash.
 * The scene camera currently requires a light source to see, which is not ideal.
 * Improve the scripting workflow.
 * Improve lighting pipeline.
