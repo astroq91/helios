@@ -5,11 +5,11 @@
 Helios is a general purpose 3D game engine written in C++20. It currently has the following features:
 
 * Instance based rendering, using Vulkan.
-* Physics using Physx, for simulating rigidbodies (currently only boxes)
-* Scripting using lua.
-* ECS using entt.
+* Physics using [PhysX], for simulating rigidbodies (currently only boxes)
+* Scripting using [Lua].
+* ECS using [entt].
 * Simple project system.
-* An editor, written using ImGui.
+* An editor, written using [ImGui].
 
 
 <!-- GETTING STARTED -->
@@ -26,7 +26,8 @@ In order to successfully compile, the following dependencies need to be installe
 * CMake (min version 3.25).
 * glfw3.
 * glslc (for compiling shaders).
-* The Vulkan SDK.
+
+The project already has the necessary libraries for Vulkan, and uses [volk] to find the vulkan loader. 
 
 ### Installation
 
@@ -101,7 +102,7 @@ Distributed under the MIT license. See `LICENSE.txt` for more information.
 * [Vulkan] - A rendering API.
 * [GLFW] - A window management library.
 * [Nvidia PhysX] - A physics engine. 
-* [lua] - A simple scripting language.
+* [Lua] - A simple scripting language.
 * [glm] - A math library.
 * [ImGui] - An immediate mode GUI library.
 * [entt] - A ECS library.
@@ -119,7 +120,7 @@ Distributed under the MIT license. See `LICENSE.txt` for more information.
 [entt]: https://github.com/skypjack/entt
 [glm]: https://github.com/g-truc/glm
 [Nvidia PhysX]: https://github.com/NVIDIA-Omniverse/PhysX
-[lua]: https://www.lua.org/
+[Lua]: https://www.lua.org/
 [sol2]: https://github.com/ThePhD/sol2
 [yaml-cpp]: https://github.com/jbeder/yaml-cpp
 [spdlog]: https://github.com/gabime/spdlog
@@ -127,4 +128,5 @@ Distributed under the MIT license. See `LICENSE.txt` for more information.
 [stduuid]: https://github.com/mariusbancila/stduuid
 [tiny_obj_loader]: https://github.com/tinyobjloader/tinyobjloader
 [tinyfiledialogs]: https://sourceforge.net/projects/tinyfiledialogs/
+[volk]: https://github.com/zeux/volk
 
