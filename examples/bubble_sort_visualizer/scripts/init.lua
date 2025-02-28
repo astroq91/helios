@@ -3,29 +3,46 @@ require("lua.helios")
 local entities = {}
 
 local MAX_HEIGHT = 1000
-local ENT_COUNT = 1000
-local ENT_DISTANCE = 4
+local ENT_COUNT = 2000
+ 
+
+math.randomseed(os.time())
+local function shuffle_in_place(t)
+    for i = #t, 2, -1 do
+        local j = math.random(i)
+        t[i], t[j] = t[j], t[i]
+    end
+end
 
 function on_start()
+    -- Create the entities with sizes in acsending order
+    for i = 1, ENT_COUNT do
+        local ent = Entities:create_entity("Entity " .. tostring(i))
+        local components = ent:get_components()
+        local transform = components:add_transform()
+        local mesh = components:add_mesh()
 
-  for i=0, ENT_COUNT, ENT_DISTANCE do
-    local ent = Entities:create_entity("Entity " .. tostring(i + 50))
-    local components = ent:get_components()
+        local scale = i / ENT_COUNT * MAX_HEIGHT
+        transform.scale.y = scale
+        transform.position.y = scale / 2
 
-    local transform = components:add_transform()
-    transform.position.x = i - ENT_COUNT / 2
-    local scale = i / ENT_COUNT / ENT_DISTANCE * MAX_HEIGHT
-    transform.scale.y = scale
-    transform.position.y = scale / 2
+        mesh:load_geometry("Cube")
+        mesh.tint_color = Vec4.new(1 - i / ENT_COUNT, i / ENT_COUNT, 0, 1)
 
-    local mesh = components:add_mesh()
-    mesh:load_geometry("Cube")
+        table.insert(entities, ent)
+    end
 
-    mesh.tint_color = Vec4.new(1 - i / ENT_COUNT * 1, i / ENT_COUNT * 1, 0, 1)
+    shuffle_in_place(entities)
 
-    table.insert(entities, ent)
-  end
+    -- Update the x position to reflect the new order
+    for k, v in pairs(entities) do
+        local components = v:get_components()
+        local transform = components:get_transform()
+
+        transform.position.x = k - ENT_COUNT / 2
+    end
 end
+
 
 function on_update(ts)
   
