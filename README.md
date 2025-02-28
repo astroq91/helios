@@ -27,8 +27,6 @@ In order to successfully compile, the following dependencies need to be installe
 * glfw3.
 * glslc (for compiling shaders).
 
-The project already has the necessary libraries for Vulkan, and uses [volk] to find the vulkan loader. 
-
 ### Installation
 
 1. Clone the repo with the submodules
