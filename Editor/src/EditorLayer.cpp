@@ -85,6 +85,8 @@ void EditorLayer::on_update(float ts) {
         return;
     }
 
+    m_fps = static_cast<uint32_t>(1.0f / ts);
+
     auto& app = Application::get();
     auto& renderer = app.get_renderer();
     auto& context = app.get_vulkan_manager()->get_context();
@@ -586,6 +588,12 @@ void EditorLayer::on_imgui_render() {
                         m_gizmo_mode = ImGuizmo::MODE::LOCAL;
                     }
                 }
+            }
+            ImGui::End();
+
+            ImGui::Begin("Statistics");
+            {
+                ImGui::Text("FPS: %d", m_fps);
             }
             ImGui::End();
             m_components_browser.on_update(

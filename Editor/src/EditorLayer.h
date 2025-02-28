@@ -125,4 +125,6 @@ class EditorLayer : public Helios::Layer {
     bool m_use_snap = false;
 
     bool m_go_to_homescreen = false;
+
+    uint32_t m_fps;
 };
