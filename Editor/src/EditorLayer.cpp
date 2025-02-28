@@ -751,7 +751,7 @@ void EditorLayer::update_entity_picking() {
     auto& app = Application::get();
     auto& renderer = app.get_renderer();
     if (m_use_mouse_picking && !m_using_gizmo) {
-        auto view = m_scene->get_view<TransformComponent, MeshComponent>();
+        auto view = m_scene->get_view<TransformComponent, MeshRendererComponent>();
 
         if (view.front() != entt::null) {
             // First we prepare the data
@@ -806,7 +806,7 @@ void EditorLayer::update_entity_picking() {
             for (auto [entity, transform_component, mesh_component] :
                  view.each()) {
                 VkBuffer buffers[2] = {
-                    mesh_component.geometry->get_vertex_buffer()
+                    mesh_component.mesh->get_vertex_buffer()
                         ->get_vk_buffer(),
                     m_entity_picking_buffers[app.get_current_frame()]
                         ->get_vk_buffer()};
@@ -817,7 +817,7 @@ void EditorLayer::update_entity_picking() {
 
                 vkCmdBindIndexBuffer(
                     renderer.get_current_command_buffer()->get_command_buffer(),
-                    mesh_component.geometry->get_index_buffer()
+                    mesh_component.mesh->get_index_buffer()
                         ->get_vk_buffer(),
                     0, VK_INDEX_TYPE_UINT32);
 
@@ -834,7 +834,7 @@ void EditorLayer::update_entity_picking() {
 
                 vkCmdDrawIndexed(
                     renderer.get_current_command_buffer()->get_command_buffer(),
-                    mesh_component.geometry->get_index_buffer()
+                    mesh_component.mesh->get_index_buffer()
                         ->get_index_count(),
                     1, 0, 0, 0);
 

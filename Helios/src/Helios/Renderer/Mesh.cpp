@@ -1,4 +1,4 @@
-﻿#include "Geometry.h"
+﻿#include "Mesh.h"
 
 #include "Helios/Core/Application.h"
 #include "Helios/Core/IOUtils.h"
@@ -8,7 +8,7 @@
 #include "Vertex.h"
 
 namespace Helios {
-void Geometry::init(const std::string& file) {
+void Mesh::init(const std::string& file) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
 
@@ -67,7 +67,7 @@ void Geometry::init(const std::string& file) {
          sizeof(uint32_t) * indices.size(), indices.size());
 }
 
-void Geometry::init(void* vertices, size_t vertices_size, void* indices,
+void Mesh::init(void* vertices, size_t vertices_size, void* indices,
                 size_t indices_size, size_t indices_count) {
     m_vertex_buffer = VertexBuffer::create(vertices, vertices_size);
     m_index_buffer = IndexBuffer::create(indices, indices_size, indices_count);

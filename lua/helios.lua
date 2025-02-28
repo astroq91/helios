@@ -58,12 +58,12 @@ PointLight = PointLight
 ---@field restitution number The restitution
 RigidBody = RigidBody
 
----@class Mesh
----@field load_geometry fun(self: Mesh, name: string) Loads a geometry from a relative (based on project path), or absolute path.
+---@class MeshRenderer
+---@field load_mesh fun(self: MeshRenderer, name: string) Loads a mesh from a relative (based on project path), or absolute path.
 ---                                                   You can also specify default geometries like "Cube"
----@field load_material fun(self: Mesh, name: string) Loads a material from a relative (based on project path), or aboslute path.
+---@field load_material fun(self: MeshRenderer, name: string) Loads a material from a relative (based on project path), or aboslute path.
 ---@field tint_color vec4 The tinting of the mesh
-Mesh = Mesh
+MeshRenderer = MeshRenderer
 
 ---@class Components
 ---Contains functions for accessing the components

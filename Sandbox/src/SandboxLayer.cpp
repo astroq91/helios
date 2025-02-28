@@ -37,9 +37,9 @@ void SandboxLayer::on_attach() {
                 Entity cube = m_scene.create_entity("Cube");
                 cube.add_component<TransformComponent>(
                     Transform{.position = glm::vec3(i * 2, j * 2, w * 2)});
-                cube.add_component<MeshComponent>();
-                cube.get_component<MeshComponent>() = {
-                    .geometry = renderer.get_cube_mesh(),
+                cube.add_component<MeshRendererComponent>();
+                cube.get_component<MeshRendererComponent>() = {
+                    .mesh = renderer.get_cube_mesh(),
                     .material = Material{
                         .diffuse = i % 2 == 0
                                        ? m_texture
@@ -63,7 +63,7 @@ void SandboxLayer::on_attach() {
     dir_light.get_component<DirectionalLightComponent>().direction =
         glm::vec3(-1);
 
-    m_viking_mesh = Geometry::create(RESOURCES_PATH "models/viking_room.obj");
+    m_viking_mesh = Mesh::create(RESOURCES_PATH "models/viking_room.obj");
     m_viking_texture = Texture::create(RESOURCES_PATH "images/viking_room.png");
 
     m_viking_room = m_scene.create_entity("Viking room");
@@ -72,9 +72,9 @@ void SandboxLayer::on_attach() {
         .rotation = {-110, 230, 19},
         .scale = {2, 2, 2},
     });
-    m_viking_room.add_component<MeshComponent>();
-    m_viking_room.get_component<MeshComponent>() = {
-        .geometry = m_viking_mesh,
+    m_viking_room.add_component<MeshRendererComponent>();
+    m_viking_room.get_component<MeshRendererComponent>() = {
+        .mesh = m_viking_mesh,
         .material = Material{
             .diffuse = m_viking_texture,
         }};

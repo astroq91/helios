@@ -17,26 +17,26 @@ namespace Helios {
 /**
  * Used to interface with a mesh component
  */
-class ScriptMesh {
+class ScriptMeshRenderer {
   public:
-    ScriptMesh(MeshComponent* component) : m_component(component) {}
+    ScriptMeshRenderer(MeshRendererComponent* component) : m_component(component) {}
 
-    void load_geometry(const std::string& path) {
+    void load_mesh(const std::string& path) {
         if (path == "Cube") {
-            m_component->geometry =
-                Application::get().get_asset_manager().get_geometry("Cube");
+            m_component->mesh =
+                Application::get().get_asset_manager().get_mesh("Cube");
         } else {
-            m_component->geometry = Geometry::create(path);
+            m_component->mesh = Mesh::create(path);
         }
     }
     void load_material(const std::string& path) {
         m_component->material = Material::create(path);
     }
 
-    MeshComponent* get_component() { return m_component; }
+    MeshRendererComponent* get_component() { return m_component; }
 
   private:
-    MeshComponent* m_component;
+    MeshRendererComponent* m_component;
 };
 
 class Components {
@@ -69,8 +69,8 @@ class Components {
         return m_entity.try_get_component<RigidBodyComponent>();
     }
 
-    ScriptMesh get_mesh() {
-        return ScriptMesh(m_entity.try_get_component<MeshComponent>());
+    ScriptMeshRenderer get_mesh_renderer() {
+        return ScriptMeshRenderer(m_entity.try_get_component<MeshRendererComponent>());
     }
 
     /* Adders */
@@ -95,8 +95,8 @@ class Components {
         return &m_entity.add_component<RigidBodyComponent>();
     }
 
-    ScriptMesh add_mesh() {
-        return ScriptMesh(&m_entity.add_component<MeshComponent>());
+    ScriptMeshRenderer add_mesh_renderer() {
+        return ScriptMeshRenderer(&m_entity.add_component<MeshRendererComponent>());
     }
 
   private:
@@ -267,8 +267,8 @@ void Script::expose_helios_user_types() {
         &Components::get_point_light, "add_point_light",
         &Components::add_point_light, "get_rigid_body",
         &Components::get_rigid_body, "add_rigid_body",
-        &Components::add_rigid_body, "get_mesh", &Components::get_mesh,
-        "add_mesh", &Components::add_mesh);
+        &Components::add_rigid_body, "get_mesh_renderer", &Components::get_mesh_renderer,
+        "add_mesh_renderer", &Components::add_mesh_renderer);
 
     m_state.new_usertype<Input>("Input", "is_key_pressed",
                                 &Input::is_key_pressed, "is_key_released",
@@ -336,12 +336,12 @@ void Script::expose_component_user_types() {
                 m_entity.update_rigid_body_restitution(value);
             }));
 
-    m_state.new_usertype<ScriptMesh>(
-        "Mesh", "load_geometry", &ScriptMesh::load_geometry, "load_material",
-        &ScriptMesh::load_material, "tint_color",
+    m_state.new_usertype<ScriptMeshRenderer>(
+        "MeshRenderer", "load_mesh", &ScriptMeshRenderer::load_mesh, "load_material",
+        &ScriptMeshRenderer::load_material, "tint_color",
         sol::property(
-            [&](ScriptMesh& mesh) { return mesh.get_component()->tint_color; },
-            [&](ScriptMesh& mesh, glm::vec4 color) {
+            [&](ScriptMeshRenderer& mesh) { return mesh.get_component()->tint_color; },
+            [&](ScriptMeshRenderer& mesh, glm::vec4 color) {
                 mesh.get_component()->tint_color = color;
             }));
 }

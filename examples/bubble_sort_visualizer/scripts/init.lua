@@ -20,14 +20,14 @@ function on_start()
         local ent = Entities:create_entity("Entity " .. tostring(i))
         local components = ent:get_components()
         local transform = components:add_transform()
-        local mesh = components:add_mesh()
+        local mesh_renderer = components:add_mesh_renderer()
 
         local scale = i / ENT_COUNT * MAX_HEIGHT
         transform.scale.y = scale
         transform.position.y = scale / 2
 
-        mesh:load_geometry("Cube")
-        mesh.tint_color = Vec4.new(1 - i / ENT_COUNT, i / ENT_COUNT, 0, 1)
+        mesh_renderer:load_mesh("Cube")
+        mesh_renderer.tint_color = Vec4.new(1 - i / ENT_COUNT, i / ENT_COUNT, 0, 1)
 
         table.insert(entities, ent)
     end

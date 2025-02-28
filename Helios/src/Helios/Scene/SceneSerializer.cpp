@@ -169,13 +169,13 @@ void SerializeEntity(YAML::Emitter& out, Entity entity) {
         out << YAML::EndMap;
     }
 
-    if (entity.has_component<MeshComponent>()) {
-        const auto& component = entity.get_component<MeshComponent>();
-        out << YAML::Key << "mesh_component" << YAML::Value << YAML::BeginMap;
+    if (entity.has_component<MeshRendererComponent>()) {
+        const auto& component = entity.get_component<MeshRendererComponent>();
+        out << YAML::Key << "mesh_renderer_component" << YAML::Value << YAML::BeginMap;
 
-        out << YAML::Key << "geometry";
-        if (component.geometry) {
-            out << YAML::Value << component.geometry->get_name();
+        out << YAML::Key << "mesh";
+        if (component.mesh) {
+            out << YAML::Value << component.mesh->get_name();
         } else {
             out << YAML::Value << YAML::Null;
         }
@@ -349,36 +349,34 @@ void SceneSerializer::deserialize(const std::string& path) {
                         point_light_component["specular"].as<glm::vec3>();
                 }
 
-                auto mesh_component = entity["mesh_component"];
-                if (mesh_component) {
+                auto mesh_renderer_component = entity["mesh_renderer_component"];
+                if (mesh_renderer_component) {
                     auto& mc =
-                        deserialized_entity.add_component<MeshComponent>();
+                        deserialized_entity.add_component<MeshRendererComponent>();
 
-                    // TODO: Fix all this
+                    std::string mesh_name =
+                        mesh_renderer_component["mesh"].as<std::string>();
 
-                    std::string geometry_name =
-                        mesh_component["geometry"].as<std::string>();
-
-                    if (geometry_name == "Cube") {
-                        mc.geometry =
+                    if (mesh_name == "Cube") {
+                        mc.mesh =
                             Application::get().get_renderer().get_cube_mesh();
                     }
                     // Some file path
-                    else if (!mesh_component["mesh"].IsNull() &&
-                             !geometry_name.empty()) {
-                        auto geometry =
-                            Application::get().get_asset_manager().get_geometry(
-                                geometry_name);
-                        if (geometry == nullptr) {
-                            mc.geometry = Geometry::create(geometry_name);
-                            Application::get().get_asset_manager().add_geometry(
-                                mc.geometry);
+                    else if (!mesh_renderer_component["mesh"].IsNull() &&
+                             !mesh_name.empty()) {
+                        auto mesh =
+                            Application::get().get_asset_manager().get_mesh(
+                                mesh_name);
+                        if (mesh == nullptr) {
+                            mc.mesh = Mesh::create(mesh_name);
+                            Application::get().get_asset_manager().add_mesh(
+                                mc.mesh);
                         } else {
-                            mc.geometry = geometry;
+                            mc.mesh = mesh;
                         }
                     }
 
-                    auto material = mesh_component["material"];
+                    auto material = mesh_renderer_component["material"];
                     if (material && !material.IsNull()) {
                         std::string material_path = material.as<std::string>();
                         if (!material_path.empty()) {
@@ -396,7 +394,7 @@ void SceneSerializer::deserialize(const std::string& path) {
                         }
                     }
 
-                    auto tint_color = mesh_component["tint_color"];
+                    auto tint_color = mesh_renderer_component["tint_color"];
                     if (tint_color) {
                         mc.tint_color = tint_color.as<glm::vec4>();
                     }

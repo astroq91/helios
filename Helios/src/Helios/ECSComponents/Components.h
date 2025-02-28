@@ -4,9 +4,9 @@
 
 #include "Helios/Physics/PhysicsManager.h"
 #include "Helios/Physics/RigidBody.h"
-#include "Helios/Renderer/Geometry.h"
 #include "Helios/Renderer/Light.h"
 #include "Helios/Renderer/Material.h"
+#include "Helios/Renderer/Mesh.h"
 #include "Helios/Scene/Transform.h"
 #include "Helios/Scripting/Script.h"
 
@@ -50,8 +50,8 @@ struct CameraComponent {
     float far = 100.0f;
 };
 
-struct MeshComponent {
-    Ref<Geometry> geometry = nullptr;
+struct MeshRendererComponent {
+    Ref<Mesh> mesh = nullptr;
     Ref<Material> material = nullptr;
     glm::vec4 tint_color = glm::vec4(1);
 };

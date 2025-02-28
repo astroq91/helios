@@ -182,48 +182,48 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 ImGui::InputFloat("quadratic", &component->quadratic);
             });
 
-        Utils::render_component<MeshComponent>(
-            "Mesh", selected_entity,
+        Utils::render_component<MeshRendererComponent>(
+            "Mesh Renderer", selected_entity,
             [&renderer, &project](auto component) {
-                static bool show_choose_geometry_modal = false;
+                static bool show_choose_mesh_modal = false;
 
-                char geometry_name_buffer[256];
+                char mesh_name_buffer[256];
                 char material_name_buffer[256];
 
-                if (ImGui::TreeNode("Geometry")) {
-                    if (component->geometry) {
-                        strcpy(geometry_name_buffer,
-                               component->geometry->get_name().c_str());
+                if (ImGui::TreeNode("Mesh")) {
+                    if (component->mesh) {
+                        strcpy(mesh_name_buffer,
+                               component->mesh->get_name().c_str());
                     } else {
-                        strcpy(geometry_name_buffer, "None");
+                        strcpy(mesh_name_buffer, "None");
                     }
 
                     if (ImGui::Button("Choose")) {
-                        show_choose_geometry_modal = true;
+                        show_choose_mesh_modal = true;
                     }
 
                     ImGui::SameLine();
                     if (ImGui::Button("Clear")) {
-                        component->geometry = nullptr;
+                        component->mesh = nullptr;
                     }
 
                     ImGui::SameLine();
-                    ImGui::Text("(Current: %s)", geometry_name_buffer);
+                    ImGui::Text("(Current: %s)", mesh_name_buffer);
 
-                    if (show_choose_geometry_modal) {
-                        ImGui::OpenPopup("Choose geometry");
+                    if (show_choose_mesh_modal) {
+                        ImGui::OpenPopup("Choose mesh");
                         if (ImGui::BeginPopupModal(
-                                "Choose geometry", &show_choose_geometry_modal,
+                                "Choose mesh", &show_choose_mesh_modal,
                                 ImGuiWindowFlags_AlwaysAutoResize)) {
-                            ImGui::Text("Select a Default Geometry:");
+                            ImGui::Text("Select a Default Mesh:");
                             if (ImGui::Button("Cube")) {
-                                component->geometry = renderer.get_cube_mesh();
-                                show_choose_geometry_modal = false;
+                                component->mesh = renderer.get_cube_mesh();
+                                show_choose_mesh_modal = false;
                             }
-                            // Add more geometry options here
+                            // Add more mesh options here
 
                             ImGui::Separator();
-                            ImGui::Text("Or, load a geometry from file:");
+                            ImGui::Text("Or, load a mesh from file:");
 
                             if (ImGui::Button("Browse")) {
                                 DialogReturn dialogRet = IOUtils::open_file(
@@ -234,27 +234,27 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                             project.get_project_path(),
                                             dialogRet.path);
 
-                                    auto geometry =
+                                    auto mesh =
                                         Application::get()
                                             .get_asset_manager()
-                                            .get_geometry(relative_path);
-                                    if (geometry == nullptr) {
-                                        component->geometry =
-                                            Geometry::create(relative_path);
+                                            .get_mesh(relative_path);
+                                    if (mesh == nullptr) {
+                                        component->mesh =
+                                            Mesh::create(relative_path);
                                         Application::get()
                                             .get_asset_manager()
-                                            .add_geometry(component->geometry);
+                                            .add_mesh(component->mesh);
                                     } else {
-                                        component->geometry = geometry;
+                                        component->mesh = mesh;
                                     }
 
-                                    show_choose_geometry_modal = false;
+                                    show_choose_mesh_modal = false;
                                 }
                             }
 
                             ImGui::SameLine();
                             if (ImGui::Button("Cancel")) {
-                                show_choose_geometry_modal = false;
+                                show_choose_mesh_modal = false;
                             }
 
                             ImGui::EndPopup();
@@ -453,9 +453,9 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     m_show_add_component_modal = false;
                 }
 
-                if (!selected_entity.try_get_component<MeshComponent>() &&
+                if (!selected_entity.try_get_component<MeshRendererComponent>() &&
                     ImGui::Button("Mesh")) {
-                    selected_entity.add_component<MeshComponent>();
+                    selected_entity.add_component<MeshRendererComponent>();
                     m_show_add_component_modal = false;
                 }
 
