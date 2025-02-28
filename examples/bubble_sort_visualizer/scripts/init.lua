@@ -14,5 +14,7 @@ function on_start()
 
     local mesh = components:add_mesh()
     mesh:load_geometry("Cube")
+
+    mesh.tint_color = Vec4.new(1, 0, 0, 1)
   end
 end

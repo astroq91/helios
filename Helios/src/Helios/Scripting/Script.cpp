@@ -6,6 +6,7 @@
 #include "Helios/Events/Input.h"
 #include "Helios/Scene/Entity.h"
 #include "Helios/Scene/Scene.h"
+#include "sol/property.hpp"
 #include "sol/variadic_args.hpp"
 #include <fstream>
 #include <glm/glm.hpp>
@@ -31,6 +32,8 @@ class ScriptMesh {
     void load_material(const std::string& path) {
         m_component->material = Material::create(path);
     }
+
+    MeshComponent* get_component() { return m_component; }
 
   private:
     MeshComponent* m_component;
@@ -223,12 +226,16 @@ void Script::on_update(float ts) {
 }
 
 void Script::expose_basic_types() {
-    m_state.new_usertype<glm::vec3>("vec3", "x", &glm::vec3::x, "y",
-                                    &glm::vec3::y, "z", &glm::vec3::z);
-    m_state.new_usertype<glm::vec4>("vec4", "x", &glm::vec4::x, "y",
-                                    &glm::vec4::y, "z", &glm::vec4::z, "w",
-                                    &glm::vec4::w);
-    m_state.new_usertype<glm::quat>("quat", "x", &glm::quat::x, "y",
+    m_state.new_usertype<glm::vec3>(
+        "Vec3",
+        sol::constructors<glm::vec3(), glm::vec3(float, float, float)>(), "x",
+        &glm::vec3::x, "y", &glm::vec3::y, "z", &glm::vec3::z);
+    m_state.new_usertype<glm::vec4>(
+        "Vec4",
+        sol::constructors<glm::vec4(), glm::vec4(float, float, float, float)>(),
+        "x", &glm::vec4::x, "y", &glm::vec4::y, "z", &glm::vec4::z, "w",
+        &glm::vec4::w);
+    m_state.new_usertype<glm::quat>("Quat", "x", &glm::quat::x, "y",
                                     &glm::quat::y, "z", &glm::quat::z, "w",
                                     &glm::quat::w);
 }
@@ -330,7 +337,12 @@ void Script::expose_component_user_types() {
 
     m_state.new_usertype<ScriptMesh>(
         "Mesh", "load_geometry", &ScriptMesh::load_geometry, "load_material",
-        &ScriptMesh::load_material);
+        &ScriptMesh::load_material, "tint_color",
+        sol::property(
+            [&](ScriptMesh& mesh) { return mesh.get_component()->tint_color; },
+            [&](ScriptMesh& mesh, glm::vec4 color) {
+                mesh.get_component()->tint_color = color;
+            }));
 }
 
 void Script::expose_key_codes() {
