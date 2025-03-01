@@ -1,8 +1,6 @@
 Debug/
 Helios.dir/
 
-vendor/ImGui/Debug/
-vendor/ImGui/ImGui.dir/
 vendor/lua-5.4.6/Debug/
 vendor/lua-5.4.6/ImGui.dir/
 vendor/tinyfiledialogs/Debug/
