@@ -8,11 +8,17 @@ struct DialogReturn {
     std::filesystem::path name = "";
 };
 
+struct FilterEntry {
+    std::string name;
+    std::string filter;
+};
+
 class IOUtils {
   public:
-    static DialogReturn open_file(const std::vector<std::string>& filters,
+    static DialogReturn open_file(const std::vector<FilterEntry>& filters,
                                     const std::filesystem::path& initial_directory = std::filesystem::path());
-    static DialogReturn save_file(const std::vector<std::string>& filters,
+    static DialogReturn
+    save_file(const std::vector<FilterEntry>& filters,
               const std::filesystem::path& initial_directory =
                             std::filesystem::path());
     static DialogReturn

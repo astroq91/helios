@@ -314,7 +314,13 @@ void EditorLayer::on_imgui_render() {
                     }
                     if (ImGui::MenuItem("Open scene...")) {
                         DialogReturn ret = IOUtils::open_file(
-                            {"*.yaml"}, m_project.value().get_project_path());
+                            {
+                                {
+                                    .name = "Scene",
+                                    .filter = "*.yaml",
+                                },
+                            },
+                            m_project.value().get_project_path());
                         if (!ret.path.empty()) {
                             new_scene({.reset_window_title = false});
 
@@ -335,7 +341,13 @@ void EditorLayer::on_imgui_render() {
                     ImGui::EndDisabled();
                     if (ImGui::MenuItem("Save scene as...")) {
                         DialogReturn ret = IOUtils::save_file(
-                            {"*.yaml"}, m_project.value().get_project_path());
+                            {
+                                {
+                                    .name = "Scene",
+                                    .filter = "*.yaml",
+                                },
+                            },
+                            m_project.value().get_project_path());
                         if (!ret.path.empty()) {
                             m_loaded_scene_path = IOUtils::relative_path(
                                 m_project.value().get_project_path(), ret.path);

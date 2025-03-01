@@ -227,7 +227,12 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
                             if (ImGui::Button("Browse")) {
                                 DialogReturn dialogRet = IOUtils::open_file(
-                                    {"*.obj"}, project.get_project_path());
+                                    {
+                                        {
+                                            .name = "Mesh",
+                                            .filter = "*.obj",
+                                        },
+                                    }, project.get_project_path());
                                 if (!dialogRet.path.empty()) {
                                     std::filesystem::path relative_path =
                                         IOUtils::relative_path(
@@ -275,7 +280,13 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
                         if (ImGui::Button("Choose")) {
                             DialogReturn dialog_ret = IOUtils::open_file(
-                                {"*.mat"}, project.get_project_path());
+                                {
+                                    {
+                                        .name = "Material",
+                                        .filter = "*.mat",
+                                    },
+                                },
+                                project.get_project_path());
                             if (!dialog_ret.path.empty()) {
                                 std::filesystem::path relative_path =
                                     IOUtils::relative_path(
@@ -402,7 +413,13 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
                 if (ImGui::Button("Choose")) {
                     DialogReturn dialogRet = IOUtils::open_file(
-                        {"*.lua"}, project.get_project_path());
+                        {
+                            {
+                                .name = "Script",
+                                .filter = "*.lua",
+                            },
+                        },
+                        project.get_project_path());
                     if (!dialogRet.path.empty()) {
                         std::filesystem::path relative_path = IOUtils::relative_path(project.get_project_path(),
                                                    dialogRet.path)
