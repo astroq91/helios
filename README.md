@@ -122,11 +122,13 @@ need to add a camera component to an entity to be able to see. Currently a light
 ## File formats
 
 **Projects and scenes**
+
 Both projects and scenes are saved on disk using yaml, and the layout can be found in the examples.
 I don't have good checks in place if a scene or project file is valid or not, so if something loads weirdly
 check that the .yaml files are correct.
 
 **Path handling**
+
 All relative paths used in assets, like scene- and material files, are relative to the project folder (i.e. the folder containing the project.yaml file).
 Relative paths are written using forward slashes (/), to make projects easier to work with cross-platform.
 The only exception is if you use absolute paths, in which case the preferred separator of the OS is used.
