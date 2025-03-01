@@ -22,46 +22,16 @@ Regardless of the platform, the following dependencies need to be installed:
 * glslc (for compiling shaders).
 * Vulkan drivers.
 
+For Windows you need:
+
+* VC17 (i.e. Visual Studio 2022).
+
 For Linux you need:
 
 * gcc13 and g++13. Other C++23 compatible compilers could also work, but haven't been tested. The compilation scripts would need to be updated as well.
 * clang, for PhysX library generation.
 
-For Windows you need:
-
-* VC17 (i.e. Visual Studio 2022).
-
 ## Installation
-
-**Linux:**
-
-1. Clone the repo with the submodules
-
-   ```bash
-    git clone --recurse-submodules https://gitlab.com/astroq/helios
-   ```
-
-2. Build the PhysX libraries
-
-   ```bash
-    cd Helios/scripts
-    ./build_physx.sh
-   ```
-
-3. Compiling the shaders (make sure glslc in added to PATH)
-
-    ```bash
-    cd Helios/scripts
-    ./compile_shaders.sh
-   ```
-
-4. Compiling and running the editor
-
-    ```bash
-    ./compile_editor.sh
-    cd ../build/Editor
-    ./Editor
-    ```
 
 **Windows:**
 
@@ -95,6 +65,41 @@ For Windows you need:
     ```batch
     .\compile_editor.bat
     ```
+
+There is also ``delete_projects.bat`` that deletes all generated Visual Studio project files. 
+Be careful as it does this recursively.
+
+**Linux:**
+
+1. Clone the repo with the submodules
+
+   ```bash
+    git clone --recurse-submodules https://gitlab.com/astroq/helios
+   ```
+
+2. Build the PhysX libraries
+
+   ```bash
+    cd Helios/scripts
+    ./build_physx.sh
+   ```
+
+3. Compiling the shaders (make sure glslc in added to PATH)
+
+    ```bash
+    cd Helios/scripts
+    ./compile_shaders.sh
+   ```
+
+4. Compiling and running the editor
+
+    ```bash
+    ./compile_editor.sh
+    cd ../build/Editor
+    ./Editor
+    ```
+
+
 
 # Usage
 
