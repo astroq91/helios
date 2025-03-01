@@ -48,7 +48,7 @@ For Linux you need:
     .\build_physx.bat
    ```
 
-3. Compiling the shaders (make sure glslc in added to PATH)
+3. Compile the shaders (make sure glslc is added to PATH)
 
     ```batch
     .\compile_shaders.bat
@@ -84,7 +84,7 @@ Be careful as it does this recursively.
     ./build_physx.sh
    ```
 
-3. Compiling the shaders (make sure glslc in added to PATH)
+3. Compile the shaders (make sure glslc is added to PATH)
 
     ```bash
     cd Helios/scripts
@@ -98,8 +98,6 @@ Be careful as it does this recursively.
     cd ../build/Editor
     ./Editor
     ```
-
-
 
 # Usage
 
