@@ -117,7 +117,7 @@ The editor is quite barebones but has features to build a simple tech demo.
 
 The editor uses two windows for rendering the scene: Editor and Game. The 'Editor' window renders the scene using a scene camera
 that will always be turned on. The 'Game' window instead renders the scene through the first available game camera, which means that you
-need to add a camera component to an entity to be able to see.
+need to add a camera component to an entity to be able to see. Currently a light source is needed for both cameras.
 
 ## File formats
 
