@@ -263,16 +263,4 @@ IOUtils::relative_path(const std::filesystem::path& base,
     return new_path;
 }
 
-std::filesystem::path
-IOUtils::convert_if_relative(const std::filesystem::path& path) {
-#ifdef _LINUX
-    return path;
-#elif _WINDOWS
-    if (path.is_absolute()) {
-        return path;
-    } else {
-        return std::filesystem::path(new_path);
-    }
-#endif
-}
 } // namespace Helios

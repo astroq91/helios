@@ -368,7 +368,7 @@ void SceneSerializer::deserialize(const std::filesystem::path& path) {
                             Application::get().get_asset_manager().get_mesh(
                                 mesh_name);
                         if (mesh == nullptr) {
-                            mc.mesh = Mesh::create(mesh_name);
+                            mc.mesh = Mesh::create(std::filesystem::path(mesh_name));
                             Application::get().get_asset_manager().add_mesh(
                                 mc.mesh);
                         } else {
@@ -384,7 +384,7 @@ void SceneSerializer::deserialize(const std::filesystem::path& path) {
                                            .get_asset_manager()
                                            .get_material(material_path);
                             if (mat == nullptr) {
-                                mc.material = Material::create(material_path);
+                                mc.material = Material::create(std::filesystem::path(material_path));
                                 Application::get()
                                     .get_asset_manager()
                                     .add_material(mc.material);

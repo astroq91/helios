@@ -33,10 +33,5 @@ class IOUtils {
     relative_path(const std::filesystem::path& base,
                   const std::filesystem::path& target);
 
-    /**
-     * Converts from '\\' to '/' if the path is relative
-     */
-    static std::filesystem::path
-    convert_if_relative(const std::filesystem::path& path);
 };
 } // namespace Helios

@@ -21,4 +21,4 @@ entities:
   - name_component:
       name: Init manager
     script_component:
-      path: scripts/init.lua
+      path: D:/dev/c++/helios/examples/bubble_sort_visualizer/scripts/init.lua
