@@ -21,4 +21,4 @@ entities:
   - name_component:
       name: Init manager
     script_component:
-      path: scripts\init.lua
+      path: scripts/init.lua

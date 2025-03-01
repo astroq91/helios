@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include <string>
 #include <filesystem>
+#include <string>
 
 namespace Helios {
 struct DialogReturn {
@@ -15,16 +15,28 @@ struct FilterEntry {
 
 class IOUtils {
   public:
-    static DialogReturn open_file(const std::vector<FilterEntry>& filters,
-                                    const std::filesystem::path& initial_directory = std::filesystem::path());
+    static DialogReturn
+    open_file(const std::vector<FilterEntry>& filters,
+              const std::filesystem::path& initial_directory =
+                  std::filesystem::path());
     static DialogReturn
     save_file(const std::vector<FilterEntry>& filters,
               const std::filesystem::path& initial_directory =
-                            std::filesystem::path());
+                  std::filesystem::path());
     static DialogReturn
     select_folder(const std::filesystem::path& initial_directory = "");
 
-    static std::filesystem::path resolve_path(const std::filesystem::path & base_path, const std::filesystem::path & relative_path);
-    static std::filesystem::path relative_path(const std::filesystem::path & base, const std::filesystem::path & target);
+    static std::filesystem::path
+    resolve_path(const std::filesystem::path& base_path,
+                 const std::filesystem::path& relative_path);
+    static std::filesystem::path
+    relative_path(const std::filesystem::path& base,
+                  const std::filesystem::path& target);
+
+    /**
+     * Converts from '\\' to '/' if the path is relative
+     */
+    static std::filesystem::path
+    convert_if_relative(const std::filesystem::path& path);
 };
 } // namespace Helios

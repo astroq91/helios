@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <filesystem>
 #include <map>
 #include <string>
 
@@ -9,41 +10,38 @@
 
 #include "Helios/Assets/Asset.h"
 
+namespace Helios {
+class Shader : public Asset {
+  public:
+    /**
+     * \brief create a new Shader.
+     * \param name The name of the shader.
+     * \param path The filepath to the shader.
+     */
+    static Ref<Shader> create(const std::string& name,
+                              const std::filesystem::path& path) {
+        Ref<Shader> sh = make_ref<Shader>();
+        sh->init_asset(name);
+        sh->init(path);
+        return sh;
+    }
 
-namespace Helios
-{
-	class Shader : public Asset
-	{
-	public:
-		/**
-		 * \brief create a new Shader.
-		 * \param name The name of the shader.
-		 * \param path The filepath to the shader.
-		 */
-		static Ref<Shader> create(const std::string& name, const std::filesystem::path& path)
-		{
-			Ref<Shader> sh = make_ref<Shader>();
-            sh->init_asset(name);
-            sh->init(path);
-			return sh;
-		}
+    VkShaderModule get_vk_module() const { return m_module; }
 
-		VkShaderModule get_vk_module() const { return m_module; }
+    Shader() = default;
+    ~Shader();
 
-		Shader() = default;
-		~Shader();
+    Shader(const Shader&) = delete;
+    Shader& operator=(const Shader&) = delete;
+    Shader(Shader&&) = delete;
+    Shader& operator=(Shader&&) = delete;
 
-		Shader(const Shader&) = delete;
-		Shader& operator=(const Shader&) = delete;
-		Shader(Shader&&) = delete;
-		Shader& operator=(Shader&&) = delete;
+  private:
+    void init(const std::filesystem::path& path);
 
-	private:
-        void init(const std::filesystem::path& path);
+  private:
+    VkShaderModule m_module;
 
-	private:
-		VkShaderModule m_module;
-
-		bool m_is_initialized = false;
-	};
-}
+    bool m_is_initialized = false;
+};
+} // namespace Helios

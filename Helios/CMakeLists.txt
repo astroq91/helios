@@ -32,10 +32,10 @@ if (WIN32)
 
 
 elseif (UNIX AND NOT APPLE)
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/linux-clang/debug")
-        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/linux-clang/debug")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/linux.x86_64/debug")
+        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/linux.x86_64/debug")
     else()
-        message(FATAL_ERROR "Could not find (debug) PhysX libraries for clang. Change this if you are using a different compiler.")
+        message(FATAL_ERROR "Could not find (debug) PhysX libraries. Change this if you are using a different compiler.")
     endif()
 
 

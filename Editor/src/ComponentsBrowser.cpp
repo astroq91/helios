@@ -33,7 +33,6 @@ void render_component(const std::string& component_name,
     auto component = selected_entity.try_get_component<Type>();
     if (component) {
         ImGui::Separator();
-
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode(component_name.c_str())) {
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
@@ -232,7 +231,8 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                             .name = "Mesh",
                                             .filter = "*.obj",
                                         },
-                                    }, project.get_project_path());
+                                    },
+                                    project.get_project_path());
                                 if (!dialogRet.path.empty()) {
                                     std::filesystem::path relative_path =
                                         IOUtils::relative_path(
@@ -293,9 +293,10 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                         project.get_project_path(),
                                         dialog_ret.path)
                                         .string();
-                                auto mat = Application::get()
-                                               .get_asset_manager()
-                                               .get_material(relative_path.string());
+                                auto mat =
+                                    Application::get()
+                                        .get_asset_manager()
+                                        .get_material(relative_path.string());
                                 if (mat == nullptr) {
                                     component->material =
                                         Material::create(relative_path);
@@ -421,7 +422,8 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                         },
                         project.get_project_path());
                     if (!dialogRet.path.empty()) {
-                        std::filesystem::path relative_path = IOUtils::relative_path(project.get_project_path(),
+                        std::filesystem::path relative_path =
+                            IOUtils::relative_path(project.get_project_path(),
                                                    dialogRet.path)
                                 .string();
                         component->script = std::make_unique<Script>(
@@ -472,7 +474,8 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     m_show_add_component_modal = false;
                 }
 
-                if (!selected_entity.try_get_component<MeshRendererComponent>() &&
+                if (!selected_entity
+                         .try_get_component<MeshRendererComponent>() &&
                     ImGui::Button("Mesh")) {
                     selected_entity.add_component<MeshRendererComponent>();
                     m_show_add_component_modal = false;
