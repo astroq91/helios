@@ -8,7 +8,6 @@
 #include "Helios/ECSComponents/Components.h"
 #include "Helios/Scene/Entity.h"
 #include "Helios/Scripting/Script.h"
-#include "Helios/Scripting/ScriptManager.h"
 
 #include <ImGuizmo.h>
 #include <glm/glm.hpp>
@@ -40,12 +39,7 @@ void SandboxLayer::on_attach() {
                 cube.add_component<MeshRendererComponent>();
                 cube.get_component<MeshRendererComponent>() = {
                     .mesh = renderer.get_cube_mesh(),
-                    .material = Material{
-                        .diffuse = i % 2 == 0
-                                       ? m_texture
-                                       : renderer.get_texture("GreyTexture"),
-                        .specular = m_texture_2,
-                    }};
+                    };
             }
         }
     }
@@ -69,22 +63,13 @@ void SandboxLayer::on_attach() {
     m_viking_room = m_scene.create_entity("Viking room");
     m_viking_room.add_component<TransformComponent>(Transform{
         .position = {5, 2, 15},
-        .rotation = {-110, 230, 19},
         .scale = {2, 2, 2},
     });
     m_viking_room.add_component<MeshRendererComponent>();
     m_viking_room.get_component<MeshRendererComponent>() = {
         .mesh = m_viking_mesh,
-        .material = Material{
-            .diffuse = m_viking_texture,
-        }};
+    };
 
-    ScriptManager& sm = app.get_script_manager();
-    sm.register_script(RESOURCES_PATH "scripts/test.lua", m_camera,
-                       ScriptLoadType::File);
-
-    m_scene.on_resize(renderer.get_swapchain()->get_vk_extent().width,
-                      renderer.get_swapchain()->get_vk_extent().height);
 }
 
 void SandboxLayer::on_detach() {}
@@ -235,19 +220,14 @@ void SandboxLayer::InstancingTest() {
 
     renderer.render_directional_light({.direction = glm::vec3(-1)});
 
-    std::vector<GeometryInstance> cubes;
+    std::vector<MeshRenderingInstance> cubes;
 
     for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 5; j++) {
             for (int w = 0; w < 5; w++) {
                 cubes.push_back(
                     {Transform{.position = glm::vec3(i * 2, j * 2, w * 2)},
-                     Material{
-                         .diffuse = i % 2 == 0
-                                        ? m_texture
-                                        : renderer.get_texture("GreyTexture"),
-                         .specular = m_texture_2,
-                     }});
+                     });
             }
         }
     }

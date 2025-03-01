@@ -131,8 +131,8 @@ void SerializeEntity(YAML::Emitter& out, Entity entity) {
         out << YAML::Key << "camera_component" << YAML::Value << YAML::BeginMap;
 
         out << YAML::Key << "fov_y" << YAML::Value << component.fovY;
-        out << YAML::Key << "near" << YAML::Value << component.near;
-        out << YAML::Key << "far" << YAML::Value << component.far;
+        out << YAML::Key << "near" << YAML::Value << component.z_near;
+        out << YAML::Key << "far" << YAML::Value << component.z_far;
 
         out << YAML::EndMap;
     }
@@ -309,8 +309,8 @@ void SceneSerializer::deserialize(const std::string& path) {
                     auto& cc =
                         deserialized_entity.add_component<CameraComponent>();
                     cc.fovY = camera_component["fov_y"].as<float>();
-                    cc.near = camera_component["near"].as<float>();
-                    cc.far = camera_component["far"].as<float>();
+                    cc.z_near = camera_component["near"].as<float>();
+                    cc.z_far = camera_component["far"].as<float>();
                 }
 
                 auto directional_light_component =

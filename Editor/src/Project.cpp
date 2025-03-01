@@ -6,9 +6,9 @@
 
 namespace fs = std::filesystem;
 
-Project::Project(const std::string& project_path)
+Project::Project(const std::filesystem::path& project_path)
     : m_project_path(project_path) {
-    fs::path proj_path = fs::path(project_path);
+    fs::path proj_path = project_path;
 
     // Add trailing slash if missing
     if (!proj_path.empty() && proj_path.has_filename()) {
@@ -25,7 +25,7 @@ Project::Project(const std::string& project_path)
 }
 
 void Project::set_default_scene(const std::string& path) {
-    fs::path scene_path = fs::path(m_project_path) / path;
+    fs::path scene_path = m_project_path / path;
     std::ifstream stream(scene_path);
     std::stringstream str_stream;
     str_stream << stream.rdbuf();
@@ -63,7 +63,7 @@ void Project::new_project(std::filesystem::path project_path,
     file << out.c_str();
     file.close();
 
-    m_name = project_path.filename();
+    m_name = project_path.filename().string();
 }
 
 void Project::load_project(std::filesystem::path project_file_path) {

@@ -285,7 +285,7 @@ void Script::expose_component_user_types() {
 
     m_state.new_usertype<CameraComponent>(
         "Camera", "fov_y", &CameraComponent::fovY, "near",
-        &CameraComponent::near, "far", &CameraComponent::far);
+        &CameraComponent::z_near, "far", &CameraComponent::z_far);
 
     m_state.new_usertype<DirectionalLightComponent>(
         "DirectionalLight", "direction", &DirectionalLightComponent::direction,

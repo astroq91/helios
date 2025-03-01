@@ -112,7 +112,7 @@ void Scene::update_camera(float aspect_ratio) {
 
     for (auto [entity, transform, cam] : camera_view.each()) {
         m_current_camera = Camera(transform.to_transform(), aspect_ratio,
-                                  cam.fovY, cam.near, cam.far);
+                                  cam.fovY, cam.z_near, cam.z_far);
         break;
     }
 }

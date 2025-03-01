@@ -3,3 +3,11 @@ bin
 bin-int
 yaml-cpp.vcxproj
 yaml-cpp.vcxproj.filters
+
+CTestTestfile.cmake
+DartConfiguration.tcl
+DartConfiguration.cmake
+util/CTestTestfile.cmake
+yaml-cpp-config-version.cmake
+yaml-cpp-config.cmake
+yaml-cpp.pc

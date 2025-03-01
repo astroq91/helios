@@ -1,27 +1,60 @@
-cmake_minimum_required(VERSION 3.25)
-project(Helios)
-
-find_package(glfw3 REQUIRED)
-
 # Dependencies
 add_subdirectory("vendor/vulkan")
+add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/ImGui")
 add_subdirectory("vendor/yaml-cpp")
 add_subdirectory("vendor/lua-5.4.6")
 add_subdirectory("vendor/tinyfiledialogs")
+ 
+# Find the correct path for physx libraries
+if (WIN32)
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc143.md/debug")
+        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc143.md/debug")
+    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc142.md/debug")
+        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc142.md/debug")
+    else()
+        message(FATAL_ERROR "Could not find (MDd static debug) PhysX libraries for vc17 or vc16. Change this if you are using a different compiler.")
+    endif()
+
+    set(PHYSX_LIBRARIES
+        "${PHYSX}/PhysXExtensions_static_64.lib"
+        "${PHYSX}/PhysXCooking_static_64.lib"
+        "${PHYSX}/PhysX_static_64.lib"
+        "${PHYSX}/PhysXPvdSDK_static_64.lib"
+        "${PHYSX}/PhysXCharacterKinematic_static_64.lib"
+        "${PHYSX}/PhysXCommon_static_64.lib"
+        "${PHYSX}/PhysXFoundation_static_64.lib"
+        "${PHYSX}/PhysXVehicle2_static_64.lib"
+        "${PHYSX}/PhysXVehicle_static_64.lib"
+        "${PHYSX}/SnippetRender_static_64.lib"
+        "${PHYSX}/SnippetUtils_static_64.lib"
+    )
 
 
-option(PHYSX_BUILD_TYPE "The build type of PhysX, i.e., one of {debug, checked, profile, release}" "checked")
+elseif (UNIX AND NOT APPLE)
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/linux-clang/debug")
+        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/linux-clang/debug")
+    else()
+        message(FATAL_ERROR "Could not find (debug) PhysX libraries for clang. Change this if you are using a different compiler.")
+    endif()
 
 
-if(CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    message("Building snippet in debug configuration")
-    set(PHYSX "${CMAKE_SOURCE_DIR}/Helios/vendor/physx/bin/linux.x86_64/debug")
-else()
-    message("Building snippet in release configuration with PhysX ${PHYSX_BUILD_TYPE} configuration")
-    set(PHYSX "${CMAKE_SOURCE_DIR}/Helios/vendor/physx/bin/linux.x86_64/debug/${PHYSX_BUILD_TYPE}")
+    # This is horrible. But this linking order works for my system
+    set(PHYSX_LIBRARIES
+        "${PHYSX}/libPhysXExtensions_static_64.a"
+        "${PHYSX}/libPhysXCooking_static_64.a"
+        "${PHYSX}/libPhysX_static_64.a"
+        "${PHYSX}/libPhysXPvdSDK_static_64.a"
+        "${PHYSX}/libPhysX_static_64.a"
+        "${PHYSX}/libPhysXCharacterKinematic_static_64.a"
+        "${PHYSX}/libPhysXCommon_static_64.a"
+        "${PHYSX}/libPhysXFoundation_static_64.a"
+        "${PHYSX}/libPhysXVehicle2_static_64.a"
+        "${PHYSX}/libPhysXVehicle_static_64.a"
+        "${PHYSX}/libSnippetRender_static_64.a"
+        "${PHYSX}/libSnippetUtils_static_64.a"
+    )
 endif()
-
 
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS "src/*.h")
@@ -48,9 +81,8 @@ target_include_directories(Helios PUBLIC
 )
 
 target_link_libraries(Helios PUBLIC 
-    glfw
     Volk
-    Vulkan
+    glfw
     ImGui
     yaml-cpp
     lua
@@ -58,22 +90,11 @@ target_link_libraries(Helios PUBLIC
 
     $<$<PLATFORM_ID:Linux>:uuid>
 
-    # This is horrible. But this linking order works for my system
-    "${PHYSX}/libPhysXExtensions_static_64.a"
-    "${PHYSX}/libPhysXCooking_static_64.a"
-    "${PHYSX}/libPhysX_static_64.a"
-    "${PHYSX}/libPhysXPvdSDK_static_64.a"
-    "${PHYSX}/libPhysX_static_64.a"
-    "${PHYSX}/libPhysXCharacterKinematic_static_64.a"
-    "${PHYSX}/libPhysXCommon_static_64.a"
-    "${PHYSX}/libPhysXFoundation_static_64.a"
-    "${PHYSX}/libPhysXVehicle2_static_64.a"
-    "${PHYSX}/libPhysXVehicle_static_64.a"
-    "${PHYSX}/libSnippetRender_static_64.a"
-    "${PHYSX}/libSnippetUtils_static_64.a"
+    ${PHYSX_LIBRARIES}
 
-    pthread
-    dl
+    # Platform-specific libraries
+    $<$<PLATFORM_ID:Linux>:pthread> 
+    $<$<PLATFORM_ID:Linux>:dl>     
 )
 
 target_compile_definitions(Helios PUBLIC 

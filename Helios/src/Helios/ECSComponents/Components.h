@@ -46,8 +46,8 @@ struct NameComponent {
 
 struct CameraComponent {
     float fovY = 120.0f;
-    float near = 0.1f;
-    float far = 100.0f;
+    float z_near = 0.1f;
+    float z_far = 100.0f;
 };
 
 struct MeshRendererComponent {

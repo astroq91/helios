@@ -14,8 +14,8 @@ struct SceneCameraInfo {
     float movement_speed = 1.0f;
     float sensitivity = 1.0f;
     float fov_y = 120.0f;
-    float near = 0.1f;
-    float far = 100.0f;
+    float z_near = 0.1f;
+    float z_far = 100.0f;
 };
 
 class SceneCamera {
@@ -24,7 +24,7 @@ class SceneCamera {
         : m_initial_transform(info.initial_transform),
           m_movement_speed(info.movement_speed),
           m_sensitivity(info.sensitivity), m_fov_y(info.fov_y),
-          m_near(info.near), m_far(info.far),
+          m_near(info.z_near), m_far(info.z_far),
           m_aspect_ratio(static_cast<float>(info.viewport_width) /
                          static_cast<float>(info.viewport_height)) {
         m_last_mouse_pos = Input::get_mouse_pos();

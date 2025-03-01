@@ -1,6 +1,3 @@
-cmake_minimum_required(VERSION 3.25)
-project(Editor)
-
 add_subdirectory("vendor/ImGuizmo")
 
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "src/*.cpp")

@@ -7,3 +7,6 @@
 [submodule "Helios/vendor/ImGui"]
 	path = Helios/vendor/ImGui
 	url = git@gitlab.com:astroq/imgui.git
+[submodule "Helios/vendor/glfw"]
+	path = Helios/vendor/glfw
+	url = git@gitlab.com:astroq/glfw.git

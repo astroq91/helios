@@ -158,8 +158,8 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
         Utils::render_component<CameraComponent>(
             "Camera", selected_entity, [](auto component) {
                 ImGui::InputFloat("fovY", &component->fovY);
-                ImGui::InputFloat("near", &component->near);
-                ImGui::InputFloat("far", &component->far);
+                ImGui::InputFloat("near", &component->z_near);
+                ImGui::InputFloat("far", &component->z_far);
             });
 
         Utils::render_component<DirectionalLightComponent>(
