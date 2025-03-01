@@ -1,60 +1,104 @@
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+# About The Project
 
-Helios is a general purpose 3D game engine written in C++20. It currently has the following features:
+Helios is a general purpose 3D game engine written in C++23. It currently has the following features:
 
 * Instance based rendering, using [Vulkan].
-* Physics using [Nvidia PhysX], for simulating rigidbodies (currently only boxes)
+* Physics using [Nvidia PhysX], for simulating rigidbodies (only boxes)
 * Scripting using [Lua].
 * ECS using [entt].
 * Simple project system.
 * An editor, written using [ImGui].
 
-
 <!-- GETTING STARTED -->
-## Getting Started
+# Getting Started
 
-Helios is primarily written for linux (Ubuntu) and the build guide will be for linux, but everything should (in theory) compile on Windows as well.
-The problem is that I don't have any equivalent bat scripts for compiling the program, shaders etc.
+## Prerequisites
 
-### Prerequisites
+Regardless of the platform, the following dependencies need to be installed:
 
-In order to successfully compile, the following dependencies need to be installed:
-* gcc13 and g++13, or any other c++20 capable compiler.
-* clang (for PhysX library generation).
-* CMake (min version 3.25).
-* glfw3.
+* CMake (min version 3.4).
 * glslc (for compiling shaders).
+* Vulkan drivers.
 
-### Installation
+For linux you need:
+
+* gcc13 and g++13. Other C++23 compatible compilers could also work, but haven't been tested. The compilation scripts would need to be updated as well.
+* clang, for PhysX library generation.
+
+For windows you need:
+
+* VC17 (i.e. Visual Studio 2022).
+
+## Installation
+
+**Linux:**
 
 1. Clone the repo with the submodules
-   ```sh
+
+   ```bash
     git clone --recurse-submodules https://gitlab.com/astroq/helios
    ```
-2. Build the PhysX libraries. This might take some tinkering, as the build process can be a bit weird. 
-    The general gist is that you generate the make files for your platform, and the generate the library files
-    from those. The following script assumes that you are building using clang. 
-   ```sh
+
+2. Build the PhysX libraries
+
+   ```bash
     cd Helios/scripts
     ./build_physx.sh
    ```
+
 3. Compiling the shaders (make sure glslc in added to PATH)
-    ```sh
+
+    ```bash
     cd Helios/scripts
     ./compile_shaders.sh
    ```
+
 4. Compiling and running the editor
-    ```sh
+
+    ```bash
     ./compile_editor.sh
     cd ../build/Editor
     ./Editor
     ```
 
-### Usage
+**Windows:**
 
-There are a two examples bundled with the program in the examples folder. 
+1. Clone the repo with the submodules
+
+   ```batch
+    git clone --recurse-submodules https://gitlab.com/astroq/helios
+   ```
+
+2. Build the PhysX libraries, and select VC17.
+
+   ```batch
+    cd .\helios\scripts
+    .\build_physx.bat
+   ```
+
+3. Compiling the shaders (make sure glslc in added to PATH)
+
+    ```batch
+    .\compile_shaders.bat
+   ```
+
+4. Generate the Visual Studio projects
+
+    ```batch
+    .\generate_projects.bat
+    ```
+
+5. Or just compile with cmake
+
+    ```batch
+    .\compile_editor.bat
+    ```
+
+# Usage
+
+There are a two examples bundled with the program in the examples folder.
 When opening a project, select the folder that contains the project.yaml file.
 
 The editor is built using the docking branch of ImGui, which means that the windows can be docked
@@ -63,6 +107,7 @@ according to your own preference. After opening up the 'physics_1' example (exam
 ![example-image](/repo_assets/example_image.png)
 
 The editor is quite barebones but has features to build a simple tech demo.
+
 * Use the buttons at the top to start and stop the runtime.
 * Use the Components Browser to view and edit the properties of an object.
 * Use the Entity Browser to create new entities, or select existing ones.
@@ -71,8 +116,19 @@ The editor uses two windows for rendering the scene: Editor and Game. The 'Edito
 that will always be turned on. The 'Game' window instead renders the scene through the first available game camera, which means that you
 need to add a camera component to an entity to be able to see.
 
+## File formats
 
-## Current problems and aspirations
+**Projects and scenes**
+Both projects and scenes are saved on disk using yaml, and the layout can be found in the examples.
+I don't have good checks in place if a scene or project file is valid or not, so if something loads weirdly
+check that the .yaml files are correct.
+
+**Path handling**
+All relative paths used in assets, like scene- and material files, are relative to the project folder (i.e. the folder containing the project.yaml file).
+Relative paths are written using forward slashes (/), to make projects easier to work with cross-platform.
+The only exception is if you use absolute paths, in which case the preferred separator of the OS is used.
+
+# Current problems and aspirations
 
 The project is very barebones, but I'm planning on fixing some things like:
 
@@ -91,12 +147,12 @@ Aside from that I also have other features I want to add such as:
 * Other rendering techniques.
 
 <!-- LICENSE -->
-## License
+# License
 
 Distributed under the MIT license. See `LICENSE.txt` for more information.
 
-## Vendors 
- 
+# Vendors
+
 * [Vulkan] - A rendering API.
 * [GLFW] - A window management library.
 * [Nvidia PhysX] - A physics engine. 
@@ -126,5 +182,3 @@ Distributed under the MIT license. See `LICENSE.txt` for more information.
 [stduuid]: https://github.com/mariusbancila/stduuid
 [tiny_obj_loader]: https://github.com/tinyobjloader/tinyobjloader
 [tinyfiledialogs]: https://sourceforge.net/projects/tinyfiledialogs/
-[volk]: https://github.com/zeux/volk
-
