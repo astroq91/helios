@@ -22,12 +22,12 @@ Regardless of the platform, the following dependencies need to be installed:
 * glslc (for compiling shaders).
 * Vulkan drivers.
 
-For linux you need:
+For Linux you need:
 
 * gcc13 and g++13. Other C++23 compatible compilers could also work, but haven't been tested. The compilation scripts would need to be updated as well.
 * clang, for PhysX library generation.
 
-For windows you need:
+For Windows you need:
 
 * VC17 (i.e. Visual Studio 2022).
 
