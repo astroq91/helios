@@ -308,7 +308,7 @@ void EditorLayer::on_imgui_render() {
                 if (ImGui::BeginMenu("Scene")) {
                     if (ImGui::MenuItem("New scene")) {
                         if (m_loaded_scene_path) {
-                            save_scene(m_loaded_scene_path.value());
+                            save_scene(m_loaded_scene_path.value().string());
                         }
                         new_scene();
                     }
@@ -323,14 +323,14 @@ void EditorLayer::on_imgui_render() {
 
                             SceneSerializer scene_serializer(m_scene);
                             scene_serializer.deserialize(
-                                m_loaded_scene_path.value());
+                                m_loaded_scene_path.value().string());
 
-                            update_window_title(m_loaded_scene_path);
+                            update_window_title(m_loaded_scene_path.value().string());
                         }
                     }
                     ImGui::BeginDisabled(!m_loaded_scene_path);
                     if (ImGui::MenuItem("Save scene")) {
-                        save_scene(m_loaded_scene_path.value());
+                        save_scene(m_loaded_scene_path.value().string());
                     }
                     ImGui::EndDisabled();
                     if (ImGui::MenuItem("Save scene as...")) {
@@ -340,12 +340,12 @@ void EditorLayer::on_imgui_render() {
                             m_loaded_scene_path = IOUtils::relative_path(
                                 m_project.value().get_project_path(), ret.path);
 
-                            save_scene(m_loaded_scene_path.value());
+                            save_scene(m_loaded_scene_path.value().string());
                             SceneSerializer scene_serializer(m_scene);
                             scene_serializer.deserialize(
-                                m_loaded_scene_path.value());
+                                m_loaded_scene_path.value().string());
 
-                            update_window_title(m_loaded_scene_path);
+                            update_window_title(m_loaded_scene_path.value().string());
                         }
                     }
                     ImGui::EndMenu();
@@ -354,7 +354,7 @@ void EditorLayer::on_imgui_render() {
                     if (ImGui::MenuItem("Set scene as default")) {
                         if (m_loaded_scene_path) {
                             m_project.value().set_default_scene(
-                                m_loaded_scene_path.value());
+                                m_loaded_scene_path.value().string());
                         } else {
                             HL_ERROR("Tried to set default scene path, but no "
                                      "loaded scene");
@@ -413,7 +413,7 @@ void EditorLayer::on_imgui_render() {
                     SceneSerializer scene_serializer(m_scene);
                     scene_serializer.deserialize("scene_copy.yaml");
 
-                    update_window_title(m_loaded_scene_path);
+                    update_window_title(m_loaded_scene_path.value().string());
 
                     if (m_selected_entity != k_no_entity) {
                         // The previous scene pointer is now invalid
@@ -1217,7 +1217,7 @@ void EditorLayer::show_new_project_window() {
     ImGui::Spacing();
 
     static std::string project_name;
-    static std::string project_folder;
+    static std::filesystem::path project_folder;
 
     // Input field for project name
     char name_buffer[128];
@@ -1243,7 +1243,7 @@ void EditorLayer::show_new_project_window() {
     if (ImGui::Button("Create Project", ImVec2(156, 0))) {
         if (!project_name.empty() && !project_folder.empty()) {
             try {
-                fs::path project_path = fs::path(project_folder) / project_name;
+                fs::path project_path = project_folder / project_name;
                 project_path += fs::path::preferred_separator;
                 if (!fs::exists(project_path)) {
                     m_project = Project(project_path);

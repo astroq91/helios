@@ -2,6 +2,7 @@
 
 #include <volk/volk.h>
 
+#include <filesystem>
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 #include "Helios/Assets/Asset.h"
@@ -12,12 +13,12 @@ namespace Helios
 	class Mesh : public Resource, public Asset
 	{
 	public:
-		static Ref<Mesh> create(const std::string& file)
+		static Ref<Mesh> create(const std::filesystem::path& path)
 		{
 			Ref<Mesh> obj = make_ref<Mesh>();
             obj->init_uuid();
-            obj->init_asset(file);
-            obj->init(file);
+            obj->init_asset(path.string());
+            obj->init(path);
 			return obj;
 		}
 
@@ -44,7 +45,7 @@ namespace Helios
 		Mesh& operator=(Mesh&&) = delete;
 
 	private:
-		void init(const std::string& file);
+		void init(const std::filesystem::path& file);
 		void init(void* vertices, size_t vertices_size, void* indices, size_t indices_size,
                   size_t indices_count);
 

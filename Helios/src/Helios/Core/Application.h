@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <chrono>
 #include <memory>
+#include <filesystem>
 
 #include "Helios/Assets/AssetManager.h"
 #include "Helios/ImGui/ImGuiLayer.h"
@@ -45,8 +46,10 @@ class Application {
     }
     ImGuiLayer* get_imgui_layer() const { return m_imgui_layer; }
 
-    const std::string& get_asset_base_path() const { return m_asset_base_path; }
-    void set_asset_base_path(const std::string& base_path) {
+    const std::filesystem::path& get_asset_base_path() const {
+        return m_asset_base_path;
+    }
+    void set_asset_base_path(const std::filesystem::path& base_path) {
         m_asset_base_path = base_path;
     }
 
@@ -71,7 +74,7 @@ class Application {
     std::chrono::time_point<std::chrono::system_clock> m_last_timestep;
     std::chrono::time_point<std::chrono::system_clock> m_current_timestep;
 
-    std::string m_asset_base_path;
+    std::filesystem::path m_asset_base_path;
 };
 
 Application* create_application();

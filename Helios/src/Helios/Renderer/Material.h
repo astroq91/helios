@@ -3,6 +3,7 @@
 #include "Helios/Core/Core.h"
 #include "Texture.h"
 #include <glm/glm.hpp>
+#include <filesystem>
 
 namespace Helios {
 class Material : public Asset {
@@ -11,9 +12,9 @@ class Material : public Asset {
      * Create a new material.
      * @param path The relative path to the material file
      */
-    static Ref<Material> create(const std::string& path) {
+    static Ref<Material> create(const std::filesystem::path& path) {
         auto material = make_ref<Material>();
-        material->init_asset(path);
+        material->init_asset(path.string());
         material->init(path);
         return material;
     }
@@ -24,7 +25,7 @@ class Material : public Asset {
     float get_shininess() const { return m_shininess; }
 
   private:
-    void init(const std::string& path);
+    void init(const std::filesystem::path& path);
 
   private:
     Ref<Texture> m_diffuse = nullptr;

@@ -13,26 +13,26 @@ Texture::~Texture() {
     renderer.deregister_texture(m_texture_index);
 }
 
-void Texture::init(const std::string& path) {
+void Texture::init(const std::filesystem::path& path) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
 
-    m_name = path;
+    m_name = path.string();
 
     if (path.empty()) {
         return;
     }
 
     int tex_width, tex_height, tex_channels;
-    stbi_uc* pixles = stbi_load(
-        IOUtils::resolve_path(Application::get().get_asset_base_path(), path)
-            .c_str(),
+    stbi_uc* pixles = stbi_load(IOUtils::resolve_path(
+                      Application::get().get_asset_base_path(), path)
+                      .string().c_str(),
         &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
     VkDeviceSize image_size = tex_width * tex_height * 4;
 
     if (!pixles) {
-        HL_ERROR("Failed to load texture image: {0}", path);
+        HL_ERROR("Failed to load texture image: {0}", path.string());
     }
 
     Unique<Buffer> staging_buffer =

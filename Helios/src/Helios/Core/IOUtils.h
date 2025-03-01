@@ -1,24 +1,24 @@
 ﻿#pragma once
 #include <string>
+#include <filesystem>
 
 namespace Helios {
 struct DialogReturn {
-    std::string path = "";
-    std::string name = "";
+    std::filesystem::path path = "";
+    std::filesystem::path name = "";
 };
 
 class IOUtils {
   public:
     static DialogReturn open_file(const std::vector<std::string>& filters,
-                                  const std::string& initial_directory = "");
+                                    const std::filesystem::path& initial_directory = std::filesystem::path());
     static DialogReturn save_file(const std::vector<std::string>& filters,
-                                  const std::string& initial_directory = "");
+              const std::filesystem::path& initial_directory =
+                            std::filesystem::path());
     static DialogReturn
-    select_folder(const std::string& initial_directory = "");
+    select_folder(const std::filesystem::path& initial_directory = "");
 
-    static std::string resolve_path(const std::string& base_path,
-                                    const std::string& relative_path);
-    static std::string relative_path(const std::string& base,
-                                     const std::string& target);
+    static std::filesystem::path resolve_path(const std::filesystem::path & base_path, const std::filesystem::path & relative_path);
+    static std::filesystem::path relative_path(const std::filesystem::path & base, const std::filesystem::path & target);
 };
 } // namespace Helios

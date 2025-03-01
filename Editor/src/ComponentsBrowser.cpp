@@ -229,7 +229,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                 DialogReturn dialogRet = IOUtils::open_file(
                                     {"*.obj"}, project.get_project_path());
                                 if (!dialogRet.path.empty()) {
-                                    std::string relative_path =
+                                    std::filesystem::path relative_path =
                                         IOUtils::relative_path(
                                             project.get_project_path(),
                                             dialogRet.path);
@@ -237,7 +237,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                     auto mesh =
                                         Application::get()
                                             .get_asset_manager()
-                                            .get_mesh(relative_path);
+                                            .get_mesh(relative_path.string());
                                     if (mesh == nullptr) {
                                         component->mesh =
                                             Mesh::create(relative_path);
@@ -277,13 +277,14 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                             DialogReturn dialog_ret = IOUtils::open_file(
                                 {"*.mat"}, project.get_project_path());
                             if (!dialog_ret.path.empty()) {
-                                std::string relative_path =
+                                std::filesystem::path relative_path =
                                     IOUtils::relative_path(
                                         project.get_project_path(),
-                                        dialog_ret.path);
+                                        dialog_ret.path)
+                                        .string();
                                 auto mat = Application::get()
                                                .get_asset_manager()
-                                               .get_material(relative_path);
+                                               .get_material(relative_path.string());
                                 if (mat == nullptr) {
                                     component->material =
                                         Material::create(relative_path);
@@ -403,10 +404,11 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     DialogReturn dialogRet = IOUtils::open_file(
                         {"*.lua"}, project.get_project_path());
                     if (!dialogRet.path.empty()) {
-                        std::string relative_path = IOUtils::relative_path(
-                            project.get_project_path(), dialogRet.path);
+                        std::filesystem::path relative_path = IOUtils::relative_path(project.get_project_path(),
+                                                   dialogRet.path)
+                                .string();
                         component->script = std::make_unique<Script>(
-                            relative_path, ScriptLoadType::File, scene,
+                            relative_path.string(), ScriptLoadType::File, scene,
                             selected_entity);
                     }
                 }

@@ -5,12 +5,12 @@
 #include <yaml-cpp/yaml.h>
 
 namespace Helios {
-void Material::init(const std::string& path) {
+void Material::init(const std::filesystem::path& path) {
     std::ifstream stream(
-        IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
+        IOUtils::resolve_path(Application::get().get_asset_base_path(), path).string());
 
     if (stream.fail()) {
-        HL_ERROR("Failed to load material {0}", path);
+        HL_ERROR("Failed to load material {0}", path.string());
         return;
     }
 

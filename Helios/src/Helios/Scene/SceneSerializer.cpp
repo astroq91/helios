@@ -248,7 +248,7 @@ void SerializeEntity(YAML::Emitter& out, Entity entity) {
     out << YAML::EndMap;
 }
 
-void SceneSerializer::serialize(const std::string& path) {
+void SceneSerializer::serialize(const std::filesystem::path& path) {
     YAML::Emitter out;
 
     out << YAML::BeginMap;
@@ -271,7 +271,7 @@ void SceneSerializer::serialize(const std::string& path) {
     file.close();
 }
 
-void SceneSerializer::deserialize(const std::string& path) {
+void SceneSerializer::deserialize(const std::filesystem::path& path) {
     std::ifstream stream(
         IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
     std::stringstream str_stream;

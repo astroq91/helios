@@ -20,7 +20,7 @@ namespace Helios
 		 * \param name The name of the shader.
 		 * \param path The filepath to the shader.
 		 */
-		static Ref<Shader> create(const std::string& name, const std::string& path)
+		static Ref<Shader> create(const std::string& name, const std::filesystem::path& path)
 		{
 			Ref<Shader> sh = make_ref<Shader>();
             sh->init_asset(name);
@@ -39,7 +39,7 @@ namespace Helios
 		Shader& operator=(Shader&&) = delete;
 
 	private:
-		void init(const std::string& path);
+        void init(const std::filesystem::path& path);
 
 	private:
 		VkShaderModule m_module;

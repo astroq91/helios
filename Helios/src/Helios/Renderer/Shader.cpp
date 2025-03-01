@@ -17,7 +17,7 @@ Shader::~Shader() {
     }
 }
 
-void Shader::init(const std::string& path) {
+void Shader::init(const std::filesystem::path& path) {
     m_is_initialized = true;
 
     const VulkanContext& context =
@@ -28,7 +28,7 @@ void Shader::init(const std::string& path) {
         std::ios::ate | std::ios::binary);
 
     if (file.fail()) {
-        HL_ERROR("Could not open file: {0}", path);
+        HL_ERROR("Could not open file: {0}", path.string());
     }
 
     // Vertex //

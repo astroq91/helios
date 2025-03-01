@@ -2,6 +2,7 @@
 
 #include <volk/volk.h>
 #include <string>
+#include <filesystem>
 
 #include "DescriptorSet.h"
 #include "Image.h"
@@ -18,10 +19,10 @@ namespace Helios
 		 * \param path The path.
 		 * \return The texture
 		 */
-		static Ref<Texture> create(const std::string& path)
+        static Ref<Texture> create(const std::filesystem::path& path)
 		{
 			Ref<Texture> obj = make_ref<Texture>();
-            obj->init_asset(path);
+            obj->init_asset(path.string());
             obj->init(path);
 			return obj;
 		}
@@ -56,7 +57,7 @@ namespace Helios
 		Texture& operator=(Texture&&) = delete;
 
 	private:
-		void init(const std::string& path);
+        void init(const std::filesystem::path& path);
 		void init(void* data, uint32_t width, uint32_t height, size_t size);
 
 	private:

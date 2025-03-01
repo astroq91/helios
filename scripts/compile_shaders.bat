@@ -1,33 +1,32 @@
-#!/bin/bash
+@echo off
+set base_dir=%~dp0..\
 
-base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../"
+cd /d "%base_dir%"
 
-cd $base_dir
+echo Helios:
+cd Helios\resources\shaders
+if not exist bin mkdir bin
 
-cd Helios/resources/shaders
-mkdir -p bin
+for %%f in (*.vert *.frag) do (
+    if exist "%%f" (
+        echo Compiling %%f...
+        glslc "%%f" -o "bin\%%~nxf"
+    )
+)
 
-echo "Helios:"
-for file in *.{vert,frag}; do
-    if [ -f "$file" ]; then
-        filename=$(basename "$file")
-        echo "Compiling $file..."
-        glslc "$file" -o "bin/${filename}"
-    fi
-done
+echo.
 
-echo ""
+cd /d "%base_dir%"
 
-cd $base_dir
+echo Editor:
+cd Editor\resources\shaders
+if not exist bin mkdir bin
 
-cd Editor/resources/shaders
-mkdir -p bin
+for %%f in (*.vert *.frag) do (
+    if exist "%%f" (
+        echo Compiling %%f...
+        glslc "%%f" -o "bin\%%~nxf"
+    )
+)
 
-echo "Editor:"
-for file in *.{vert,frag}; do
-    if [ -f "$file" ]; then
-        filename=$(basename "$file")
-        echo "Compiling $file..."
-        glslc "$file" -o "bin/${filename}"
-    fi
-done
+pause

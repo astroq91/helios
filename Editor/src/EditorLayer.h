@@ -87,7 +87,7 @@ class EditorLayer : public Helios::Layer {
 
     Helios::Scene* m_scene = nullptr;
 
-    std::optional<std::string> m_loaded_scene_path;
+    std::optional<std::filesystem::path> m_loaded_scene_path;
 
     ViewportData m_editor_viewport;
     ViewportData m_game_viewport;

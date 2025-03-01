@@ -9,7 +9,7 @@ class Project {
     Project() = default;
 
     const std::string& get_name() const { return m_name; }
-    const std::string& get_project_path() const { return m_project_path.string(); }
+    const std::filesystem::path& get_project_path() const { return m_project_path; }
 
     bool is_valid() const { return m_valid; };
     std::optional<std::string> get_default_scene() const {

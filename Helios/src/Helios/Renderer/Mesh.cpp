@@ -8,7 +8,7 @@
 #include "Vertex.h"
 
 namespace Helios {
-void Mesh::init(const std::string& file) {
+void Mesh::init(const std::filesystem::path& path) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
 
@@ -20,9 +20,10 @@ void Mesh::init(const std::string& file) {
     // Triangulation enabled by default
     if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
                           IOUtils::resolve_path(
-                              Application::get().get_asset_base_path(), file)
+                              Application::get().get_asset_base_path(), path)
+                              .string()
                               .c_str())) {
-        HL_ERROR("Failed to load model: {0}\nTinyObj info: {1}", file,
+        HL_ERROR("Failed to load model: {0}\nTinyObj info: {1}", path.string(),
                  warn + err);
         return;
     }
