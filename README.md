@@ -119,6 +119,10 @@ The editor uses two windows for rendering the scene: Editor and Game. The 'Edito
 that will always be turned on. The 'Game' window instead renders the scene through the first available game camera, which means that you
 need to add a camera component to an entity to be able to see. Currently a light source is needed for both cameras.
 
+**Settings**
+
+* Instancing: Deals with options related to instancing (i.e. batching entities with the same mesh into one draw call). Multithreading will kick in after a certain number of instances, which you can set here. You can also set the number of threads to use.
+
 ## File formats
 
 **Projects and scenes**
