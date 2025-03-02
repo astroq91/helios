@@ -16,6 +16,8 @@
 #include "Helios/Scene/SceneCamera.h"
 #include "ImGuizmo.h"
 
+#include <chrono>
+
 // Used as per-instance vertex attributes for an entity, in the shader.
 struct EntityPickingShaderData {
     alignas(16) glm::mat4 model;
@@ -126,5 +128,8 @@ class EditorLayer : public Helios::Layer {
 
     bool m_go_to_homescreen = false;
 
-    uint32_t m_fps;
+    uint32_t m_fps = 0;
+    uint32_t m_frame_counter = 0;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_fps_clock;
+    double m_fps_sampling_rate = 1.0;//s
 };

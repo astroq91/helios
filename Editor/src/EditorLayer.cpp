@@ -57,6 +57,7 @@ EditorLayer::EditorLayer()
           .fov_y = 80,
       }) {
     new_scene({.reset_window_title = false});
+    m_fps_clock = std::chrono::high_resolution_clock::now();
 }
 
 EditorLayer::~EditorLayer() {
@@ -74,6 +75,8 @@ void EditorLayer::on_attach() {
 
 void EditorLayer::on_detach() {}
 
+using namespace std::literals;
+
 void EditorLayer::on_update(float ts) {
     if (!m_project) {
         return;
@@ -85,7 +88,15 @@ void EditorLayer::on_update(float ts) {
         return;
     }
 
-    m_fps = static_cast<uint32_t>(1.0f / ts);
+    m_frame_counter++;
+    auto time_now = std::chrono::high_resolution_clock::now();
+    double duration =
+        std::chrono::duration<double>(time_now - m_fps_clock) / 1s;
+    if (duration > m_fps_sampling_rate) {
+        m_fps_clock = std::chrono::high_resolution_clock::now();
+        m_fps = m_frame_counter / duration;
+        m_frame_counter = 0;
+    }
 
     auto& app = Application::get();
     auto& renderer = app.get_renderer();
@@ -635,6 +646,7 @@ void EditorLayer::on_imgui_render() {
             ImGui::Begin("Statistics");
             {
                 ImGui::Text("FPS: %d", m_fps);
+                ImGui::InputDouble("FPS sampling rate", &m_fps_sampling_rate);
             }
             ImGui::End();
             m_components_browser.on_update(
