@@ -18,6 +18,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <filesystem>
+#include <thread>
+#include <future>
 
 #include "ShaderLibrary.h"
 
@@ -38,20 +40,10 @@
 #include "UniformBuffer.h"
 #include "VertexBuffer.h"
 #include "VertexBufferDescription.h"
-/*
-std::vector<float> quad_vertices = {
-        // position      // Texture coord
-        0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
-        0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-};
 
-std::vector<uint32_t> quad_indices = {
-        0, 1, 2,
-        0, 2, 3,
-};
-*/
+constexpr uint32_t k_min_instances_for_mt = 500;
+constexpr uint32_t k_mesh_instance_preparation_thread_count = 15;
+
 namespace Helios {
 std::vector<float> quad_vertices = {
     // Positions            // Normals             // Texture Coords
@@ -158,6 +150,8 @@ struct ShaderCubeMaterial {
 void Renderer::init(uint32_t max_frames_in_flight) {
     m_vulkan_state = &Application::get().get_vulkan_manager()->get_context();
     m_max_frames_in_flight = max_frames_in_flight;
+    m_num_threads_for_instancing = k_mesh_instance_preparation_thread_count;
+    m_min_instances_for_mt = k_min_instances_for_mt;
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -803,36 +797,33 @@ void Renderer::draw_cube(const std::vector<MeshRenderingInstance>& instances) {
     draw_mesh(m_cube_mesh, instances);
 }
 
-void Renderer::draw_mesh(const Ref<Mesh>& geometry,
-                         const std::vector<MeshRenderingInstance>& instances) {
-    m_mesh_instances[m_current_frame].push_back(
-        {.mesh = geometry,
-         .offset = sizeof(MeshRenderingShaderInstanceData) *
-                   m_mesh_shader_instances[m_current_frame].size(),
-         .instance_count = instances.size()});
+std::vector<MeshRenderingShaderInstanceData>
+prepare_mesh_shader_instances_mt(
+    std::vector<MeshRenderingInstance> && instances, Ref<Texture> gray_texture,
+    Ref<Texture> black_texture) {
 
-    // Prepare the instances
+    std::vector<MeshRenderingShaderInstanceData> data;
     for (auto& instance : instances) {
-        m_mesh_shader_instances[m_current_frame].push_back({
+        data.push_back({
             .model = instance.transform.ToMat4(),
             .material =
                 ShaderMaterial{
                     .diffuse_texture_unit =
                         instance.material == nullptr ||
                                 instance.material->get_diffuse() == nullptr
-                            ? m_gray_texture->GetTextureIndex()
+                            ? gray_texture->GetTextureIndex()
                             : instance.material->get_diffuse()
                                   ->GetTextureIndex(),
                     .specular_texture_unit =
                         instance.material == nullptr ||
                                 instance.material->get_specular() == nullptr
-                            ? m_black_texture->GetTextureIndex()
+                            ? black_texture->GetTextureIndex()
                             : instance.material->get_specular()
                                   ->GetTextureIndex(),
                     .emission_texture_unit =
                         instance.material == nullptr ||
                                 instance.material->get_emission() == nullptr
-                            ? m_black_texture->GetTextureIndex()
+                            ? black_texture->GetTextureIndex()
                             : instance.material->get_emission()
                                   ->GetTextureIndex(),
                     .shininess = instance.material == nullptr
@@ -841,6 +832,96 @@ void Renderer::draw_mesh(const Ref<Mesh>& geometry,
                 },
             .tint_color = instance.tint_color,
         });
+    }
+
+    return data;
+}
+
+
+void Renderer::draw_mesh(const Ref<Mesh>& geometry,
+                         const std::vector<MeshRenderingInstance>& instances) {
+    m_mesh_instances[m_current_frame].push_back(
+        {.mesh = geometry,
+         .offset = sizeof(MeshRenderingShaderInstanceData) *
+                   m_mesh_shader_instances[m_current_frame].size(),
+         .instance_count = instances.size()});
+    
+    if (instances.size() >= m_min_instances_for_mt && m_num_threads_for_instancing > 1) {
+        uint32_t instances_per_thread =
+            instances.size() / m_num_threads_for_instancing;
+        uint32_t remainder =
+            instances.size() % m_num_threads_for_instancing;
+
+
+
+        uint32_t offset = 0;
+        uint32_t instances_prepared = 0;
+
+
+
+        std::vector<std::future<
+                        std::vector<MeshRenderingShaderInstanceData>>>
+            futures(m_num_threads_for_instancing);
+        std::vector<std::vector<MeshRenderingInstance>> instance_batches(
+            m_num_threads_for_instancing);
+        for (uint32_t i = 0; i < m_num_threads_for_instancing; i++) {
+
+            uint32_t num_instances_to_prepare =
+                instances_per_thread +
+                (i < remainder ? 1 : 0); // Distribute the remainder until done
+
+            auto start = instances.begin() + offset;
+            auto end = start + num_instances_to_prepare;
+            instance_batches[i] = std::vector<MeshRenderingInstance>(start, end);
+
+
+            futures[i] = std::async(
+                std::launch::async, prepare_mesh_shader_instances_mt,
+                           std::move(instance_batches[i]),
+                m_gray_texture, m_black_texture);
+
+            instances_prepared += num_instances_to_prepare;
+            offset += num_instances_to_prepare;
+        }
+
+        for (auto& future : futures) {
+            auto instances = future.get();
+            m_mesh_shader_instances[m_current_frame].insert(
+                m_mesh_shader_instances[m_current_frame].end(),
+                instances.begin(), instances.end());
+        }
+    } else {
+        // Prepare the instances
+        for (auto& instance : instances) {
+            m_mesh_shader_instances[m_current_frame].push_back({
+                .model = instance.transform.ToMat4(),
+                .material =
+                    ShaderMaterial{
+                        .diffuse_texture_unit =
+                            instance.material == nullptr ||
+                                    instance.material->get_diffuse() == nullptr
+                                ? m_gray_texture->GetTextureIndex()
+                                : instance.material->get_diffuse()
+                                      ->GetTextureIndex(),
+                        .specular_texture_unit =
+                            instance.material == nullptr ||
+                                    instance.material->get_specular() == nullptr
+                                ? m_black_texture->GetTextureIndex()
+                                : instance.material->get_specular()
+                                      ->GetTextureIndex(),
+                        .emission_texture_unit =
+                            instance.material == nullptr ||
+                                    instance.material->get_emission() == nullptr
+                                ? m_black_texture->GetTextureIndex()
+                                : instance.material->get_emission()
+                                      ->GetTextureIndex(),
+                        .shininess = instance.material == nullptr
+                                         ? 32.0f
+                                         : instance.material->get_shininess(),
+                    },
+                .tint_color = instance.tint_color,
+            });
+        }
     }
 }
 

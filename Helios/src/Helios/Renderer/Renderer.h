@@ -197,6 +197,28 @@ class Renderer {
         return m_meshes_vertices_description;
     }
 
+    /**
+    * Sets the number of threads to use for preparing instances when calling draw_mesh.
+    */
+    void set_num_threads_for_instancing(uint32_t num_threads) {
+        m_num_threads_for_instancing = num_threads;
+    }
+
+    /**
+     * Sets the minimum number of instances to use multithreading during draw_mesh.
+     */
+    void set_min_instances_for_mt(uint32_t min_instances) {
+        m_min_instances_for_mt = min_instances;
+    }
+
+    uint32_t get_num_threads_for_instancing() const {
+        return m_num_threads_for_instancing;
+    }
+
+     uint32_t get_min_instances_for_mt() const {
+        return m_min_instances_for_mt;
+    }
+
   private:
     void draw_meshes();
 
@@ -307,5 +329,8 @@ class Renderer {
     std::vector<std::vector<PointLight>>
         m_point_lights; // One for each frame in flight
     std::vector<Unique<UniformBuffer>> m_point_lights_uniform_buffers;
+
+    uint32_t m_min_instances_for_mt;
+    uint32_t m_num_threads_for_instancing;
 };
 } // namespace Helios

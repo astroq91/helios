@@ -600,6 +600,35 @@ void EditorLayer::on_imgui_render() {
                         m_gizmo_mode = ImGuizmo::MODE::LOCAL;
                     }
                 }
+
+                static int min_instances_for_mt = app
+                                               .get_renderer()
+                                               .get_min_instances_for_mt();
+                static int num_threads_for_mt =
+                         app
+                        .get_renderer()
+                        .get_num_threads_for_instancing();
+
+                if (ImGui::TreeNode("Instancing")) {
+                    if (ImGui::TreeNode("Multithreading")) {
+                        if (ImGui::InputInt(
+                            "Minimum number of instances",
+                                            &min_instances_for_mt)) {
+                            app.get_renderer().set_min_instances_for_mt(
+                                min_instances_for_mt);
+                        }
+
+                        if (ImGui::InputInt("Number of threads",
+                                            &num_threads_for_mt)) {
+                            app.get_renderer().set_num_threads_for_instancing(
+                                num_threads_for_mt);
+                        }
+                        ImGui::TreePop();
+                    }
+
+
+                    ImGui::TreePop();
+                }
             }
             ImGui::End();
 
