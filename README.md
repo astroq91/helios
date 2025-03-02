@@ -107,7 +107,7 @@ When opening a project, select the folder that contains the project.yaml file.
 The editor is built using the docking branch of ImGui, which means that the windows can be docked
 according to your own preference. After opening up the 'physics_1' example (examples/physics_1), this is how it could look:
 
-![example-image](/repo_assets/example_image.png)
+![example-image](/repo_assets/physics_example_image.png)
 
 The editor is quite barebones but has features to build a simple tech demo.
 
