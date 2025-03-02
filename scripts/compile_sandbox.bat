@@ -1,8 +1,15 @@
-#!/bin/bash
+@echo off
+set CC=cl
+set CXX=cl
+set CXXFLAGS=/std:c++20
 
-CC=-DCMAKE_C_COMPILER=/usr/bin/gcc-13
-CXX=-DCMAKE_CXX_COMPILER=/usr/bin/g++-13
+echo "Building Editor..."
 
-echo "Building Helios..."
-cmake $CC $CXX -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. -B ../build
-cmake --build ../build --target Sandbox -j 14
+cmake -DCMAKE_C_COMPILER=%CC% -DCMAKE_CXX_COMPILER=%CXX% -DCMAKE_CXX_FLAGS=%CXXFLAGS% -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. -B ..\build
+
+cmake --build ..\build --config Debug --target Sandbox --parallel 14
+
+if NOT ["%errorlevel%"]==["0"] (
+    pause
+    exit /b %errorlevel%
+)

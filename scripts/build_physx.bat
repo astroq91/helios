@@ -15,4 +15,9 @@ if exist compiler\vc17win64 (
 )
 cmake --build . --target=ALL_BUILD --parallel
 
+if NOT ["%errorlevel%"]==["0"] (
+    pause
+    exit /b %errorlevel%
+)
+
 endlocal

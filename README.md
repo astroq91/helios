@@ -22,46 +22,16 @@ Regardless of the platform, the following dependencies need to be installed:
 * glslc (for compiling shaders).
 * Vulkan drivers.
 
+For Windows you need:
+
+* VC17 (i.e. Visual Studio 2022).
+
 For Linux you need:
 
 * gcc13 and g++13. Other C++23 compatible compilers could also work, but haven't been tested. The compilation scripts would need to be updated as well.
 * clang, for PhysX library generation.
 
-For Windows you need:
-
-* VC17 (i.e. Visual Studio 2022).
-
 ## Installation
-
-**Linux:**
-
-1. Clone the repo with the submodules
-
-   ```bash
-    git clone --recurse-submodules https://gitlab.com/astroq/helios
-   ```
-
-2. Build the PhysX libraries
-
-   ```bash
-    cd Helios/scripts
-    ./build_physx.sh
-   ```
-
-3. Compiling the shaders (make sure glslc in added to PATH)
-
-    ```bash
-    cd Helios/scripts
-    ./compile_shaders.sh
-   ```
-
-4. Compiling and running the editor
-
-    ```bash
-    ./compile_editor.sh
-    cd ../build/Editor
-    ./Editor
-    ```
 
 **Windows:**
 
@@ -78,7 +48,7 @@ For Windows you need:
     .\build_physx.bat
    ```
 
-3. Compiling the shaders (make sure glslc in added to PATH)
+3. Compile the shaders (make sure glslc is added to PATH)
 
     ```batch
     .\compile_shaders.bat
@@ -94,6 +64,39 @@ For Windows you need:
 
     ```batch
     .\compile_editor.bat
+    ```
+
+There is also ``delete_projects.bat`` that deletes all generated Visual Studio project files. 
+Be careful as it does this recursively.
+
+**Linux:**
+
+1. Clone the repo with the submodules
+
+   ```bash
+    git clone --recurse-submodules https://gitlab.com/astroq/helios
+   ```
+
+2. Build the PhysX libraries
+
+   ```bash
+    cd Helios/scripts
+    ./build_physx.sh
+   ```
+
+3. Compile the shaders (make sure glslc is added to PATH)
+
+    ```bash
+    cd Helios/scripts
+    ./compile_shaders.sh
+   ```
+
+4. Compiling and running the editor
+
+    ```bash
+    ./compile_editor.sh
+    cd ../build/Editor
+    ./Editor
     ```
 
 # Usage
@@ -114,16 +117,18 @@ The editor is quite barebones but has features to build a simple tech demo.
 
 The editor uses two windows for rendering the scene: Editor and Game. The 'Editor' window renders the scene using a scene camera
 that will always be turned on. The 'Game' window instead renders the scene through the first available game camera, which means that you
-need to add a camera component to an entity to be able to see.
+need to add a camera component to an entity to be able to see. Currently a light source is needed for both cameras.
 
 ## File formats
 
 **Projects and scenes**
+
 Both projects and scenes are saved on disk using yaml, and the layout can be found in the examples.
 I don't have good checks in place if a scene or project file is valid or not, so if something loads weirdly
 check that the .yaml files are correct.
 
 **Path handling**
+
 All relative paths used in assets, like scene- and material files, are relative to the project folder (i.e. the folder containing the project.yaml file).
 Relative paths are written using forward slashes (/), to make projects easier to work with cross-platform.
 The only exception is if you use absolute paths, in which case the preferred separator of the OS is used.
