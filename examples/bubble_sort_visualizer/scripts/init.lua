@@ -2,9 +2,12 @@ require("lua.helios")
 
 local entities = {}
 
-local MAX_HEIGHT = 1000
-local ENT_COUNT = 2000
- 
+local MAX_HEIGHT = 20
+local ENT_COUNT = 50
+local sort_done = false
+local swapped = false
+local current_index = 2
+local last_sorted_index = ENT_COUNT
 
 math.randomseed(os.time())
 local function shuffle_in_place(t)
@@ -43,7 +46,45 @@ function on_start()
     end
 end
 
+function swap_if_bigger(i, j)
+    local next_entity_transform = entities[i]:get_components():get_transform()
+    local curr_entity_transform = entities[j]:get_components():get_transform()
+
+    if curr_entity_transform.scale.y > next_entity_transform.scale.y then
+        local temp = entities[i]
+        entities[i] = entities[j]
+        entities[j] = temp
+
+        temp = next_entity_transform.position.x
+        next_entity_transform.position.x = curr_entity_transform.position.x
+        curr_entity_transform.position.x = temp
+
+        return true
+    end
+    return false
+end
 
 function on_update(ts)
-  
+    if sort_done then
+        return
+    end
+
+    local next_entity_transform = entities[current_index]:get_components():get_transform()
+    local curr_entity_transform = entities[current_index-1]:get_components():get_transform()
+
+    if swap_if_bigger(current_index, current_index-1) then
+        swapped = true
+    end
+
+    if current_index == last_sorted_index then
+        if swapped then
+            swapped = false
+        else
+            sort_done = true
+        end
+        last_sorted_index = last_sorted_index - 1
+        current_index = 2
+    else
+        current_index = current_index + 1
+    end
 end
