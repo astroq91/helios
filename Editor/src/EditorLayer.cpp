@@ -640,6 +640,12 @@ void EditorLayer::on_imgui_render() {
 
                     ImGui::TreePop();
                 }
+
+                static bool vsync = app.get_renderer().vsync_enabled();
+
+                if (ImGui::Checkbox("Vertical Sync", &vsync)) {
+                    app.get_renderer().recreate_swapchain_next_frame(vsync);
+                }
             }
             ImGui::End();
 

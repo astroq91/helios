@@ -171,6 +171,13 @@ class Renderer {
         return m_swapchain_recreated_this_frame;
     }
 
+    void recreate_swapchain_next_frame(bool vsync) {
+        m_recreate_swapchain_next_frame = true;
+        m_vsync = vsync;
+    }
+
+    bool vsync_enabled() const { return m_vsync; }
+
     void set_framebuffer_resized(bool value) { m_framebuffer_resized = value; }
 
     /**
@@ -332,5 +339,8 @@ class Renderer {
 
     uint32_t m_min_instances_for_mt;
     uint32_t m_num_threads_for_instancing;
+
+    bool m_recreate_swapchain_next_frame = false;
+    bool m_vsync = true;
 };
 } // namespace Helios

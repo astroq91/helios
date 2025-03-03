@@ -167,7 +167,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     load_default_shaders(m_shaders);
 
     // create the swap chain and the default render pass.
-    m_swapchain = SwapChain::create();
+    recreate_swapchain();
 
     VulkanUtils::create_semaphores(m_vulkan_state->device,
                                    m_max_frames_in_flight,
@@ -626,6 +626,11 @@ void Renderer::end_recording() {
 
 void Renderer::begin_frame() {
     m_current_frame = Application::get().get_current_frame();
+
+    if (m_recreate_swapchain_next_frame) {
+        recreate_swapchain();
+        m_recreate_swapchain_next_frame = false;
+    }
 
     VkFence fences[] = {m_main_fences[m_current_frame]};
 
@@ -1206,7 +1211,7 @@ void Renderer::recreate_swapchain() {
 
     // Destroy and recreate the swap chain, image views
     m_swapchain.reset();
-    m_swapchain = SwapChain::create();
+    m_swapchain = SwapChain::create(m_vsync);
 
     // And also the depth image
     create_depth_image();

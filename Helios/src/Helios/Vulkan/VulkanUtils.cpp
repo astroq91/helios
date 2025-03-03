@@ -272,9 +272,10 @@ VkSurfaceFormatKHR VulkanUtils::choose_swap_surface_format(
 }
 
 VkPresentModeKHR VulkanUtils::choose_swap_present_mode(
-    const std::vector<VkPresentModeKHR>& available_present_modes) {
+    const std::vector<VkPresentModeKHR>& available_present_modes, VkPresentModeKHR preferred_mode) {
     for (const auto& available_present_mode : available_present_modes) {
-        if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+        if (available_present_mode == preferred_mode)
+        {
             return available_present_mode;
         }
     }

@@ -9,22 +9,24 @@ namespace Helios
 	struct SwapChain
 	{
 	public:
-		static Ref<SwapChain> create()
+		static Ref<SwapChain> create(bool vsync = true)
 		{
 			Ref<SwapChain> sc = make_ref<SwapChain>();
-            sc->init();
+            sc->init(vsync);
 			return sc;
 		}
 
 		/**
 		 * \brief create a new SwapChain.
 		 */
-		static Unique<SwapChain> create_unique()
+		static Unique<SwapChain> create_unique(bool vsync = true)
 		{
 			Unique<SwapChain> sc = make_unique<SwapChain>();
-            sc->init();
+            sc->init(vsync);
 			return sc;
 		}
+
+		~SwapChain();
 
 		const VkSwapchainKHR& get_vk_swapchain() const { return m_swapchain; }
 		const VkFormat& get_vk_format() const { return m_image_format; }
@@ -36,16 +38,8 @@ namespace Helios
 
 		VkPresentModeKHR get_present_mode() const { return m_present_mode; }
 
-		~SwapChain();
-		SwapChain() = default;
-
-		SwapChain(const SwapChain&) = delete;
-		SwapChain& operator=(const SwapChain&) = delete;
-		SwapChain(SwapChain&&) = delete;
-		SwapChain& operator=(SwapChain&&) = delete;
-
 	private:
-		void init();
+		void init(bool vsync);
 
 	private:
 		VkSwapchainKHR m_swapchain;

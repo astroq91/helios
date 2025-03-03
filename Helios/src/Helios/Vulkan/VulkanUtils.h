@@ -131,7 +131,7 @@ class VulkanUtils {
     static VkSurfaceFormatKHR choose_swap_surface_format(
         const std::vector<VkSurfaceFormatKHR>& available_formats);
     static VkPresentModeKHR choose_swap_present_mode(
-        const std::vector<VkPresentModeKHR>& available_present_modes);
+        const std::vector<VkPresentModeKHR>& available_present_modes, VkPresentModeKHR preferred_mode);
     static VkExtent2D
     choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities);
     static SwapchainSupportDetails

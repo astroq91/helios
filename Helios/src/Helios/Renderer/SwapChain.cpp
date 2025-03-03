@@ -16,7 +16,7 @@ SwapChain::~SwapChain() {
   }
 }
 
-void SwapChain::init() {
+void SwapChain::init(bool vsync) {
     m_is_initialized = true;
 
   const VulkanContext &context =
@@ -28,7 +28,7 @@ void SwapChain::init() {
     m_surface_format =
             VulkanUtils::choose_swap_surface_format(swapchain_support.formats);
     m_present_mode =
-            VulkanUtils::choose_swap_present_mode(swapchain_support.present_modes);
+            VulkanUtils::choose_swap_present_mode(swapchain_support.present_modes, vsync ? VK_PRESENT_MODE_MAILBOX_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR);
   VkExtent2D extent =
           VulkanUtils::choose_swap_extent(swapchain_support.capabilities);
 

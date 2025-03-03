@@ -165,8 +165,6 @@ void Script::load_script(const std::string& src, ScriptLoadType load_type) {
     if (load_type == ScriptLoadType::Source) {
         m_state.script(src);
     } else {
-        HL_INFO(src);
-
         std::ifstream file(IOUtils::resolve_path(
                                Application::get().get_asset_base_path(), std::filesystem::path(src)),
                            std::ios::ate | std::ios::binary);
