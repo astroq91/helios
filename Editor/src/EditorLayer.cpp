@@ -120,82 +120,87 @@ void EditorLayer::on_update(float ts) {
     }
 
     update_scene_camera_uniform();
+    
 
-    // Transition the viewports' images:
-    VulkanUtils::transition_image_layout(
-        {.image =
-             m_editor_viewport.images[app.get_current_frame()]->get_vk_image(),
-         .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
-         .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-         .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-         .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-         .dst_stage_mask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-         .command_buffer =
-             renderer.get_current_command_buffer()->get_command_buffer()});
-    VulkanUtils::transition_image_layout(
-        {.image =
-             m_game_viewport.images[app.get_current_frame()]->get_vk_image(),
-         .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
-         .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-         .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-         .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-         .dst_stage_mask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-         .command_buffer =
-             renderer.get_current_command_buffer()->get_command_buffer()});
 
-    m_scene->on_update(
-        ts,
-        {
-            .color_image = m_editor_viewport.images[app.get_current_frame()],
-            .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
-            .color_clear_value = {0.25f, 0.25f, 0.25f, 1.0f},
-            .depth_image =
-                m_editor_viewport.depth_images[app.get_current_frame()],
-            .width = static_cast<uint32_t>(m_editor_viewport.size.x),
-            .height = static_cast<uint32_t>(m_editor_viewport.size.y),
-        },
-        {
-            .color_image = m_game_viewport.images[app.get_current_frame()],
-            .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
-            .color_clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
-            .depth_image =
-                m_game_viewport.depth_images[app.get_current_frame()],
-            .width = static_cast<uint32_t>(m_game_viewport.size.x),
-            .height = static_cast<uint32_t>(m_game_viewport.size.y),
-        });
+        VulkanUtils::transition_image_layout(
+            {.image = m_editor_viewport.images[app.get_current_frame()]
+                          ->get_vk_image(),
+             .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+             .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+             .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+             .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+             .dst_stage_mask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+             .command_buffer =
+                 renderer.get_current_command_buffer()->get_command_buffer()});
+        VulkanUtils::transition_image_layout(
+            {.image = m_game_viewport.images[app.get_current_frame()]
+                          ->get_vk_image(),
+             .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+             .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+             .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+             .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+             .dst_stage_mask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+             .command_buffer =
+                 renderer.get_current_command_buffer()->get_command_buffer()});
 
-    // Transition the game viewport image (to be used in imgui image)
-    VulkanUtils::transition_image_layout(
-        {.image =
-             m_game_viewport.images[app.get_current_frame()]->get_vk_image(),
-         .old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-         .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-         .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-         .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
-         .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-         .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-         .command_buffer =
-             renderer.get_current_command_buffer()->get_command_buffer()});
+        m_scene->on_update(
+            ts,
+            {
+                .color_image =
+                    m_editor_viewport.images[app.get_current_frame()],
+                .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
+                .color_clear_value = {0.25f, 0.25f, 0.25f, 1.0f},
+                .depth_image =
+                    m_editor_viewport.depth_images[app.get_current_frame()],
+                .width = static_cast<uint32_t>(m_editor_viewport.size.x),
+                .height = static_cast<uint32_t>(m_editor_viewport.size.y),
+            },
+            {
+                .color_image = m_game_viewport.images[app.get_current_frame()],
+                .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
+                .color_clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
+                .depth_image =
+                    m_game_viewport.depth_images[app.get_current_frame()],
+                .width = static_cast<uint32_t>(m_game_viewport.size.x),
+                .height = static_cast<uint32_t>(m_game_viewport.size.y),
+            });
 
-    update_entity_picking();
-    render_editor_grid();
+        update_entity_picking();
+        render_editor_grid();
 
-    // Now transition the editor viewport image (to be used in imgui image)
-    VulkanUtils::transition_image_layout(
-        {.image =
-             m_editor_viewport.images[app.get_current_frame()]->get_vk_image(),
-         .old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-         .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-         .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-         .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
-         .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-         .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-         .command_buffer =
-             renderer.get_current_command_buffer()->get_command_buffer()});
+            // Transition the game viewport image (to be used in imgui image)
+        VulkanUtils::transition_image_layout(
+            {.image = m_game_viewport.images[app.get_current_frame()]
+                          ->get_vk_image(),
+             .old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+             .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+             .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+             .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
+             .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+             .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+             .command_buffer =
+                 renderer.get_current_command_buffer()->get_command_buffer()});
+
+        // Now transition the editor viewport image (to be used in imgui image)
+        VulkanUtils::transition_image_layout(
+            {.image = m_editor_viewport.images[app.get_current_frame()]
+                          ->get_vk_image(),
+             .old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+             .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+             .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+             .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
+             .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+             .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+             .command_buffer =
+                 renderer.get_current_command_buffer()->get_command_buffer()});
+ 
+
+
 }
 
 void EditorLayer::on_event(Event& e) {
@@ -446,107 +451,117 @@ void EditorLayer::on_imgui_render() {
             }
 
             // Viewport //
+            ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100),
+                                                ImVec2(FLT_MAX, FLT_MAX));
             ImGui::Begin("Editor");
             {
-                m_editor_viewport.size = ImGui::GetContentRegionAvail();
+                m_game_viewport.size = ImGui::GetContentRegionAvail();
 
-                ImVec2 global_mouse_pos = ImGui::GetIO().MousePos;
-
-                // get the current window's position
-                ImVec2 window_pos = ImGui::GetWindowPos();
-
-                // Calculate the mouse position relative to the window's
-                // top-left corner
-                ImVec2 mouse_pos_in_window =
-                    ImVec2(global_mouse_pos.x - window_pos.x,
-                           global_mouse_pos.y - window_pos.y);
-
-                // Optionally, you can also consider the window's title bar
-                // height and any window padding as follows
-                float title_bar_height = ImGui::GetStyle().FramePadding.y +
-                                         ImGui::GetFontSize() +
-                                         ImGui::GetStyle().WindowPadding.y;
-                m_editor_viewport.mouse_pos = ImVec2(
-                    mouse_pos_in_window.x - ImGui::GetStyle().WindowPadding.x,
-                    mouse_pos_in_window.y - title_bar_height);
-
-                ImVec2 window_pos_without_padding =
-                    ImVec2(window_pos.x - ImGui::GetStyle().WindowPadding.x,
-                           window_pos.y - title_bar_height);
-
-                m_editor_viewport.focused = ImGui::IsWindowFocused();
-                m_editor_viewport.hovered = ImGui::IsWindowHovered();
-                Application::get().get_imgui_layer()->set_block_events(
-                    !m_editor_viewport.focused);
-                ImGui::Image(m_editor_viewport.handles[app.get_current_frame()],
-                             m_editor_viewport.size);
-
-                // Disable manipulation if an entity has a dynamic rb,
-                // without override_dynamic_physics=true
-                bool disable_gizmo = false;
-                if (m_selected_entity != k_no_entity) {
-                    RigidBodyComponent* rb =
-                        m_selected_entity
-                            .try_get_component<RigidBodyComponent>();
-
-                    if (m_scene->is_running() && rb &&
-                        rb->type == RigidBodyType::Dynamic && !rb->kinematic &&
-                        !rb->override_dynamic_physics) {
-                        disable_gizmo = true;
-                    }
-                }
-
-                if (m_selected_entity != k_no_entity &&
-                    m_selected_entity_transform && !disable_gizmo) {
-                    ImGuizmo::BeginFrame();
-                    ImGuizmo::SetOrthographic(false);
-                    ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
-
-                    // x += 19, y += 59 are magic numbers for dealing with
-                    // the viewport image being offset from the imgui window
-                    // (ie. padding)
-                    ImGuizmo::SetRect(window_pos_without_padding.x + 19,
-                                      window_pos_without_padding.y + 59,
-                                      m_editor_viewport.size.x,
-                                      m_editor_viewport.size.y);
-
-                    glm::mat4 model =
-                        m_selected_entity_transform->to_transform().ToMat4();
-
-                    Camera cam = m_scene_camera.get_camera();
-                    cam.projection_matrix[1][1] *= -1;
-
-                    glm::vec3 snap = {0.5f, 0.5f, 0.5f};
-
-                    ImGuizmo::Manipulate(glm::value_ptr(cam.view_matrix),
-                                         glm::value_ptr(cam.projection_matrix),
-                                         m_gizmo_operation, m_gizmo_mode,
-                                         glm::value_ptr(model), nullptr,
-                                         m_use_snap ? &snap.x : nullptr);
-
-                    if (ImGuizmo::IsUsing()) {
-                        Math::decompose_transform(
-                            model, m_selected_entity_transform->position,
-                            m_selected_entity_transform->rotation,
-                            m_selected_entity_transform->scale);
-
-                        m_use_mouse_picking = false;
-                    }
-
-                    if (ImGuizmo::IsOver()) {
-                        m_using_gizmo = true;
-                    } else {
-                        m_using_gizmo = false;
-                    }
-                }
+                    ImGui::Image(
+                        m_game_viewport.handles[app.get_current_frame()],
+                        m_game_viewport.size);
             }
             ImGui::End();
-
+                            
+            ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100),
+                                                ImVec2(FLT_MAX, FLT_MAX));
             ImGui::Begin("Game");
             {
-                m_game_viewport.size = ImGui::GetContentRegionAvail();
-                ImGui::Image(m_game_viewport.handles[app.get_current_frame()],
-                             m_game_viewport.size);
+                m_editor_viewport.size = ImGui::GetContentRegionAvail();
+                    ImVec2 global_mouse_pos = ImGui::GetIO().MousePos;
+
+                    // get the current window's position
+                    ImVec2 window_pos = ImGui::GetWindowPos();
+
+                    // Calculate the mouse position relative to the window's
+                    // top-left corner
+                    ImVec2 mouse_pos_in_window =
+                        ImVec2(global_mouse_pos.x - window_pos.x,
+                               global_mouse_pos.y - window_pos.y);
+
+                    // Optionally, you can also consider the window's title bar
+                    // height and any window padding as follows
+                    float title_bar_height = ImGui::GetStyle().FramePadding.y +
+                                             ImGui::GetFontSize() +
+                                             ImGui::GetStyle().WindowPadding.y;
+                    m_editor_viewport.mouse_pos =
+                        ImVec2(mouse_pos_in_window.x -
+                                   ImGui::GetStyle().WindowPadding.x,
+                               mouse_pos_in_window.y - title_bar_height);
+
+                    ImVec2 window_pos_without_padding =
+                        ImVec2(window_pos.x - ImGui::GetStyle().WindowPadding.x,
+                               window_pos.y - title_bar_height);
+
+                    m_editor_viewport.focused = ImGui::IsWindowFocused();
+                    m_editor_viewport.hovered = ImGui::IsWindowHovered();
+                    Application::get().get_imgui_layer()->set_block_events(
+                        !m_editor_viewport.focused);
+
+                    ImGui::Image(
+                        m_editor_viewport.handles[app.get_current_frame()],
+                        m_editor_viewport.size);
+
+                    // Disable manipulation if an entity has a dynamic rb,
+                    // without override_dynamic_physics=true
+                    bool disable_gizmo = false;
+                    if (m_selected_entity != k_no_entity) {
+                        RigidBodyComponent* rb =
+                            m_selected_entity
+                                .try_get_component<RigidBodyComponent>();
+
+                        if (m_scene->is_running() && rb &&
+                            rb->type == RigidBodyType::Dynamic &&
+                            !rb->kinematic && !rb->override_dynamic_physics) {
+                            disable_gizmo = true;
+                        }
+                    }
+
+                    if (m_selected_entity != k_no_entity &&
+                        m_selected_entity_transform && !disable_gizmo) {
+                        ImGuizmo::BeginFrame();
+                        ImGuizmo::SetOrthographic(false);
+                        ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+
+                        // x += 19, y += 59 are magic numbers for dealing with
+                        // the viewport image being offset from the imgui window
+                        // (ie. padding)
+                        ImGuizmo::SetRect(window_pos_without_padding.x + 19,
+                                          window_pos_without_padding.y + 59,
+                                          m_editor_viewport.size.x,
+                                          m_editor_viewport.size.y);
+
+                        glm::mat4 model =
+                            m_selected_entity_transform->to_transform()
+                                .ToMat4();
+
+                        Camera cam = m_scene_camera.get_camera();
+                        cam.projection_matrix[1][1] *= -1;
+
+                        glm::vec3 snap = {0.5f, 0.5f, 0.5f};
+
+                        ImGuizmo::Manipulate(
+                            glm::value_ptr(cam.view_matrix),
+                            glm::value_ptr(cam.projection_matrix),
+                            m_gizmo_operation, m_gizmo_mode,
+                            glm::value_ptr(model), nullptr,
+                            m_use_snap ? &snap.x : nullptr);
+
+                        if (ImGuizmo::IsUsing()) {
+                            Math::decompose_transform(
+                                model, m_selected_entity_transform->position,
+                                m_selected_entity_transform->rotation,
+                                m_selected_entity_transform->scale);
+
+                            m_use_mouse_picking = false;
+                        }
+
+                        if (ImGuizmo::IsOver()) {
+                            m_using_gizmo = true;
+                        } else {
+                            m_using_gizmo = false;
+                        }
+                    }
             }
             ImGui::End();
 
@@ -1370,3 +1385,4 @@ void EditorLayer::stop_runtime() {
             m_selected_entity.try_get_component<TransformComponent>();
     }
 }
+
