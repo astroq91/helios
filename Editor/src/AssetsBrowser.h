@@ -1,42 +1,55 @@
 #pragma once
 #include <entt/entt.hpp>
 
-#include "Helios/Scene/Scene.h"
 #include "Helios/Core/Core.h"
-#include "Helios/Scene/Entity.h"
+#include "Helios/Renderer/Texture.h"
+#include "Helios/Renderer/TextureSampler.h"
 #include "Project.h"
+#include <volk/volk.h>
 
 namespace Helios {
-enum class FileType {
-    Script,
-    Material,
-    Directory, 
-    Other
-};
+enum class FileType { Script, Material, Scene, Project, Directory, Other };
 
 struct FileNode {
   public:
     FileType type;
     std::filesystem::path path;
+    Ref<Texture> icon = nullptr;
     std::vector<FileNode> files;
 };
 
 class AssetsBrowser {
   public:
     void init();
+
     void on_update();
 
     void set_project(Project* project);
+
+  private:
+    void init_icon(const std::filesystem::path& path,
+                   VkCommandBuffer command_buffer, Ref<Texture>& texture,
+                   VkDescriptorSet& handle);
     void traverse_directory(FileNode& node);
 
   private:
     Project* m_project = nullptr;
 
     Ref<TextureSampler> m_icon_sampler;
+
     Ref<Texture> m_file_icon_texture;
-    Ref<Texture> m_folder_icon_texture;
+    Ref<Texture> m_directory_icon_texture;
+    Ref<Texture> m_scene_icon_texture;
+    Ref<Texture> m_script_icon_texture;
+    Ref<Texture> m_material_icon_texture;
+    Ref<Texture> m_project_icon_texture;
+
     VkDescriptorSet m_file_icon_handle;
-    VkDescriptorSet m_folder_icon_handle;
+    VkDescriptorSet m_directory_icon_handle;
+    VkDescriptorSet m_scene_icon_handle;
+    VkDescriptorSet m_script_icon_handle;
+    VkDescriptorSet m_material_icon_handle;
+    VkDescriptorSet m_project_icon_handle;
 
     FileNode m_root_node;
     int m_traverse_count = 0;
