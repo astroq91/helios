@@ -15,7 +15,7 @@ Project::Project(const std::filesystem::path& project_path)
         proj_path += fs::path::preferred_separator;
     }
 
-    fs::path project_file_path = proj_path / "project.yaml";
+    fs::path project_file_path = proj_path / "settings.proj";
 
     if (fs::exists(proj_path)) {
         load_project(project_file_path);
@@ -46,7 +46,7 @@ void Project::new_project(std::filesystem::path project_path,
     fs::create_directory(project_path);
 
     fs::create_directory(project_path / "scenes/");
-    std::ofstream default_scene(project_path / "scenes/main_scene.yaml");
+    std::ofstream default_scene(project_path / "scenes/main.scene");
 
     YAML::Emitter out;
 
@@ -54,7 +54,7 @@ void Project::new_project(std::filesystem::path project_path,
     out << YAML::Key << "project_name" << YAML::Value
         << project_path.parent_path().filename().string();
     out << YAML::Key << "default_scene" << YAML::Value
-        << "scenes/main_scene.yaml";
+        << "scenes/main.scene";
 
     out << YAML::EndMap;
 

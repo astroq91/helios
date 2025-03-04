@@ -354,30 +354,34 @@ void SceneSerializer::deserialize(const std::filesystem::path& path) {
                     auto& mc =
                         deserialized_entity.add_component<MeshRendererComponent>();
 
-                    std::string mesh_name =
-                        mesh_renderer_component["mesh"].as<std::string>();
+                    auto mesh = mesh_renderer_component["mesh"];
+                    if (mesh && !mesh.IsNull() && mesh.IsScalar()) {
+                        std::string mesh_name = mesh.as<std::string>();
 
-                    if (mesh_name == "Cube") {
-                        mc.mesh =
-                            Application::get().get_renderer().get_cube_mesh();
-                    }
-                    // Some file path
-                    else if (!mesh_renderer_component["mesh"].IsNull() &&
-                             !mesh_name.empty()) {
-                        auto mesh =
-                            Application::get().get_asset_manager().get_mesh(
-                                mesh_name);
-                        if (mesh == nullptr) {
-                            mc.mesh = Mesh::create(std::filesystem::path(mesh_name));
-                            Application::get().get_asset_manager().add_mesh(
-                                mc.mesh);
-                        } else {
-                            mc.mesh = mesh;
+                        if (mesh_name == "Cube") {
+                            mc.mesh = Application::get()
+                                            .get_renderer()
+                                            .get_cube_mesh();
+                        }
+                        // Some file path
+                        else if (!mesh_name.empty()) {
+                            auto mesh = Application::get()
+                                            .get_asset_manager()
+                                            .get_mesh(mesh_name);
+                            if (mesh == nullptr) {
+                                mc.mesh = Mesh::create(
+                                    std::filesystem::path(mesh_name));
+                                Application::get()
+                                    .get_asset_manager()
+                                    .add_mesh(mc.mesh);
+                            } else {
+                                mc.mesh = mesh;
+                            }
                         }
                     }
 
                     auto material = mesh_renderer_component["material"];
-                    if (material && !material.IsNull()) {
+                    if (material && !material.IsNull() && material.IsScalar()) {
                         std::string material_path = material.as<std::string>();
                         if (!material_path.empty()) {
                             auto mat = Application::get()
@@ -395,7 +399,8 @@ void SceneSerializer::deserialize(const std::filesystem::path& path) {
                     }
 
                     auto tint_color = mesh_renderer_component["tint_color"];
-                    if (tint_color) {
+                    if (tint_color && !tint_color.IsNull() &&
+                        tint_color.IsScalar()) {
                         mc.tint_color = tint_color.as<glm::vec4>();
                     }
                 }

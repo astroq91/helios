@@ -2,7 +2,7 @@ entities:
   - name_component:
       name: Camera
     transform_component:
-      position: [0, 0, 50]
+      position: [0, 0, 100]
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
     camera_component:

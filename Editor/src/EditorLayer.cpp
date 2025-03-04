@@ -71,6 +71,8 @@ void EditorLayer::on_attach() {
     populate_viewport_data(m_game_viewport);
     setup_entity_picking();
     setup_editor_grid();
+
+    m_assets_browser.init();
 }
 
 void EditorLayer::on_detach() {}
@@ -328,7 +330,7 @@ void EditorLayer::on_imgui_render() {
                             {
                                 {
                                     .name = "Scene",
-                                    .filter = "*.yaml",
+                                    .filter = "*.scene",
                                 },
                             },
                             m_project.value().get_project_path());
@@ -357,7 +359,7 @@ void EditorLayer::on_imgui_render() {
                             {
                                 {
                                     .name = "Scene",
-                                    .filter = "*.yaml",
+                                    .filter = "*.scene",
                                 },
                             },
                             m_project.value().get_project_path());
@@ -421,7 +423,7 @@ void EditorLayer::on_imgui_render() {
                 ImGui::BeginDisabled(m_scene->is_running());
                 if (ImGui::Button("Run")) {
                     SceneSerializer scene_serializer(m_scene);
-                    scene_serializer.serialize("scene_copy.yaml");
+                    scene_serializer.serialize("scene_copy.scene");
                     m_scene->start_runtime();
                 }
                 ImGui::EndDisabled();
@@ -436,7 +438,7 @@ void EditorLayer::on_imgui_render() {
                 ImGui::BeginDisabled(!m_scene->is_running());
                 if (ImGui::Button("Copy runtime")) {
                     SceneSerializer scene_serializer(m_scene);
-                    scene_serializer.serialize("scene_copy.yaml");
+                    scene_serializer.serialize("scene_copy.scene");
                 }
                 ImGui::EndDisabled();
 
@@ -642,7 +644,7 @@ void EditorLayer::on_imgui_render() {
             m_components_browser.on_update(
                 m_scene, m_scene->get_entity(m_selected_entity),
                 m_project.value());
-            m_assets_browser.on_update(m_scene, m_project.value());
+            m_assets_browser.on_update();
         }
     }
     ImGui::End();
@@ -1239,6 +1241,7 @@ void EditorLayer::show_welcome_window() {
                 }
 
                 update_window_title(m_project.value().get_default_scene());
+                m_assets_browser.set_project(&m_project.value());
             }
         }
     }
@@ -1306,6 +1309,8 @@ void EditorLayer::show_new_project_window() {
                             m_project.value().get_default_scene());
 
                         m_show_new_project_window = false;
+
+                        m_assets_browser.set_project(&m_project.value());
                     }
                 } else {
                     HL_ERROR("Directory {} already exists",
@@ -1354,7 +1359,7 @@ void EditorLayer::stop_runtime() {
     });
 
     SceneSerializer scene_serializer(m_scene);
-    scene_serializer.deserialize("scene_copy.yaml");
+    scene_serializer.deserialize("scene_copy.scene");
 
     update_window_title(m_loaded_scene_path.value().string());
 

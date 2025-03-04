@@ -1,2 +1,2 @@
 project_name: bubble_sort_visualizer
-default_scene: scenes/main_scene.yaml
+default_scene: scenes/main.scene
