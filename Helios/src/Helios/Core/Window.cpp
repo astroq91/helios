@@ -2,6 +2,7 @@
 
 #include "../Events/KeyEvents.h"
 #include "Application.h"
+#include "GLFW/glfw3.h"
 #include "Helios/Events/MouseEvents.h"
 #include "Helios/Events/WindowEvents.h"
 
@@ -11,6 +12,10 @@ void error_callback(int error, const char* description);
 Window::Window(const WindowProps& windowProps) {
     m_data.width = windowProps.width;
     m_data.height = windowProps.height;
+
+    if (glfwPlatformSupported(GLFW_PLATFORM_X11)) {
+        glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+    }
 
     if (!glfwInit()) {
         HL_CRITICAL("Failed to init GLFW!");
