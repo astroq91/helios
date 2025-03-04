@@ -2,7 +2,7 @@
 <!-- ABOUT THE PROJECT -->
 # About The Project
 
-Helios is a general purpose 3D game engine written in C++23, for Windows and Linux. It currently has the following features:
+Helios is a general purpose 3D game engine written in C++23, for Windows and Linux (Ubuntu 24.04 LTS with X11 tested). It currently has the following features:
 
 * Instance based rendering, using [Vulkan].
 * Physics using [Nvidia PhysX], for simulating rigidbodies (only boxes)
@@ -29,7 +29,7 @@ For Windows you need:
 For Linux you need:
 
 * gcc13 and g++13. Other C++23 compatible compilers could also work, but haven't been tested. The compilation scripts would need to be updated as well.
-* clang, for PhysX library generation.
+* clang (version 18.1.3 tested), for PhysX library generation.
 
 ## Installation
 
