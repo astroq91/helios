@@ -312,6 +312,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
 }
 
 void Renderer::shutdown() {
+    m_shutting_down = true;
     // Wait for all the pending resources
     vkDeviceWaitIdle(m_vulkan_state->device);
 
@@ -735,6 +736,11 @@ int32_t Renderer::register_texture(const Texture& texture) {
 }
 
 void Renderer::deregister_texture(uint32_t textureIndex) {
+    // Prevent deregistering textures on program destruction
+    if (m_shutting_down){
+        return;
+    }
+
     m_texture_specs[textureIndex] = DescriptorSpec{
         .binding = 1,
         .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,

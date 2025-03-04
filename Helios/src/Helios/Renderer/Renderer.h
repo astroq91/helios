@@ -342,5 +342,7 @@ class Renderer {
 
     bool m_recreate_swapchain_next_frame = false;
     bool m_vsync = true;
+
+    bool m_shutting_down = false;
 };
 } // namespace Helios

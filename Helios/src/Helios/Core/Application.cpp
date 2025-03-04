@@ -77,7 +77,6 @@ void Application::run() {
 
         m_last_timestep = m_current_timestep;
     }
-
     m_renderer.shutdown();
 }
 
