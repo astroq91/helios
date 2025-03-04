@@ -12,6 +12,7 @@
 #include <imgui.h>
 
 #include "ComponentsBrowser.h"
+#include "AssetsBrowser.h"
 #include "Helios/Scene/Scene.h"
 #include "Helios/Scene/SceneCamera.h"
 #include "ImGuizmo.h"
@@ -80,6 +81,7 @@ class EditorLayer : public Helios::Layer {
     void show_new_project_window();
     void update_window_title(const std::optional<std::string>& scene_path);
     void reset_editor();
+    void stop_runtime();
 
   private:
     std::optional<Project> m_project;
@@ -98,6 +100,7 @@ class EditorLayer : public Helios::Layer {
     Helios::TransformComponent* m_selected_entity_transform = nullptr;
 
     Helios::ComponentsBrowser m_components_browser;
+    Helios::AssetsBrowser m_assets_browser;
 
     // Scene camera //
     std::vector<Helios::Ref<Helios::Buffer>> m_scene_camera_uniform_buffers;

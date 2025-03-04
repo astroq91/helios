@@ -346,11 +346,13 @@ void EditorLayer::on_imgui_render() {
                         }
                     }
                     ImGui::BeginDisabled(!m_loaded_scene_path);
-                    if (ImGui::MenuItem("Save scene")) {
+                    if (ImGui::MenuItem("Save scene")) { 
+                        stop_runtime();
                         save_scene(m_loaded_scene_path.value().string());
                     }
                     ImGui::EndDisabled();
                     if (ImGui::MenuItem("Save scene as...")) {
+                        stop_runtime();
                         DialogReturn ret = IOUtils::save_file(
                             {
                                 {
@@ -426,26 +428,8 @@ void EditorLayer::on_imgui_render() {
 
                 ImGui::BeginDisabled(!m_scene->is_running());
                 if (ImGui::Button("Stop")) {
-                    new_scene({
-                        .reset_selected_entity = false,
-                        .reset_scene_camera = false,
-                        .reset_scene_path = false,
-                        .reset_window_title = false,
-                    });
+                    stop_runtime();
 
-                    SceneSerializer scene_serializer(m_scene);
-                    scene_serializer.deserialize("scene_copy.yaml");
-
-                    update_window_title(m_loaded_scene_path.value().string());
-
-                    if (m_selected_entity != k_no_entity) {
-                        // The previous scene pointer is now invalid
-                        m_selected_entity =
-                            m_scene->get_entity(m_selected_entity);
-                        m_selected_entity_transform =
-                            m_selected_entity
-                                .try_get_component<TransformComponent>();
-                    }
                 }
                 ImGui::EndDisabled();
 
@@ -658,6 +642,7 @@ void EditorLayer::on_imgui_render() {
             m_components_browser.on_update(
                 m_scene, m_scene->get_entity(m_selected_entity),
                 m_project.value());
+            m_assets_browser.on_update(m_scene, m_project.value());
         }
     }
     ImGui::End();
@@ -1358,4 +1343,25 @@ void EditorLayer::reset_editor() {
     g_previous_welcome_modal_step = WelcomeModalStep::Welcome;
     update_window_title(std::nullopt);
     Application::get().get_asset_manager().clear_assets();
+}
+
+void EditorLayer::stop_runtime() {
+    new_scene({
+        .reset_selected_entity = false,
+        .reset_scene_camera = false,
+        .reset_scene_path = false,
+        .reset_window_title = false,
+    });
+
+    SceneSerializer scene_serializer(m_scene);
+    scene_serializer.deserialize("scene_copy.yaml");
+
+    update_window_title(m_loaded_scene_path.value().string());
+
+    if (m_selected_entity != k_no_entity) {
+        // The previous scene pointer is now invalid
+        m_selected_entity = m_scene->get_entity(m_selected_entity);
+        m_selected_entity_transform =
+            m_selected_entity.try_get_component<TransformComponent>();
+    }
 }
