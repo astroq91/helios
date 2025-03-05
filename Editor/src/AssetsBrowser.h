@@ -62,6 +62,7 @@ class AssetsBrowser {
     int m_traverse_count = 0;
 
     float m_directory_tree_width = 0;
+    bool m_open_selected_directory = false;
 
 };
 } // namespace Helios

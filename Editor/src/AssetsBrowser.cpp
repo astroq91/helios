@@ -1,5 +1,6 @@
 #include "AssetsBrowser.h"
 
+#include "imgui_internal.h"
 #include "Helios/Core/Application.h"
 #include "vulkan/vulkan_core.h"
 #include <imgui.h>
@@ -150,10 +151,26 @@ void AssetsBrowser::draw_icons(FileNode* directory, const glm::vec2& icon_size,
 
             ImGui::SameLine(0, padding);
 
+        
+
             ImGui::BeginGroup(); 
             {
-                ImGui::Image(file.icon, {icon_size.x, icon_size.y},
-                             ImVec2{0, 1}, ImVec2{1, 0}); // Display image
+                ImGui::PushID(file.path.string().c_str());
+                ImGui::PushStyleColor(ImGuiCol_Button,
+                                      ImVec4(0, 0, 0, 0)); // No button color
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                    ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No hover color
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                    ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No active color
+                if (ImGui::ImageButton(file.icon, {icon_size.x, icon_size.y},
+                                       ImVec2{0, 1}, ImVec2{1, 0})) {
+                    if (file.type == FileType::Directory) {
+                        m_current_directory = &file;
+                        m_open_selected_directory = true;
+                    }
+                }
+                ImGui::PopStyleColor(3); // Restore previous colors
+                ImGui::PopID();
                 ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + icon_size.x); // Set the wrap position for text
                 ImGui::TextWrapped(
                     "%s",
@@ -187,32 +204,20 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
         filename = directory->path.parent_path().filename();
     }
     ImGuiTreeNodeFlags node_flags =
-        ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+        ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
     if (m_current_directory == directory) {
         node_flags |= ImGuiTreeNodeFlags_Selected;
+        if (m_open_selected_directory) {
+            ImGui::SetNextItemOpen(true);
+            m_open_selected_directory = false;
+        }
     }
 
-    ImVec2 node_start_pos = ImGui::GetCursorScreenPos();
-
-    bool node_open = ImGui::TreeNodeEx(filename.string().c_str(), node_flags);
-
-    // Check where the user clicked
-    ImVec2 node_end_pos = ImVec2(node_start_pos.x + ImGui::GetItemRectSize().x,
-                             node_start_pos.y + ImGui::GetItemRectSize().y);
-    ImVec2 mousePos = ImGui::GetMousePos();
-
-    bool clickedOnLabel =
-        ImGui::IsItemClicked() &&
-        !ImGui::IsItemToggledOpen(); // Prevent selection on arrow clicks
-    bool clickedInsideNode =
-        (mousePos.x > node_start_pos.x && mousePos.x < node_end_pos.x &&
-         mousePos.y > node_start_pos.y && mousePos.y < node_end_pos.y);
-
-    if (clickedOnLabel && clickedInsideNode) {
-        m_current_directory = directory; // Select when clicking label only
+    if (directory->path == m_root_node.path) {
+        node_flags |= ImGuiTreeNodeFlags_DefaultOpen;
     }
 
-    if (node_open) {
+    if (ImGui::TreeNodeEx(filename.string().c_str(), node_flags)) {
         for (auto& file : directory->files) {
             if (file.type == FileType::Directory) {
                 draw_subdirectory(&file);
@@ -220,6 +225,11 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
         }
         ImGui::TreePop();
     }
+
+    if (ImGui::IsItemClicked()) {
+        m_current_directory = directory; 
+    }
+
 }
 
 void AssetsBrowser::draw_divider() {
