@@ -6,6 +6,7 @@
 #include "Helios/Renderer/TextureSampler.h"
 #include "Project.h"
 #include <volk/volk.h>
+#include <glm/glm.hpp>
 
 namespace Helios {
 enum class FileType { Script, Material, Scene, Project, Directory, Other };
@@ -14,7 +15,7 @@ struct FileNode {
   public:
     FileType type;
     std::filesystem::path path;
-    Ref<Texture> icon = nullptr;
+    VkDescriptorSet icon = VK_NULL_HANDLE;
     std::vector<FileNode> files;
 };
 
@@ -31,6 +32,11 @@ class AssetsBrowser {
                    VkCommandBuffer command_buffer, Ref<Texture>& texture,
                    VkDescriptorSet& handle);
     void traverse_directory(FileNode& node);
+    void draw_icons(FileNode* directory, const glm::vec2& icon_size,
+                                   float padding);
+    void draw_directory_tree(FileNode* root_directory, float width);
+    void draw_subdirectory(FileNode* directory);
+    void draw_divider();
 
   private:
     Project* m_project = nullptr;
@@ -52,6 +58,10 @@ class AssetsBrowser {
     VkDescriptorSet m_project_icon_handle;
 
     FileNode m_root_node;
+    FileNode* m_current_directory = nullptr;
     int m_traverse_count = 0;
+
+    float m_directory_tree_width = 0;
+
 };
 } // namespace Helios

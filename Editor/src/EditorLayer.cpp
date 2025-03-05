@@ -453,7 +453,7 @@ void EditorLayer::on_imgui_render() {
             // Viewport //
             ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100),
                                                 ImVec2(FLT_MAX, FLT_MAX));
-            ImGui::Begin("Editor");
+            ImGui::Begin("Game");
             {
                 m_game_viewport.size = ImGui::GetContentRegionAvail();
 
@@ -465,7 +465,7 @@ void EditorLayer::on_imgui_render() {
                             
             ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100),
                                                 ImVec2(FLT_MAX, FLT_MAX));
-            ImGui::Begin("Game");
+            ImGui::Begin("Editor");
             {
                 m_editor_viewport.size = ImGui::GetContentRegionAvail();
                     ImVec2 global_mouse_pos = ImGui::GetIO().MousePos;
