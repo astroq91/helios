@@ -217,7 +217,22 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
         node_flags |= ImGuiTreeNodeFlags_DefaultOpen;
     }
 
-    if (ImGui::TreeNodeEx(filename.string().c_str(), node_flags)) {
+    ImVec2 node_start_pos = ImGui::GetCursorScreenPos();
+    bool node_open = ImGui::TreeNodeEx(filename.string().c_str(), node_flags);
+
+    ImVec2 node_end_pos = ImVec2(node_start_pos.x + ImGui::GetItemRectSize().x,
+                               node_start_pos.y + ImGui::GetItemRectSize().y);
+    ImVec2 mouse_pos = ImGui::GetMousePos();
+
+    bool clicked_inside_node =
+        (mouse_pos.x > node_start_pos.x && mouse_pos.x < node_end_pos.x &&
+         mouse_pos.y > node_start_pos.y && mouse_pos.y < node_end_pos.y);
+
+    if (ImGui::IsItemClicked() && clicked_inside_node) {
+        m_current_directory = directory; // Select when clicking label only
+    }
+
+    if (node_open) {
         for (auto& file : directory->files) {
             if (file.type == FileType::Directory) {
                 draw_subdirectory(&file);
@@ -226,9 +241,7 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
         ImGui::TreePop();
     }
 
-    if (ImGui::IsItemClicked()) {
-        m_current_directory = directory; 
-    }
+    
 
 }
 
