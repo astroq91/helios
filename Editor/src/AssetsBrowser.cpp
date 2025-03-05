@@ -151,8 +151,6 @@ void AssetsBrowser::draw_icons(FileNode* directory, const glm::vec2& icon_size,
 
             ImGui::SameLine(0, padding);
 
-        
-
             ImGui::BeginGroup(); 
             {
                 ImGui::PushID(file.path.string().c_str());
@@ -162,12 +160,15 @@ void AssetsBrowser::draw_icons(FileNode* directory, const glm::vec2& icon_size,
                     ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No hover color
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                     ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No active color
-                if (ImGui::ImageButton(file.icon, {icon_size.x, icon_size.y},
-                                       ImVec2{0, 1}, ImVec2{1, 0})) {
+                ImGui::ImageButton(file.icon, {icon_size.x, icon_size.y},
+                                   ImVec2{0, 1}, ImVec2{1, 0});
+     
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                     if (file.type == FileType::Directory) {
                         m_current_directory = &file;
                         m_open_selected_directory = true;
                     }
+                    handle_icon_click(&file);
                 }
                 ImGui::PopStyleColor(3); // Restore previous colors
                 ImGui::PopID();
@@ -240,9 +241,6 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
         }
         ImGui::TreePop();
     }
-
-    
-
 }
 
 void AssetsBrowser::draw_divider() {
@@ -265,6 +263,10 @@ void AssetsBrowser::draw_divider() {
         ImGui::SetMouseCursor(
             ImGuiMouseCursor_Arrow); 
     }
+
+}
+
+void AssetsBrowser::handle_icon_click(FileNode* file) {
 
 }
 

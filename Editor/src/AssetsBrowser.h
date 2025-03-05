@@ -38,6 +38,8 @@ class AssetsBrowser {
     void draw_subdirectory(FileNode* directory);
     void draw_divider();
 
+    void handle_icon_click(FileNode* file);
+
   private:
     Project* m_project = nullptr;
 
