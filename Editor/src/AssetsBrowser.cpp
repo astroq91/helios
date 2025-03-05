@@ -187,9 +187,32 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
         filename = directory->path.parent_path().filename();
     }
     ImGuiTreeNodeFlags node_flags =
-        ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+    if (m_current_directory == directory) {
+        node_flags |= ImGuiTreeNodeFlags_Selected;
+    }
 
-    if (ImGui::TreeNodeEx(filename.string().c_str(), node_flags)) {
+    ImVec2 node_start_pos = ImGui::GetCursorScreenPos();
+
+    bool node_open = ImGui::TreeNodeEx(filename.string().c_str(), node_flags);
+
+    // Check where the user clicked
+    ImVec2 node_end_pos = ImVec2(node_start_pos.x + ImGui::GetItemRectSize().x,
+                             node_start_pos.y + ImGui::GetItemRectSize().y);
+    ImVec2 mousePos = ImGui::GetMousePos();
+
+    bool clickedOnLabel =
+        ImGui::IsItemClicked() &&
+        !ImGui::IsItemToggledOpen(); // Prevent selection on arrow clicks
+    bool clickedInsideNode =
+        (mousePos.x > node_start_pos.x && mousePos.x < node_end_pos.x &&
+         mousePos.y > node_start_pos.y && mousePos.y < node_end_pos.y);
+
+    if (clickedOnLabel && clickedInsideNode) {
+        m_current_directory = directory; // Select when clicking label only
+    }
+
+    if (node_open) {
         for (auto& file : directory->files) {
             if (file.type == FileType::Directory) {
                 draw_subdirectory(&file);
