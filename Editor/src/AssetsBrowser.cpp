@@ -1,4 +1,5 @@
 #include "AssetsBrowser.h"
+#include "AssetsBrowser.h"
 
 #include "imgui_internal.h"
 #include "Helios/Core/Application.h"
@@ -8,6 +9,10 @@
 #include <map>
 
 #include <filesystem>
+
+#ifdef _WINDOWS
+#include <shellapi.h>
+#endif
 
 using directory_iterator = std::filesystem::directory_iterator;
 namespace fs = std::filesystem;
@@ -300,6 +305,12 @@ void AssetsBrowser::handle_icon_click(const FileNode* file) const {
         if (m_scene_selected_callback) {
             m_scene_selected_callback(file->path);
         }
+        break;
+    }
+    case FileType::Script: {
+#ifdef _WINDOWS
+        ShellExecuteA(nullptr, "open", file->path.string().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#endif
         break;
     }
     default: ;
