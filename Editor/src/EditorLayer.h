@@ -77,6 +77,7 @@ class EditorLayer : public Helios::Layer {
     void select_entity(uint32_t entity);
     void new_scene(const NewSceneInfo& info = {});
     void save_scene(const std::string& path);
+    void load_scene(const std::filesystem::path& path);
     void show_welcome_window();
     void show_new_project_window();
     void update_window_title(const std::optional<std::string>& scene_path);

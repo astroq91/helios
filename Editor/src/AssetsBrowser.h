@@ -29,6 +29,9 @@ class AssetsBrowser {
     void on_update();
 
     void set_project(Project* project);
+    void set_on_scene_selected_callback(const std::function<void(const std::filesystem::path&)>& callback) {
+        m_scene_selected_callback = callback;
+     }
 
   private:
     void init_icon(const std::filesystem::path& path,
@@ -40,7 +43,7 @@ class AssetsBrowser {
     void draw_subdirectory(FileNode* directory);
     void draw_divider();
 
-    void handle_icon_click(FileNode* file);
+    void handle_icon_click(const FileNode* file) const;
 
   private:
     Project* m_project = nullptr;
@@ -60,6 +63,10 @@ class AssetsBrowser {
     VkDescriptorSet m_script_icon_handle;
     VkDescriptorSet m_material_icon_handle;
     VkDescriptorSet m_project_icon_handle;
+
+    std::function<void(const std::filesystem::path&)>
+        m_scene_selected_callback =
+        nullptr;
 
     FileNode m_root_node;
     FileNode* m_current_directory = nullptr;

@@ -73,6 +73,9 @@ void EditorLayer::on_attach() {
     setup_editor_grid();
 
     m_assets_browser.init();
+    m_assets_browser.set_on_scene_selected_callback(
+        [&](const auto& scene_path) { load_scene(scene_path);
+    });
 }
 
 void EditorLayer::on_detach() {}
@@ -339,18 +342,8 @@ void EditorLayer::on_imgui_render() {
                                 },
                             },
                             m_project.value().get_project_path());
-                        if (!ret.path.empty()) {
-                            new_scene({.reset_window_title = false});
+                        load_scene(ret.path);
 
-                            m_loaded_scene_path = IOUtils::relative_path(
-                                m_project.value().get_project_path(), ret.path);
-
-                            SceneSerializer scene_serializer(m_scene);
-                            scene_serializer.deserialize(
-                                m_loaded_scene_path.value().string());
-
-                            update_window_title(m_loaded_scene_path.value().string());
-                        }
                     }
                     ImGui::BeginDisabled(!m_loaded_scene_path);
                     if (ImGui::MenuItem("Save scene")) { 
@@ -1385,4 +1378,20 @@ void EditorLayer::stop_runtime() {
             m_selected_entity.try_get_component<TransformComponent>();
     }
 }
+
+
+void EditorLayer::load_scene(const std::filesystem::path& path) {
+    if (!path.empty()) {
+        new_scene({.reset_window_title = false});
+
+        m_loaded_scene_path = IOUtils::relative_path(
+            m_project.value().get_project_path(), path);
+
+        SceneSerializer scene_serializer(m_scene);
+        scene_serializer.deserialize(m_loaded_scene_path.value().string());
+
+        update_window_title(m_loaded_scene_path.value().string());
+    }
+}
+
 

@@ -294,8 +294,16 @@ void AssetsBrowser::draw_divider() {
 
 }
 
-void AssetsBrowser::handle_icon_click(FileNode* file) {
-
+void AssetsBrowser::handle_icon_click(const FileNode* file) const {
+    switch (file->type) {
+    case FileType::Scene: {
+        if (m_scene_selected_callback) {
+            m_scene_selected_callback(file->path);
+        }
+        break;
+    }
+    default: ;
+    }
 }
 
 void AssetsBrowser::on_update() {
