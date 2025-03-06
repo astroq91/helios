@@ -197,8 +197,20 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                         strcpy(mesh_name_buffer, "None");
                     }
 
+                    std::filesystem::path abs_path{};
+
                     if (ImGui::Button("Choose")) {
                         show_choose_mesh_modal = true;
+                    }
+
+                    if (ImGui::BeginDragDropTarget()) {
+                        const ImGuiPayload* payload =
+                            ImGui::AcceptDragDropPayload("PAYLOAD_MESH");
+                        if (payload) {
+                            abs_path =
+                                *static_cast<std::filesystem::path*>(
+                                    payload->Data);
+                        }
                     }
 
                     ImGui::SameLine();
@@ -225,7 +237,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                             ImGui::Text("Or, load a mesh from file:");
 
                             if (ImGui::Button("Browse")) {
-                                DialogReturn dialogRet = IOUtils::open_file(
+                                DialogReturn dialog_ret = IOUtils::open_file(
                                     {
                                         {
                                             .name = "Mesh",
@@ -233,28 +245,9 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                         },
                                     },
                                     project.get_project_path());
-                                if (!dialogRet.path.empty()) {
-                                    std::filesystem::path relative_path =
-                                        IOUtils::relative_path(
-                                            project.get_project_path(),
-                                            dialogRet.path);
-
-                                    auto mesh =
-                                        Application::get()
-                                            .get_asset_manager()
-                                            .get_mesh(relative_path.string());
-                                    if (mesh == nullptr) {
-                                        component->mesh =
-                                            Mesh::create(relative_path);
-                                        Application::get()
-                                            .get_asset_manager()
-                                            .add_mesh(component->mesh);
-                                    } else {
-                                        component->mesh = mesh;
-                                    }
-
-                                    show_choose_mesh_modal = false;
-                                }
+    
+                                abs_path = dialog_ret.path;
+                                show_choose_mesh_modal = false;
                             }
 
                             ImGui::SameLine();
@@ -263,6 +256,23 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                             }
 
                             ImGui::EndPopup();
+                        }
+                    }
+
+                    if (!abs_path.empty()) {
+                        std::filesystem::path relative_path =
+                            IOUtils::relative_path(project.get_project_path(),
+                                                   abs_path);
+
+                        auto mesh =
+                            Application::get().get_asset_manager().get_mesh(
+                                relative_path.string());
+                        if (mesh == nullptr) {
+                            component->mesh = Mesh::create(relative_path);
+                            Application::get().get_asset_manager().add_mesh(
+                                component->mesh);
+                        } else {
+                            component->mesh = mesh;
                         }
                     }
 
@@ -278,6 +288,8 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                             strcpy(material_name_buffer, "None");
                         }
 
+                        std::filesystem::path abs_path{};
+
                         if (ImGui::Button("Choose")) {
                             DialogReturn dialog_ret = IOUtils::open_file(
                                 {
@@ -287,25 +299,35 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                     },
                                 },
                                 project.get_project_path());
-                            if (!dialog_ret.path.empty()) {
-                                std::filesystem::path relative_path =
-                                    IOUtils::relative_path(
-                                        project.get_project_path(),
-                                        dialog_ret.path)
-                                        .string();
-                                auto mat =
-                                    Application::get()
-                                        .get_asset_manager()
-                                        .get_material(relative_path.string());
-                                if (mat == nullptr) {
-                                    component->material =
-                                        Material::create(relative_path);
-                                    Application::get()
-                                        .get_asset_manager()
-                                        .add_material(component->material);
-                                } else {
-                                    component->material = mat;
-                                }
+                            abs_path = dialog_ret.path;
+                        }
+
+                        if (ImGui::BeginDragDropTarget()) {
+                            const ImGuiPayload* payload =
+                                ImGui::AcceptDragDropPayload("PAYLOAD_MATERIAL");
+                            if (payload) {
+                                abs_path = *static_cast<std::filesystem::path*>(
+                                    payload->Data);
+                            }
+                        }
+
+                        if (!abs_path.empty()) {
+                            std::filesystem::path relative_path =
+                                IOUtils::relative_path(
+                                    project.get_project_path(), abs_path)
+                                    .string();
+                            auto mat =
+                                Application::get()
+                                    .get_asset_manager()
+                                    .get_material(relative_path.string());
+                            if (mat == nullptr) {
+                                component->material =
+                                    Material::create(relative_path);
+                                Application::get()
+                                    .get_asset_manager()
+                                    .add_material(component->material);
+                            } else {
+                                component->material = mat;
                             }
                         }
 
@@ -412,8 +434,10 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     strcpy(script_name_buffer, "None");
                 }
 
+                std::filesystem::path abs_path {};
+
                 if (ImGui::Button("Choose")) {
-                    DialogReturn dialogRet = IOUtils::open_file(
+                    DialogReturn dialog_ret = IOUtils::open_file(
                         {
                             {
                                 .name = "Script",
@@ -421,15 +445,25 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                             },
                         },
                         project.get_project_path());
-                    if (!dialogRet.path.empty()) {
-                        std::filesystem::path relative_path =
-                            IOUtils::relative_path(project.get_project_path(),
-                                                   dialogRet.path)
-                                .string();
-                        component->script = std::make_unique<Script>(
-                            relative_path.string(), ScriptLoadType::File, scene,
-                            selected_entity);
+                        abs_path = dialog_ret.path;
+                }
+
+                if (ImGui::BeginDragDropTarget()) {
+                    const ImGuiPayload* payload =
+                        ImGui::AcceptDragDropPayload("PAYLOAD_SCRIPT");
+                    if (payload) {
+                        abs_path = *static_cast<std::filesystem::path*>(payload->Data);
                     }
+                }
+
+                if (!abs_path.empty()) {
+                    std::filesystem::path relative_path =
+                        IOUtils::relative_path(project.get_project_path(),
+                                               abs_path)
+                            .string();
+                    component->script = std::make_unique<Script>(
+                        relative_path.string(), ScriptLoadType::File, scene,
+                        selected_entity);
                 }
 
                 ImGui::SameLine();

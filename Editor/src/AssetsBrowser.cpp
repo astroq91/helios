@@ -5,6 +5,7 @@
 #include "vulkan/vulkan_core.h"
 #include <imgui.h>
 #include <imgui_impl_vulkan.h>
+#include <map>
 
 #include <filesystem>
 
@@ -13,6 +14,17 @@ namespace fs = std::filesystem;
 
 constexpr int k_max_traverse_count = 30;
 constexpr float k_min_directory_tree_width = 90.0f;
+constexpr ImVec2 k_icon_size = {60, 60};
+constexpr ImVec2 k_drag_drop_icon_size = {40, 40};
+constexpr float k_icon_padding = 15.0f;
+
+const std::unordered_map<Helios::FileType, const char*>
+    k_file_types_payload_identifiers {
+    {Helios::FileType::Script, "PAYLOAD_SCRIPT"},
+        {Helios::FileType::Material, "PAYLOAD_MATERIAL"},
+        {Helios::FileType::Mesh, "PAYLOAD_MESH"},
+    };
+
 
 namespace Helios {
 
@@ -62,7 +74,8 @@ void AssetsBrowser::init_icon(const fs::path& path,
          .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
          .src_stage_mask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
          .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-         .command_buffer = command_buffer});
+         .command_buffer = command_buffer,
+        });
     handle =
         ImGui_ImplVulkan_AddTexture(m_icon_sampler->get_vk_sampler(),
                                     texture->get_image()->get_vk_image_view(),
@@ -113,6 +126,9 @@ void AssetsBrowser::traverse_directory(FileNode& node) {
             } else if (extension == ".proj") {
                 type = FileType::Project;
                 icon = m_project_icon_handle;
+            } else if (extension == ".obj") {
+                type = FileType::Mesh;
+                icon = m_file_icon_handle;
             } else {
                 type = FileType::Other;
                 icon = m_file_icon_handle;
@@ -128,8 +144,7 @@ void AssetsBrowser::traverse_directory(FileNode& node) {
     m_traverse_count++;
 }
 
-void AssetsBrowser::draw_icons(FileNode* directory, const glm::vec2& icon_size,
-                               float padding) {
+void AssetsBrowser::draw_icons(FileNode* directory) {
     
     if (!directory || directory->type != FileType::Directory) {
         return;
@@ -144,12 +159,12 @@ void AssetsBrowser::draw_icons(FileNode* directory, const glm::vec2& icon_size,
 
         for (auto& file : directory->files) {
 
-            if (xCursor + icon_size.x > windowWidth) {
+            if (xCursor + k_icon_size.x > windowWidth) {
                 ImGui::NewLine(); // Move to the next row
                 xCursor = 0.0f;   // Reset row position
             }
 
-            ImGui::SameLine(0, padding);
+            ImGui::SameLine(0, k_icon_padding);
 
             ImGui::BeginGroup(); 
             {
@@ -160,8 +175,20 @@ void AssetsBrowser::draw_icons(FileNode* directory, const glm::vec2& icon_size,
                     ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No hover color
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                     ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No active color
-                ImGui::ImageButton(file.icon, {icon_size.x, icon_size.y},
+                ImGui::ImageButton(file.icon, k_icon_size,
                                    ImVec2{0, 1}, ImVec2{1, 0});
+                ImGui::PopStyleColor(3); // Restore previous colors
+                ImGui::PopID();
+
+                if (file.draggable() && k_file_types_payload_identifiers.contains(file.type)) {
+                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                        ImGui::SetDragDropPayload(
+                            k_file_types_payload_identifiers.at(file.type),
+                            &file.path, sizeof(fs::path));
+                        ImGui::Image(file.icon, k_drag_drop_icon_size);
+                        ImGui::EndDragDropSource();
+                    }
+                }
      
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                     if (file.type == FileType::Directory) {
@@ -170,9 +197,10 @@ void AssetsBrowser::draw_icons(FileNode* directory, const glm::vec2& icon_size,
                     }
                     handle_icon_click(&file);
                 }
-                ImGui::PopStyleColor(3); // Restore previous colors
-                ImGui::PopID();
-                ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + icon_size.x); // Set the wrap position for text
+
+                ImGui::PushTextWrapPos(
+                    ImGui::GetCursorPos().x +
+                    k_icon_size.x); // Set the wrap position for text
                 ImGui::TextWrapped(
                     "%s",
                     file.path.filename().string().c_str()); // Display text
@@ -180,7 +208,7 @@ void AssetsBrowser::draw_icons(FileNode* directory, const glm::vec2& icon_size,
             }
             ImGui::EndGroup();
 
-            xCursor += icon_size.x + padding; // Update X position
+            xCursor += k_icon_size.x + k_icon_padding; // Update X position
         }
     }
 
@@ -283,7 +311,7 @@ void AssetsBrowser::on_update() {
             ImGui::SameLine();
             draw_divider();
             ImGui::SameLine();
-            draw_icons(m_current_directory, {60, 60}, 15.0f);
+            draw_icons(m_current_directory);
         }
      
     }
