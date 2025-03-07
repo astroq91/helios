@@ -19,6 +19,8 @@
 #include "TextureSampler.h"
 #include "UniformBuffer.h"
 
+#include <freetype/freetype.h>
+
 namespace Helios {
 struct BeginRenderingAttachmentSpec {};
 
@@ -344,5 +346,7 @@ class Renderer {
     bool m_vsync = true;
 
     bool m_shutting_down = false;
+
+    FT_Library m_ft_library;
 };
 } // namespace Helios

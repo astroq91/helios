@@ -2,6 +2,9 @@
 #include "Helios/Vulkan/VulkanUtils.h"
 #include <volk/volk.h>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H  
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -306,9 +309,9 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     setup_quad_pipeline();
     setup_lighting_pipeline();
 
-    // Textures //
-
-    // stbi_set_flip_vertically_on_load(true);
+    if (FT_Init_FreeType(&m_ft_library)) {
+        HL_ERROR("Could not init FreeType library");
+    }
 }
 
 void Renderer::shutdown() {

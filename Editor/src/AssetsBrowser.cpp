@@ -157,6 +157,21 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
 
     ImGui::BeginChild("FileBox");
     {
+        if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !ImGui::IsAnyItemHovered()) {
+            ImGui::OpenPopup("Assets actions");
+        }
+
+        if (ImGui::BeginPopup("Assets actions")) {
+            if (ImGui::MenuItem("Open in file browser")) {
+#ifdef _WINDOWS
+                ShellExecuteA(nullptr, "open",
+                              m_current_directory->path.string().c_str(),
+                              nullptr, nullptr, SW_SHOWDEFAULT);
+#endif
+            }
+            ImGui::EndPopup();
+        }
+
         float windowWidth =
             ImGui::GetContentRegionAvail().x; // Available width in the window
         float xCursor = 0.0f; // Tracks current X position on the row
