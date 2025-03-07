@@ -8,8 +8,11 @@ class SceneSerializer {
   public:
     SceneSerializer(Scene* scene) : m_scene(scene) {}
 
-    void serialize(const std::filesystem::path& path);
-    void deserialize(const std::filesystem::path& path);
+    void serialize_to_path(const std::filesystem::path& path);
+    void deserialize_from_path(const std::filesystem::path& path);
+
+    void serialize_to_string(std::string& buffer);
+    void deserialize_from_string(const std::string& buffer);
 
   private:
     Scene* m_scene;

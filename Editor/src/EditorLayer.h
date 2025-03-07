@@ -136,4 +136,6 @@ class EditorLayer : public Helios::Layer {
     uint32_t m_frame_counter = 0;
     std::chrono::time_point<std::chrono::high_resolution_clock> m_fps_clock;
     double m_fps_sampling_rate = 1.0;//s
+
+    std::string m_scene_copy;
 };

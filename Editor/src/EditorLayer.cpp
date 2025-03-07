@@ -367,7 +367,7 @@ void EditorLayer::on_imgui_render() {
 
                             save_scene(m_loaded_scene_path.value().string());
                             SceneSerializer scene_serializer(m_scene);
-                            scene_serializer.deserialize(
+                            scene_serializer.deserialize_from_path(
                                 m_loaded_scene_path.value().string());
 
                             update_window_title(m_loaded_scene_path.value().string());
@@ -421,7 +421,7 @@ void EditorLayer::on_imgui_render() {
                 ImGui::BeginDisabled(m_scene->is_running());
                 if (ImGui::Button("Run")) {
                     SceneSerializer scene_serializer(m_scene);
-                    scene_serializer.serialize("scene_copy.scene");
+                    scene_serializer.serialize_to_string(m_scene_copy);
                     m_scene->start_runtime();
                 }
                 ImGui::EndDisabled();
@@ -436,7 +436,7 @@ void EditorLayer::on_imgui_render() {
                 ImGui::BeginDisabled(!m_scene->is_running());
                 if (ImGui::Button("Copy runtime")) {
                     SceneSerializer scene_serializer(m_scene);
-                    scene_serializer.serialize("scene_copy.scene");
+                    scene_serializer.serialize_to_string(m_scene_copy);
                 }
                 ImGui::EndDisabled();
 
@@ -1208,7 +1208,7 @@ void EditorLayer::new_scene(const NewSceneInfo& info) {
 
 void EditorLayer::save_scene(const std::string& path) {
     SceneSerializer scene_serializer(m_scene);
-    scene_serializer.serialize(path);
+    scene_serializer.deserialize_from_path(path);
 }
 
 void EditorLayer::show_welcome_window() {
@@ -1244,7 +1244,7 @@ void EditorLayer::show_welcome_window() {
                         m_project.value().get_default_scene().value();
                     new_scene({.reset_window_title = false});
                     SceneSerializer serializer(m_scene);
-                    serializer.deserialize(default_scene);
+                    serializer.deserialize_from_path(default_scene);
                     m_loaded_scene_path = default_scene;
                 }
 
@@ -1311,7 +1311,7 @@ void EditorLayer::show_new_project_window() {
                                 m_project.value().get_default_scene().value();
                             new_scene({.reset_window_title = false});
                             SceneSerializer serializer(m_scene);
-                            serializer.deserialize(default_scene);
+                            serializer.deserialize_from_path(default_scene);
                         }
                         update_window_title(
                             m_project.value().get_default_scene());
@@ -1367,7 +1367,7 @@ void EditorLayer::stop_runtime() {
     });
 
     SceneSerializer scene_serializer(m_scene);
-    scene_serializer.deserialize("scene_copy.scene");
+    scene_serializer.deserialize_from_string(m_scene_copy);
 
     update_window_title(m_loaded_scene_path.value().string());
 
@@ -1388,7 +1388,7 @@ void EditorLayer::load_scene(const std::filesystem::path& path) {
             m_project.value().get_project_path(), path);
 
         SceneSerializer scene_serializer(m_scene);
-        scene_serializer.deserialize(m_loaded_scene_path.value().string());
+        scene_serializer.deserialize_from_path(m_loaded_scene_path.value().string());
 
         update_window_title(m_loaded_scene_path.value().string());
     }

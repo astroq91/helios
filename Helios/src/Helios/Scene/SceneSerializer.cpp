@@ -248,7 +248,28 @@ void SerializeEntity(YAML::Emitter& out, Entity entity) {
     out << YAML::EndMap;
 }
 
-void SceneSerializer::serialize(const std::filesystem::path& path) {
+void SceneSerializer::serialize_to_path(const std::filesystem::path& path) {
+
+    std::string buffer;
+    serialize_to_string(buffer);
+
+    std::ofstream file;
+    file.open(
+        IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
+    file << buffer.c_str();
+    file.close();
+}
+
+void SceneSerializer::deserialize_from_path(const std::filesystem::path& path) {
+    std::ifstream stream(
+        IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
+    std::stringstream str_stream;
+    str_stream << stream.rdbuf();
+
+    deserialize_from_string(str_stream.str());
+}
+
+void SceneSerializer::serialize_to_string(std::string& buffer) {
     YAML::Emitter out;
 
     out << YAML::BeginMap;
@@ -264,21 +285,12 @@ void SceneSerializer::serialize(const std::filesystem::path& path) {
     out << YAML::EndSeq;
     out << YAML::EndMap;
 
-    std::ofstream file;
-    file.open(
-        IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
-    file << out.c_str();
-    file.close();
+    buffer = out.c_str();
 }
 
-void SceneSerializer::deserialize(const std::filesystem::path& path) {
-    std::ifstream stream(
-        IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
-    std::stringstream str_stream;
-    str_stream << stream.rdbuf();
-
+void SceneSerializer::deserialize_from_string(const std::string& buffer) {
     try {
-        YAML::Node data = YAML::Load(str_stream.str());
+        YAML::Node data = YAML::Load(buffer);
 
         auto entities = data["entities"];
         if (entities) {
@@ -349,10 +361,11 @@ void SceneSerializer::deserialize(const std::filesystem::path& path) {
                         point_light_component["specular"].as<glm::vec3>();
                 }
 
-                auto mesh_renderer_component = entity["mesh_renderer_component"];
+                auto mesh_renderer_component =
+                    entity["mesh_renderer_component"];
                 if (mesh_renderer_component) {
-                    auto& mc =
-                        deserialized_entity.add_component<MeshRendererComponent>();
+                    auto& mc = deserialized_entity
+                                   .add_component<MeshRendererComponent>();
 
                     auto mesh = mesh_renderer_component["mesh"];
                     if (mesh && !mesh.IsNull() && mesh.IsScalar()) {
@@ -360,20 +373,19 @@ void SceneSerializer::deserialize(const std::filesystem::path& path) {
 
                         if (mesh_name == "Cube") {
                             mc.mesh = Application::get()
-                                            .get_renderer()
-                                            .get_cube_mesh();
+                                          .get_renderer()
+                                          .get_cube_mesh();
                         }
                         // Some file path
                         else if (!mesh_name.empty()) {
-                            auto mesh = Application::get()
-                                            .get_asset_manager()
-                                            .get_mesh(mesh_name);
+                            auto mesh =
+                                Application::get().get_asset_manager().get_mesh(
+                                    mesh_name);
                             if (mesh == nullptr) {
                                 mc.mesh = Mesh::create(
                                     std::filesystem::path(mesh_name));
-                                Application::get()
-                                    .get_asset_manager()
-                                    .add_mesh(mc.mesh);
+                                Application::get().get_asset_manager().add_mesh(
+                                    mc.mesh);
                             } else {
                                 mc.mesh = mesh;
                             }
@@ -388,7 +400,8 @@ void SceneSerializer::deserialize(const std::filesystem::path& path) {
                                            .get_asset_manager()
                                            .get_material(material_path);
                             if (mat == nullptr) {
-                                mc.material = Material::create(std::filesystem::path(material_path));
+                                mc.material = Material::create(
+                                    std::filesystem::path(material_path));
                                 Application::get()
                                     .get_asset_manager()
                                     .add_material(mc.material);
