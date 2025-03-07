@@ -399,8 +399,7 @@ void SceneSerializer::deserialize(const std::filesystem::path& path) {
                     }
 
                     auto tint_color = mesh_renderer_component["tint_color"];
-                    if (tint_color && !tint_color.IsNull() &&
-                        tint_color.IsScalar()) {
+                    if (tint_color && !tint_color.IsNull()) {
                         mc.tint_color = tint_color.as<glm::vec4>();
                     }
                 }
