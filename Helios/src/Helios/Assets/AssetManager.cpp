@@ -1,11 +1,11 @@
 ﻿#include "AssetManager.h"
 
-#include "Helios/Renderer/Vertex.h"
+#include "Helios/Renderer/MeshVertex.h"
 
 namespace {
 using namespace Helios;
 
-std::vector<Vertex> cube_vertices = {
+std::vector<MeshVertex> cube_vertices = {
     // Front face
     {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}},
     {{0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}},
@@ -56,7 +56,7 @@ std::vector<uint32_t> cube_indices = {
 namespace Helios {
 void AssetManager::init() {
     add_mesh(Mesh::create(
-        "Cube", cube_vertices.data(), sizeof(Vertex) * cube_vertices.size(),
+        "Cube", cube_vertices.data(), sizeof(MeshVertex) * cube_vertices.size(),
         cube_indices.data(), sizeof(uint32_t) * cube_indices.size(),
         cube_indices.size()));
 }

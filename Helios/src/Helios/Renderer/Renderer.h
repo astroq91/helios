@@ -43,20 +43,6 @@ struct BeginRenderingSpec {
     uint32_t height = 0;
 };
 
-struct ShaderMaterial {
-    alignas(4) int32_t diffuse_texture_unit;
-    alignas(4) int32_t specular_texture_unit;
-    alignas(4) int32_t emission_texture_unit;
-    alignas(4) float shininess;
-};
-
-// Used as per-instance vertex attributes when rendering geometries.
-struct MeshRenderingShaderInstanceData {
-    alignas(16) glm::mat4 model;
-    ShaderMaterial material;
-    glm::vec4 tint_color;
-};
-
 // Used to store the geometries used for a set of instances.
 struct MeshInstances {
     Ref<Mesh> mesh;
@@ -71,8 +57,37 @@ struct MeshRenderingInstance {
     glm::vec4 tint_color;
 };
 
+// Used for the texture indices
+struct ShaderMaterial {
+    alignas(4) int32_t diffuse_texture_unit;
+    alignas(4) int32_t specular_texture_unit;
+    alignas(4) int32_t emission_texture_unit;
+    alignas(4) float shininess;
+};
+
+// Used as per-instance vertex attributes when rendering geometries.
+struct MeshRenderingShaderInstanceData {
+    alignas(16) glm::mat4 model;
+    ShaderMaterial material;
+    glm::vec4 tint_color;
+};
+
+
+struct QuadRenderingInstance {
+    Transform transform;
+    int32_t texture_unit;
+    glm::vec4 tint_color;
+};
+
+struct QuadRenderingShaderInstanceData {
+    alignas(16) glm::mat4 model;
+    alignas(4) int32_t texture_unit;
+    alignas(16) glm::vec4 tint_color;
+};
+
 constexpr int MAX_MESHES = 10000;
-constexpr int MAX_TEXTURES = 32;
+constexpr int MAX_TEXTURES = 1000;
+constexpr int MAX_QUADS = 10000;
 
 constexpr int MAX_DIRECTIONAL_LIGHTS = 32;
 constexpr int MAX_POINT_LIGHTS = 32;
@@ -102,7 +117,10 @@ class Renderer {
      * clear, the specified lighting so far. \param begin_rendering_spec
      * Optional render pass specification.
      */
-    void submit_instances(const BeginRenderingSpec& begin_rendering_spec = {});
+    void submit_mesh_instances(const BeginRenderingSpec& begin_rendering_spec = {});
+
+    void
+    submit_quad_instances(const BeginRenderingSpec& begin_rendering_spec = {});
 
     /**
      * \brief Submit the current command buffer, and then wait for completion.
@@ -138,7 +156,7 @@ class Renderer {
     int32_t register_texture(const Texture& texture);
     void deregister_texture(uint32_t textureIndex);
 
-    void draw_quad(const Transform& transform, const glm::vec3& color,
+    void draw_quad(const Transform& transform, const glm::vec4& color,
                    const Ref<Texture>& texture = nullptr);
 
     /**
@@ -230,6 +248,7 @@ class Renderer {
 
   private:
     void draw_meshes();
+    void draw_quads();
 
     void create_default_textures(const Ref<TextureLibrary>& texture_lib);
     void load_default_shaders(const Ref<ShaderLibrary>& shader_lib);
@@ -288,16 +307,24 @@ class Renderer {
     // destroyed before m_texture_specs
     Ref<TextureLibrary> m_textures;
 
-    // Object Instances //
-    std::vector<std::vector<MeshRenderingShaderInstanceData>>
-        m_mesh_shader_instances; // One for each frame in flight
-    std::vector<std::vector<MeshInstances>>
-        m_mesh_instances; // One for each frame in flight
-    std::vector<Ref<VertexBuffer>>
-        m_mesh_instances_buffers; // One for each frame in flight
-
     Unique<Buffer> m_instance_staging_buffer;
-    VertexBufferDescription m_instance_vertices_description;
+
+    // Mesh Rendering Instances //
+    std::vector<std::vector<MeshRenderingShaderInstanceData>>
+        m_mesh_rendering_shader_instances; // One for each frame in flight
+    std::vector<std::vector<MeshInstances>>
+        m_mesh_rendering_instances; // One for each frame in flight
+    std::vector<Ref<VertexBuffer>>
+        m_mesh_rendering_instances_buffers; // One for each frame in flight
+    VertexBufferDescription m_mesh_rendering_instance_vertices_description;
+
+    std::vector<std::vector<QuadRenderingShaderInstanceData>>
+        m_quad_shader_instances; // One for each frame in flight
+    std::vector<std::vector<MeshInstances>>
+        m_quad_instances; // One for each frame in flight
+    std::vector<Ref<VertexBuffer>>
+        m_quad_instances_buffers; // One for each frame in flight
+    VertexBufferDescription m_quad_instance_vertices_description;
 
     Ref<DescriptorPool> m_camera_uniform_pool;
     std::vector<Unique<DescriptorSet>> m_camera_uniform_sets;

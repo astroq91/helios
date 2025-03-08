@@ -24,7 +24,6 @@ public:
   void on_imgui_render() override;
 
   void InstancingTest();
-  void ECSTest(float ts);
 
 private:
   void RenderAPITest();

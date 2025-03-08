@@ -5,7 +5,7 @@
 
 #include <tiny_obj_loader.h>
 
-#include "Vertex.h"
+#include "MeshVertex.h"
 
 namespace Helios {
 void Mesh::init(const std::filesystem::path& path) {
@@ -28,14 +28,14 @@ void Mesh::init(const std::filesystem::path& path) {
         return;
     }
 
-    std::vector<Vertex> vertices;
+    std::vector<MeshVertex> vertices;
     std::vector<uint32_t> indices;
 
-    std::unordered_map<Vertex, uint32_t> unique_vertices{};
+    std::unordered_map<MeshVertex, uint32_t> unique_vertices{};
 
     for (const auto& shape : shapes) {
         for (const auto& index : shape.mesh.indices) {
-            Vertex vertex{};
+            MeshVertex vertex{};
 
             vertex.position = {
                 attrib.vertices[3 * index.vertex_index + 0],
@@ -64,7 +64,7 @@ void Mesh::init(const std::filesystem::path& path) {
         }
     }
 
-    init(vertices.data(), sizeof(Vertex) * vertices.size(), indices.data(),
+    init(vertices.data(), sizeof(MeshVertex) * vertices.size(), indices.data(),
          sizeof(uint32_t) * indices.size(), indices.size());
 }
 

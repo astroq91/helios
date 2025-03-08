@@ -48,7 +48,7 @@ void Scene::on_update(float ts, const BeginRenderingSpec& editor_spec,
     if (m_scene_camera) {
         draw_systems(m_scene_camera->get_camera());
     }
-    renderer.submit_instances(editor_spec);
+    renderer.submit_mesh_instances(editor_spec);
     // Need to submit because we need to use different cameras (camera is a
     // uniform)
     renderer.submit_command_buffer();
@@ -59,7 +59,7 @@ void Scene::on_update(float ts, const BeginRenderingSpec& editor_spec,
     if (m_has_vaild_camera) {
         draw_systems(m_current_camera);
     }
-    renderer.submit_instances(game_spec);
+    renderer.submit_mesh_instances(game_spec);
 }
 
 void Scene::update_rigid_body_mass(Entity entity, float value) {

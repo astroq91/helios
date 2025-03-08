@@ -47,78 +47,46 @@
 constexpr uint32_t k_min_instances_for_mt = 500;
 constexpr uint32_t k_mesh_instance_preparation_thread_count = 15;
 
+struct QuadVertex {
+    alignas(16) glm::vec3 position;
+    alignas(8) glm::vec2 tex_coord;
+};
+
 namespace Helios {
-std::vector<float> quad_vertices = {
-    // Positions            // Normals             // Texture Coords
-    // Front face
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 0
-    0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  // 1
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,   // 2
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,  // 3
-    // Back face
-    0.5f, -0.5f, 0.5f, 0.0f, 0.0f,  // 4
-    -0.5f, -0.5f, 0.5f, 1.0f, 0.0f, // 5
-    -0.5f, 0.5f, 0.5f, 1.0f, 1.0f,  // 6
-    0.5f, 0.5f, 0.5f, 0.0f, 1.0f,   // 7
-    // Top face
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, // 8
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,  // 9
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,   // 10
-    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,  // 11
-    // Bottom face
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 12
-    0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  // 13
-    0.5f, -0.5f, 0.5f, 1.0f, 1.0f,   // 14
-    -0.5f, -0.5f, 0.5f, 0.0f, 1.0f,  // 15
-    // Left face
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 16
-    -0.5f, -0.5f, 0.5f, 1.0f, 0.0f,  // 17
-    -0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 18
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,  // 19
-    // Right face
-    0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // 20
-    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,  // 21
-    0.5f, 0.5f, 0.5f, 1.0f, 1.0f,   // 22
-    0.5f, 0.5f, -0.5f, 0.0f, 1.0f   // 23
+std::vector<QuadVertex> quad_vertices = {
+    {{-0.5, -0.5, 0.0f}, {0.0f, 1.0f}},
+    {{-0.5, 0.5, 0.0f}, {0.0f, 0.0f}},
+    {{0.5, 0.5, 0.0f}, {1.0f, 0.0f}},
+    {{0.5, -0.5, 0.0f}, {1.0f, 1.0f}},
 };
 
 std::vector<uint32_t> quad_indices = {
-    // Front face (revised to ensure clockwise order for visibility)
-    0, 2, 3, 2, 0, 1,
-    // Back face (unchanged, as it was displaying correctly)
-    4, 7, 6, 6, 5, 4,
-    // Top face (revised to ensure clockwise order for visibility)
-    8, 10, 11, 10, 8, 9,
-    // Bottom face (unchanged, as it was displaying correctly)
-    12, 15, 14, 14, 13, 12,
-    // Left face (unchanged, as it was displaying correctly)
-    16, 19, 18, 18, 17, 16,
-    // Right face (unchanged, as it was displaying correctly)
-    20, 23, 22, 22, 21, 20};
+    0, 1, 3,
+    1, 2, 3,
+};
 
 std::vector<VertexAttribute> quad_vertex_attributes = {
     {VertexAttributeFormat::FLOAT3, 0}, // position
     {VertexAttributeFormat::FLOAT2, 1}, // Texture Coords
 };
 
-struct QuadUniformBuffer {
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-    alignas(16) glm::vec3 color;
+std::vector<VertexAttribute> quad_instance_attributes = {
+    {VertexAttributeFormat::FLOAT4, 2}, // Model Col0
+    {VertexAttributeFormat::FLOAT4, 3}, // Model Col1
+    {VertexAttributeFormat::FLOAT4, 4}, // Model Col2
+    {VertexAttributeFormat::FLOAT4, 5}, // Model Col3
+
+    {VertexAttributeFormat::INT32, 6},
+    {VertexAttributeFormat::FLOAT4, 7},
 };
 
-struct QuadPushConstant {
-    int32_t texture_index;
-};
-
-std::vector<VertexAttribute> object_vertex_attributes = {
+std::vector<VertexAttribute> mesh_rendering_vertex_attributes = {
     {VertexAttributeFormat::FLOAT3, 0}, // position
     {VertexAttributeFormat::FLOAT3, 1}, // normal
     {VertexAttributeFormat::FLOAT2, 2}, // Texture Coords
 };
 
-std::vector<VertexAttribute> object_instance_attributes = {
+std::vector<VertexAttribute> mesh_rendering_instance_attributes = {
     {VertexAttributeFormat::FLOAT4, 3}, // Model Col0
     {VertexAttributeFormat::FLOAT4, 4}, // Model Col1
     {VertexAttributeFormat::FLOAT4, 5}, // Model Col2
@@ -161,8 +129,8 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     // create the command buffers from the pool. We have one for each frame in
     // flight.
     m_command_buffers.resize(m_max_frames_in_flight);
-    for (size_t i = 0; i < m_command_buffers.size(); i++) {
-        m_command_buffers[i] = CommandBuffer::create();
+    for (auto& m_command_buffer : m_command_buffers) {
+        m_command_buffer = CommandBuffer::create();
     }
 
     // Load and create the default shaders. TODO: Move them outside core Helios?
@@ -287,17 +255,17 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     }
 
     m_meshes_vertices_description = VertexBufferDescription(
-        VertexInputRate::Vertex, 0, object_vertex_attributes);
-    m_instance_vertices_description = VertexBufferDescription(
-        VertexInputRate::Instance, 1, object_instance_attributes);
+        VertexInputRate::Vertex, 0, mesh_rendering_vertex_attributes);
+    m_mesh_rendering_instance_vertices_description = VertexBufferDescription(
+        VertexInputRate::Instance, 1, mesh_rendering_instance_attributes);
 
     // Instancing
-    m_mesh_instances.resize(m_max_frames_in_flight);
-    m_mesh_shader_instances.resize(m_max_frames_in_flight);
-    m_mesh_instances_buffers.resize(m_max_frames_in_flight);
+    m_mesh_rendering_instances.resize(m_max_frames_in_flight);
+    m_mesh_rendering_shader_instances.resize(m_max_frames_in_flight);
+    m_mesh_rendering_instances_buffers.resize(m_max_frames_in_flight);
 
     for (uint32_t i = 0; i < m_max_frames_in_flight; i++) {
-        m_mesh_instances_buffers[i] = VertexBuffer::create(
+        m_mesh_rendering_instances_buffers[i] = VertexBuffer::create(
             nullptr, sizeof(MeshRenderingShaderInstanceData) * MAX_MESHES);
     }
 
@@ -434,55 +402,27 @@ void Renderer::end_rendering() {
         m_command_buffers[m_current_frame]->get_command_buffer());
 }
 
-void Renderer::submit_instances(
+void Renderer::submit_mesh_instances(
     const BeginRenderingSpec& begin_rendering_spec) {
     // Update the current mesh instance buffer
-    if (!m_mesh_shader_instances[m_current_frame].empty()) {
+    if (!m_mesh_rendering_shader_instances[m_current_frame].empty()) {
         // Copy the buffer
 
         memcpy(m_instance_staging_buffer->get_mapped_memory(),
-               m_mesh_shader_instances[m_current_frame].data(),
+               m_mesh_rendering_shader_instances[m_current_frame].data(),
                sizeof(MeshRenderingShaderInstanceData) *
-                   m_mesh_shader_instances[m_current_frame].size());
+                   m_mesh_rendering_shader_instances[m_current_frame].size());
 
-        VkBufferCopy copy_region{};
-        copy_region.size = sizeof(MeshRenderingShaderInstanceData) *
-                           m_mesh_shader_instances[m_current_frame].size();
-        vkCmdCopyBuffer(
-            m_command_buffers[m_current_frame]->get_command_buffer(),
+        VulkanUtils::copy_buffer(
             m_instance_staging_buffer->get_vk_buffer(),
-            m_mesh_instances_buffers[m_current_frame]->get_vk_buffer(), 1,
-            &copy_region);
-
-        VkBufferMemoryBarrier buffer_memory_barrier = {};
-        buffer_memory_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        buffer_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        buffer_memory_barrier.dstAccessMask =
-            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-        buffer_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        buffer_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        buffer_memory_barrier.buffer =
-            m_mesh_instances_buffers[m_current_frame]->get_vk_buffer();
-        // The buffer being accessed
-        buffer_memory_barrier.offset = 0; // Offset within the buffer
-        buffer_memory_barrier.size = copy_region.size;
-        // Size of the memory range within the buffer, VK_WHOLE_SIZE means the
-        // entire buffer
-
-        // Insert the barrier into the command buffer
-        vkCmdPipelineBarrier(
-            m_command_buffers[m_current_frame]->get_command_buffer(),
-            VK_PIPELINE_STAGE_TRANSFER_BIT, // Pipeline stages the operations
-                                            // occur in before the barrier
-            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, // Pipeline stages the
-                                                // operations will wait on this
-                                                // barrier
-            0,                                  // Dependency flags
-            0, nullptr,                         // No memory barriers
-            1,
-            &buffer_memory_barrier, // Buffer memory barrier count and pointer
-            0, nullptr              // No image memory barriers
-        );
+            m_mesh_rendering_instances_buffers[m_current_frame]
+                ->get_vk_buffer(),
+                sizeof(MeshRenderingShaderInstanceData) *
+                    m_mesh_rendering_shader_instances[m_current_frame].size(), m_vulkan_state->device, VK_NULL_HANDLE,
+            VK_NULL_HANDLE, VK_ACCESS_TRANSFER_WRITE_BIT,
+            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+            m_command_buffers[m_current_frame]->get_command_buffer());
     }
 
     // Update the lighting
@@ -503,11 +443,46 @@ void Renderer::submit_instances(
     }
     end_rendering();
 
-    m_mesh_instances[m_current_frame].clear();
-    m_mesh_shader_instances[m_current_frame].clear();
+    m_mesh_rendering_instances[m_current_frame].clear();
+    m_mesh_rendering_shader_instances[m_current_frame].clear();
 
     m_directional_lights[m_current_frame].clear();
     m_point_lights[m_current_frame].clear();
+}
+
+void Renderer::submit_quad_instances(
+    const BeginRenderingSpec& begin_rendering_spec) {
+
+    // Update the current quad instance buffer
+    if (!m_quad_shader_instances[m_current_frame].empty()) {
+        // Copy the buffer
+
+        memcpy(m_instance_staging_buffer->get_mapped_memory(),
+               m_quad_shader_instances[m_current_frame].data(),
+               sizeof(QuadRenderingShaderInstanceData) *
+                   m_quad_shader_instances[m_current_frame].size());
+
+        VulkanUtils::copy_buffer(
+            m_instance_staging_buffer->get_vk_buffer(),
+            m_quad_instances_buffers[m_current_frame]
+                ->get_vk_buffer(),
+            sizeof(QuadRenderingShaderInstanceData) *
+                m_quad_shader_instances[m_current_frame].size(),
+            m_vulkan_state->device, VK_NULL_HANDLE, VK_NULL_HANDLE,
+            VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+            m_command_buffers[m_current_frame]->get_command_buffer());
+    }
+
+    begin_rendering(begin_rendering_spec);
+    {
+        draw_quads();
+    }
+    end_rendering();
+
+    m_quad_instances[m_current_frame].clear();
+    m_quad_shader_instances[m_current_frame].clear();
+
 }
 
 void Renderer::submit_command_buffer() {
@@ -760,51 +735,18 @@ void Renderer::deregister_texture(uint32_t textureIndex) {
     }
 }
 
-void Renderer::draw_quad(const Transform& transform, const glm::vec3& color,
+void Renderer::draw_quad(const Transform& transform, const glm::vec4& color,
                          const Ref<Texture>& texture) {
-    QuadUniformBuffer ubo{};
-    ubo.model = transform.ToMat4();
-    ubo.view = m_current_camera.view_matrix;
-    ubo.proj = m_current_camera.projection_matrix;
-    ubo.color = color;
+    m_quad_instances[m_current_frame].push_back({m_quad_mesh,
+         sizeof(QuadRenderingShaderInstanceData) * m_quad_shader_instances[m_current_frame].size(),
+        1,
+    });
 
-    memcpy(m_quad_uniform_buffers[m_current_frame]->get_mapped_data(), &ubo,
-           sizeof(ubo));
-
-    vkCmdBindPipeline(m_command_buffers[m_current_frame]->get_command_buffer(),
-                      VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      m_quad_pipeline->get_vk_pipeline());
-
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(
-        m_command_buffers[m_current_frame]->get_command_buffer(), 0, 1,
-        &m_quad_mesh->get_vertex_buffer()->get_vk_buffer(), offsets);
-
-    vkCmdBindIndexBuffer(
-        m_command_buffers[m_current_frame]->get_command_buffer(),
-        m_quad_mesh->get_index_buffer()->get_vk_buffer(), 0,
-        VK_INDEX_TYPE_UINT32);
-
-    QuadPushConstant push_constants = {.texture_index =
-                                           texture->GetTextureIndex()};
-
-    vkCmdPushConstants(m_command_buffers[m_current_frame]->get_command_buffer(),
-                       m_quad_pipeline->get_vk_layout(),
-                       VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push_constants),
-                       &push_constants);
-
-    VkDescriptorSet sets[] = {
-        m_quad_uniform_sets[m_current_frame]->get_vk_set(),
-        m_texture_arrays[m_current_frame]->get_vk_set(),
-    };
-
-    vkCmdBindDescriptorSets(
-        m_command_buffers[m_current_frame]->get_command_buffer(),
-        VK_PIPELINE_BIND_POINT_GRAPHICS, m_quad_pipeline->get_vk_layout(), 0, 2,
-        sets, 0, nullptr);
-
-    vkCmdDrawIndexed(m_command_buffers[m_current_frame]->get_command_buffer(),
-                     static_cast<uint32_t>(quad_indices.size()), 1, 0, 0, 0);
+    m_quad_shader_instances[m_current_frame].push_back({
+        .model = transform.ToMat4(),
+        .texture_unit = texture ? texture->GetTextureIndex() : m_gray_texture->GetTextureIndex(),
+        .tint_color = color,
+    });
 }
 
 void Renderer::draw_cube(const std::vector<MeshRenderingInstance>& instances) {
@@ -854,10 +796,10 @@ prepare_mesh_shader_instances_mt(
 
 void Renderer::draw_mesh(const Ref<Mesh>& geometry,
                          const std::vector<MeshRenderingInstance>& instances) {
-    m_mesh_instances[m_current_frame].push_back(
+    m_mesh_rendering_instances[m_current_frame].push_back(
         {.mesh = geometry,
          .offset = sizeof(MeshRenderingShaderInstanceData) *
-                   m_mesh_shader_instances[m_current_frame].size(),
+                   m_mesh_rendering_shader_instances[m_current_frame].size(),
          .instance_count = instances.size()});
     
     if (instances.size() >= m_min_instances_for_mt && m_num_threads_for_instancing > 1) {
@@ -900,14 +842,14 @@ void Renderer::draw_mesh(const Ref<Mesh>& geometry,
 
         for (auto& future : futures) {
             auto instances = future.get();
-            m_mesh_shader_instances[m_current_frame].insert(
-                m_mesh_shader_instances[m_current_frame].end(),
+            m_mesh_rendering_shader_instances[m_current_frame].insert(
+                m_mesh_rendering_shader_instances[m_current_frame].end(),
                 instances.begin(), instances.end());
         }
     } else {
         // Prepare the instances
         for (auto& instance : instances) {
-            m_mesh_shader_instances[m_current_frame].push_back({
+            m_mesh_rendering_shader_instances[m_current_frame].push_back({
                 .model = instance.transform.ToMat4(),
                 .material =
                     ShaderMaterial{
@@ -980,10 +922,10 @@ void Renderer::draw_meshes() {
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
                       m_lighting_pipeline->get_vk_pipeline());
 
-    for (auto& geometry_instances : m_mesh_instances[m_current_frame]) {
+    for (auto& geometry_instances : m_mesh_rendering_instances[m_current_frame]) {
         VkBuffer buffers[2] = {
             geometry_instances.mesh->get_vertex_buffer()->get_vk_buffer(),
-            m_mesh_instances_buffers[m_current_frame]->get_vk_buffer()};
+            m_mesh_rendering_instances_buffers[m_current_frame]->get_vk_buffer()};
         VkDeviceSize offsets[2] = {0, geometry_instances.offset};
         vkCmdBindVertexBuffers(
             m_command_buffers[m_current_frame]->get_command_buffer(), 0, 2,
@@ -1021,6 +963,40 @@ void Renderer::draw_meshes() {
             geometry_instances.mesh->get_index_buffer()->get_index_count(),
             static_cast<uint32_t>(geometry_instances.instance_count), 0, 0, 0);
     }
+}
+
+void Renderer::draw_quads() {
+    if (m_quad_instances[m_current_frame].empty()) {
+        return;
+    }
+
+    vkCmdBindPipeline(m_command_buffers[m_current_frame]->get_command_buffer(),
+                      VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      m_quad_pipeline->get_vk_pipeline());
+
+    VkBuffer buffers[2] {
+        m_quad_mesh->get_vertex_buffer()->get_vk_buffer(),
+        m_quad_instances_buffers[m_current_frame]->get_vk_buffer(),
+    };
+    VkDeviceSize offsets[2] = {0, 0};
+
+    vkCmdBindVertexBuffers(
+        m_command_buffers[m_current_frame]->get_command_buffer(), 0, 2,
+        buffers, offsets);
+
+    vkCmdBindIndexBuffer(
+        m_command_buffers[m_current_frame]->get_command_buffer(),
+        m_quad_mesh->get_index_buffer()->get_vk_buffer(), 0,
+        VK_INDEX_TYPE_UINT32);
+
+    vkCmdBindDescriptorSets(
+        m_command_buffers[m_current_frame]->get_command_buffer(),
+        VK_PIPELINE_BIND_POINT_GRAPHICS, m_quad_pipeline->get_vk_layout(),
+        0, 1, &m_texture_arrays[m_current_frame]->get_vk_set(), 0, nullptr);
+
+    vkCmdDrawIndexed(m_command_buffers[m_current_frame]->get_command_buffer(),
+                     m_quad_mesh->get_index_buffer()->get_index_count(),
+                     static_cast<uint32_t>(m_quad_instances[m_current_frame].size()), 0, 0, 0);
 }
 
 void Renderer::create_default_textures(const Ref<TextureLibrary>& texture_lib) {
@@ -1091,58 +1067,42 @@ void Renderer::load_default_shaders(const Ref<ShaderLibrary>& shader_lib) {
 
 void Renderer::setup_quad_pipeline() {
     m_quad_mesh = Mesh::create(
-        "Quad", quad_vertices.data(), sizeof(float) * quad_vertices.size(),
+        "Quad", quad_vertices.data(), sizeof(QuadVertex) * quad_vertices.size(),
         quad_indices.data(), sizeof(uint32_t) * quad_indices.size(),
         quad_indices.size());
 
-    m_quad_vertex_shader = m_shaders->get_shader("2DTexture.vert");
-    m_quad_fragment_shader = m_shaders->get_shader("2DTexture.frag");
+    m_quad_vertex_shader = m_shaders->get_shader("quad.vert");
+    m_quad_fragment_shader = m_shaders->get_shader("quad.frag");
 
     m_quad_uniform_pool = DescriptorPool::create(
         m_max_frames_in_flight,
         {
-            VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
                                  .descriptorCount = static_cast<uint32_t>(
                                      m_max_frames_in_flight)},
         });
 
-    m_quad_uniform_buffers.resize(m_max_frames_in_flight);
-    m_quad_uniform_sets.resize(m_max_frames_in_flight);
-
-    m_quad_uniform_set_layout = DescriptorSetLayout::create({
-        DescriptorSetLayoutBinding{.binding = 0,
-                                   .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                                   .stage = VK_SHADER_STAGE_VERTEX_BIT,
-                                   .descriptor_count = 1},
-    });
-
-    for (size_t i = 0; i < m_max_frames_in_flight; i++) {
-        m_quad_uniform_buffers[i] =
-            UniformBuffer::create_unique(sizeof(QuadUniformBuffer));
-        m_quad_uniform_sets[i] = DescriptorSet::create_unique(
-            m_quad_uniform_pool, m_quad_uniform_set_layout,
-            {
-                DescriptorSpec{.binding = 0,
-                               .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                               .descriptor_class = DescriptorClass::Buffer,
-                               .buffer =
-                                   m_quad_uniform_buffers[i]->get_buffer()},
-            });
-    }
-
     m_quad_vertices_description = VertexBufferDescription(
         VertexInputRate::Vertex, 0, quad_vertex_attributes);
+    m_quad_instance_vertices_description = VertexBufferDescription(
+        VertexInputRate::Instance, 1, quad_instance_attributes);
+
+    m_quad_instances.resize(m_max_frames_in_flight);
+    m_quad_shader_instances.resize(m_max_frames_in_flight);
+    m_quad_instances_buffers.resize(m_max_frames_in_flight);
+
+    for (uint32_t i = 0; i < m_max_frames_in_flight; i++) {
+        m_quad_instances_buffers[i] = VertexBuffer::create(
+            nullptr, sizeof(QuadRenderingShaderInstanceData) * MAX_QUADS);
+
+    }
 
     m_quad_pipeline = Pipeline::create_unique({
         m_swapchain->get_vk_format(),
-        {m_quad_uniform_set_layout, m_texture_array_layout},
+        {m_texture_array_layout},
         m_quad_vertex_shader,
         m_quad_fragment_shader,
-        {m_quad_vertices_description},
-        {VkPushConstantRange{
-            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .size = sizeof(QuadPushConstant),
-        }},
+        {m_quad_vertices_description, m_quad_instance_vertices_description},
     });
 }
 
@@ -1196,7 +1156,7 @@ void Renderer::setup_lighting_pipeline() {
          m_lights_set_layout},
         m_lighting_vertex_shader,
         m_lighting_fragment_shader,
-        {m_meshes_vertices_description, m_instance_vertices_description},
+        {m_meshes_vertices_description, m_mesh_rendering_instance_vertices_description},
         {
             VkPushConstantRange{.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
                                 .offset = 0,

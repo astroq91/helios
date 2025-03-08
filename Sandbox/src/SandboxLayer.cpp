@@ -79,7 +79,11 @@ void SandboxLayer::on_update(float ts) {
     m_frame_count++;
 
     // InstancingTest();
-    ECSTest(ts);
+
+    auto& renderer = Application::get().get_renderer();
+    renderer.draw_quad({}, glm::vec4(1.0f));
+    renderer.submit_quad_instances();
+
 
     if (m_fps_time_count >= 1) {
         m_current_fps = (float)m_frame_count / m_fps_time_count;
@@ -245,14 +249,9 @@ void SandboxLayer::InstancingTest() {
                       });
                                       */
 
-    renderer.submit_instances({
+    renderer.submit_mesh_instances({
         .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
     });
-}
-
-void SandboxLayer::ECSTest(float ts) {
-    // m_camera_controller.on_update(ts);
-    m_scene.on_update(ts);
 }
 
 void SandboxLayer::RenderAPITest() {}
