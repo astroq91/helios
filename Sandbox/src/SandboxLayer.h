@@ -2,7 +2,7 @@
 
 #include <Helios/Core/Layer.h>
 
-#include <Helios/Scene/Camera.h>
+#include <Helios/Scene/PerspectiveCamera.h>
 
 #include <imgui.h>
 

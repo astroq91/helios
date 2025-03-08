@@ -4,7 +4,7 @@
 
 #include "CommandBuffer.h"
 #include "DescriptorSet.h"
-#include "Helios/Scene/Camera.h"
+#include "Helios/Scene/PerspectiveCamera.h"
 #include "Helios/Scene/Transform.h"
 #include "Helios/Vulkan/VulkanContext.h"
 #include "Light.h"
@@ -18,6 +18,7 @@
 #include "TextureLibrary.h"
 #include "TextureSampler.h"
 #include "UniformBuffer.h"
+#include "Helios/Scene/OrthographicCamera.h"
 
 #include <freetype/freetype.h>
 
@@ -168,7 +169,8 @@ class Renderer {
     void draw_mesh(const Ref<Mesh>& geometry,
                    const std::vector<MeshRenderingInstance>& instances);
 
-    void set_camera(const Camera& camera);
+    void set_perspective_camera(const PerspectiveCamera& camera);
+    void set_orthographic_camera(const OrthographicCamera& camera);
 
     void render_directional_light(const DirectionalLight& dir_light);
     void render_point_light(const PointLight& point_light);
@@ -181,11 +183,6 @@ class Renderer {
     Ref<Texture> get_texture(const std::string& key);
 
     const Ref<SwapChain>& get_swapchain() const { return m_swapchain; }
-
-    float get_swapchain_aspect_ratio() const {
-        return static_cast<float>(m_swapchain->get_vk_extent().width) /
-               static_cast<float>(m_swapchain->get_vk_extent().height);
-    }
 
     bool swapchain_recreated_this_frame() const {
         return m_swapchain_recreated_this_frame;
@@ -257,8 +254,11 @@ class Renderer {
 
     void setup_quad_pipeline();
     void setup_lighting_pipeline();
+    void setup_camera_uniform();
 
     void recreate_swapchain();
+
+    void prepare_camera_uniform();
 
   private:
     // Vulkan //
@@ -351,7 +351,8 @@ class Renderer {
 
     // -- //
     glm::mat4 m_view_projection_matrix;
-    Camera m_current_camera;
+    PerspectiveCamera m_perspective_camera;
+    OrthographicCamera m_orthographic_camera;
 
     Ref<DescriptorPool> m_lights_uniform_pool;
     std::vector<Unique<DescriptorSet>>

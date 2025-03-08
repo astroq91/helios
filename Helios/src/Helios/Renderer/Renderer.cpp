@@ -34,7 +34,7 @@
 
 #include "Helios/Core/Application.h"
 #include "Helios/Core/Core.h"
-#include "Helios/Scene/Camera.h"
+#include "Helios/Scene/PerspectiveCamera.h"
 #include "Material.h"
 #include "Pipeline.h"
 #include "SwapChain.h"
@@ -101,9 +101,10 @@ std::vector<VertexAttribute> mesh_rendering_instance_attributes = {
 };
 
 struct CameraUniformBuffer {
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-    alignas(16) glm::vec3 pos;
+    alignas(16) glm::mat4 perspective_view_proj;
+    alignas(16) glm::vec3 perspective_pos;
+
+    alignas(16) glm::mat4 orthographic_view_proj;
 };
 
 struct LightsPushConstantCount {
@@ -274,8 +275,10 @@ void Renderer::init(uint32_t max_frames_in_flight) {
         Application::get().get_asset_manager().get_mesh("Cube");
 
     // Lastly, set up the pipelines for our different default drawable objects.
-    setup_quad_pipeline();
+    setup_camera_uniform();
     setup_lighting_pipeline();
+    setup_quad_pipeline();
+
 
     if (FT_Init_FreeType(&m_ft_library)) {
         HL_ERROR("Could not init FreeType library");
@@ -691,6 +694,11 @@ void Renderer::end_frame() {
 }
 
 int32_t Renderer::register_texture(const Texture& texture) {
+    if (m_available_texture_index == MAX_TEXTURES) {
+        HL_ERROR("Maximum number of textures reached ({}).", MAX_TEXTURES);
+        return -1;
+    }
+
     m_texture_specs[m_available_texture_index] =
         DescriptorSpec{.binding = 1,
                        .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
@@ -881,7 +889,9 @@ void Renderer::draw_mesh(const Ref<Mesh>& geometry,
     }
 }
 
-void Renderer::set_camera(const Camera& camera) { m_current_camera = camera; }
+void Renderer::set_perspective_camera(const PerspectiveCamera& camera) { m_perspective_camera = camera; }
+
+void Renderer::set_orthographic_camera(const OrthographicCamera& camera) { m_orthographic_camera = camera; }
 
 void Renderer::render_directional_light(const DirectionalLight& dir_light) {
     m_directional_lights[m_current_frame].push_back(dir_light);
@@ -910,13 +920,7 @@ Ref<Texture> Renderer::get_texture(const std::string& key) {
 }
 
 void Renderer::draw_meshes() {
-    CameraUniformBuffer ubo{};
-    ubo.view = m_current_camera.view_matrix;
-    ubo.proj = m_current_camera.projection_matrix;
-    ubo.pos = m_current_camera.position;
-
-    memcpy(m_camera_uniform_buffers[m_current_frame]->get_mapped_data(), &ubo,
-           sizeof(ubo));
+    prepare_camera_uniform();
 
     vkCmdBindPipeline(m_command_buffers[m_current_frame]->get_command_buffer(),
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -970,6 +974,8 @@ void Renderer::draw_quads() {
         return;
     }
 
+    prepare_camera_uniform();
+
     vkCmdBindPipeline(m_command_buffers[m_current_frame]->get_command_buffer(),
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
                       m_quad_pipeline->get_vk_pipeline());
@@ -989,10 +995,14 @@ void Renderer::draw_quads() {
         m_quad_mesh->get_index_buffer()->get_vk_buffer(), 0,
         VK_INDEX_TYPE_UINT32);
 
+    VkDescriptorSet sets[2] = {
+        m_texture_arrays[m_current_frame]->get_vk_set(),
+        m_camera_uniform_sets[m_current_frame]->get_vk_set()};
+
     vkCmdBindDescriptorSets(
         m_command_buffers[m_current_frame]->get_command_buffer(),
-        VK_PIPELINE_BIND_POINT_GRAPHICS, m_quad_pipeline->get_vk_layout(),
-        0, 1, &m_texture_arrays[m_current_frame]->get_vk_set(), 0, nullptr);
+        VK_PIPELINE_BIND_POINT_GRAPHICS, m_quad_pipeline->get_vk_layout(), 0, 2,
+        sets, 0, nullptr);
 
     vkCmdDrawIndexed(m_command_buffers[m_current_frame]->get_command_buffer(),
                      m_quad_mesh->get_index_buffer()->get_index_count(),
@@ -1099,7 +1109,7 @@ void Renderer::setup_quad_pipeline() {
 
     m_quad_pipeline = Pipeline::create_unique({
         m_swapchain->get_vk_format(),
-        {m_texture_array_layout},
+        {m_texture_array_layout, m_camera_uniform_set_layout},
         m_quad_vertex_shader,
         m_quad_fragment_shader,
         {m_quad_vertices_description, m_quad_instance_vertices_description},
@@ -1117,6 +1127,22 @@ void Renderer::setup_lighting_pipeline() {
     m_lighting_vertex_shader = m_shaders->get_shader("Lighting.vert");
     m_lighting_fragment_shader = m_shaders->get_shader("Lighting.frag");
 
+    m_lighting_pipeline = Pipeline::create_unique({
+        m_swapchain->get_vk_format(),
+        {m_camera_uniform_set_layout, m_texture_array_layout,
+         m_lights_set_layout},
+        m_lighting_vertex_shader,
+        m_lighting_fragment_shader,
+        {m_meshes_vertices_description, m_mesh_rendering_instance_vertices_description},
+        {
+            VkPushConstantRange{.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+                                .offset = 0,
+                                .size = sizeof(LightsPushConstantCount)},
+        },
+    });
+}
+
+void Renderer::setup_camera_uniform() {
     m_camera_uniform_pool = DescriptorPool::create(
         m_max_frames_in_flight,
         {
@@ -1149,20 +1175,6 @@ void Renderer::setup_lighting_pipeline() {
                                    m_camera_uniform_buffers[i]->get_buffer()},
             });
     }
-
-    m_lighting_pipeline = Pipeline::create_unique({
-        m_swapchain->get_vk_format(),
-        {m_camera_uniform_set_layout, m_texture_array_layout,
-         m_lights_set_layout},
-        m_lighting_vertex_shader,
-        m_lighting_fragment_shader,
-        {m_meshes_vertices_description, m_mesh_rendering_instance_vertices_description},
-        {
-            VkPushConstantRange{.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-                                .offset = 0,
-                                .size = sizeof(LightsPushConstantCount)},
-        },
-    });
 }
 
 void Renderer::recreate_swapchain() {
@@ -1184,6 +1196,17 @@ void Renderer::recreate_swapchain() {
 
     // And also the depth image
     create_depth_image();
+}
+
+void Renderer::prepare_camera_uniform() {
+    CameraUniformBuffer ubo{
+        .perspective_view_proj = m_perspective_camera.view_projection_matrix,
+        .perspective_pos = m_perspective_camera.position,
+        .orthographic_view_proj = m_orthographic_camera.view_projection_matrix,
+    };
+
+    memcpy(m_camera_uniform_buffers[m_current_frame]->get_mapped_data(), &ubo,
+           sizeof(CameraUniformBuffer));
 }
 
 void Renderer::create_depth_image() {

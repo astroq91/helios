@@ -6,7 +6,7 @@
 
 namespace Helios
 {
-	class Camera
+	class PerspectiveCamera
 	{
 	public:
 		glm::mat4 view_matrix;
@@ -16,9 +16,9 @@ namespace Helios
 		glm::vec3 position;
 
 	public:
-		Camera() = default;
+		PerspectiveCamera() = default;
 
 		// Fov in degrees (not radians)
-		Camera(const Transform& transform, float aspect_ratio, float fovY, float _near, float _far);
+		PerspectiveCamera(const Transform& transform, float aspect_ratio, float fovY, float _near, float _far);
 	};
 }

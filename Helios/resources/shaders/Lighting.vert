@@ -15,11 +15,12 @@ layout(location = 10) in float inShininess;
 
 layout(location = 11) in vec4 inTintColor;
 
-layout (set = 0, binding = 0) uniform UniformBuffer {
-    	mat4 view;
-    	mat4 proj;
-	vec3 pos;
-} ubo;
+layout(set = 0, binding = 0) uniform CameraUniform {
+	mat4 perspective_view_proj;
+	vec3 perspective_pos; 
+
+	mat4 orthographic_view_proj;
+} uCamera;
 
 layout (location = 0) out vec4 fragColor;
 layout (location = 1) out vec2 fragTexCoord;
@@ -37,13 +38,13 @@ layout(location = 9) out vec4 tintColor;
 
 void main() 
 {
-	gl_Position = ubo.proj * ubo.view * inModel * vec4(inPosition, 1.0);
+	gl_Position = uCamera.perspective_view_proj * inModel * vec4(inPosition, 1.0);
 	fragColor = vec4(.4f);
 	fragTexCoord = inTexCoord;
 	fragPos = vec3(inModel * vec4(inPosition, 1.0));
 
-  // Get the rot/scale part of the model matrix
-  mat3 normalMatrix = mat3(inModel);
+	// Get the rot/scale part of the model matrix
+	mat3 normalMatrix = mat3(inModel);
 	normal = normalize(normalMatrix * inNormal);
 
 	diffuseIndex = inDiffuseIndex;
@@ -51,7 +52,7 @@ void main()
 	emissionIndex = inEmissionIndex;
 	shininess = inShininess;
 
-  tintColor = inTintColor;
+	tintColor = inTintColor;
 
-	viewPos = ubo.pos;
+	viewPos = uCamera.perspective_pos;
 }

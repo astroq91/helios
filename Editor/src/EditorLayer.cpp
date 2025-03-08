@@ -528,7 +528,7 @@ void EditorLayer::on_imgui_render() {
                             m_selected_entity_transform->to_transform()
                                 .ToMat4();
 
-                        Camera cam = m_scene_camera.get_camera();
+                        PerspectiveCamera cam = m_scene_camera.get_camera();
                         cam.projection_matrix[1][1] *= -1;
 
                         glm::vec3 snap = {0.5f, 0.5f, 0.5f};
@@ -1035,7 +1035,7 @@ void EditorLayer::resize_viewport(ViewportData& viewport) {
 
 void EditorLayer::update_scene_camera_uniform() {
     // Now set up the camera uniform
-    Camera camera = m_scene_camera.get_camera();
+    PerspectiveCamera camera = m_scene_camera.get_camera();
 
     CameraUniformBuffer ubo{
         .view = camera.view_matrix,

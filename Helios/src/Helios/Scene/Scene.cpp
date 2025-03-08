@@ -89,9 +89,9 @@ void Scene::update_rigid_body_restitution(Entity entity, float value) {
     }
 }
 
-void Scene::draw_systems(const Camera& camera) {
+void Scene::draw_systems(const PerspectiveCamera& camera) {
     auto& renderer = Application::get().get_renderer();
-    renderer.set_camera(camera);
+    renderer.set_perspective_camera(camera);
 
     render_lighting();
     draw_meshes();
@@ -111,7 +111,7 @@ void Scene::update_camera(float aspect_ratio) {
     }
 
     for (auto [entity, transform, cam] : camera_view.each()) {
-        m_current_camera = Camera(transform.to_transform(), aspect_ratio,
+        m_current_camera = PerspectiveCamera(transform.to_transform(), aspect_ratio,
                                   cam.fovY, cam.z_near, cam.z_far);
         break;
     }

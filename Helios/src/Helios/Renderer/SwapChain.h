@@ -33,6 +33,11 @@ namespace Helios
 		size_t get_image_count() const { return m_images.size(); }
 		const VkExtent2D& get_vk_extent() const { return m_extent; }
 
+	        float get_aspect_ratio() const {
+                    return static_cast<float>(m_extent.width) /
+                           static_cast<float>(m_extent.height);
+                }
+
 		const VkImageView& get_vk_image_view(size_t index) const { return m_image_views[index]; }
 		const VkImage& get_vk_image(size_t index) const { return m_images[index]; }
 

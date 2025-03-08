@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 #include "Helios/Renderer/Renderer.h"
-#include "Helios/Scene/Camera.h"
+#include "Helios/Scene/PerspectiveCamera.h"
 #include "SceneCamera.h"
 #include "entt/entity/fwd.hpp"
 
@@ -66,7 +66,7 @@ class Scene {
   private:
     // SYSTEMS //
 
-    void draw_systems(const Camera& camera);
+    void draw_systems(const PerspectiveCamera& camera);
     void update_camera(float aspect_ratio);
     void render_lighting();
     void draw_meshes();
@@ -83,7 +83,7 @@ class Scene {
     SceneCamera* m_scene_camera;
     bool m_runtime = false;
 
-    Camera m_current_camera;
+    PerspectiveCamera m_current_camera;
     bool m_has_vaild_camera = false;
 
     bool m_destroyed = false;

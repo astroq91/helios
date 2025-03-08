@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Camera.h"
+#include "PerspectiveCamera.h"
 #include "Helios/Events/Input.h"
 #include "Helios/Events/KeyEvents.h"
 #include "Helios/Events/MouseEvents.h"
@@ -48,8 +48,8 @@ class SceneCamera {
     float get_near() const { return m_near; }
     float get_far() const { return m_far; }
 
-    Camera get_camera() const {
-        return Camera(m_transform, m_aspect_ratio, m_fov_y, m_near, m_far);
+    PerspectiveCamera get_camera() const {
+        return PerspectiveCamera(m_transform, m_aspect_ratio, m_fov_y, m_near, m_far);
     }
 
     /**

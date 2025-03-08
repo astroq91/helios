@@ -1,7 +1,7 @@
-#include "Camera.h"
+#include "PerspectiveCamera.h"
 
 namespace Helios {
-Camera::Camera(const Transform &transform, float aspect_ratio, float fovY,
+PerspectiveCamera::PerspectiveCamera(const Transform &transform, float aspect_ratio, float fovY,
                float _near, float _far) {
     position = transform.position;
     view_matrix = glm::inverse(transform.ToMat4());

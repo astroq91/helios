@@ -9,7 +9,6 @@ layout (location = 2) in vec4 inTintColor;
 layout(set = 0, binding = 0) uniform sampler samp;
 layout (set = 0, binding = 1) uniform texture2D textures[1000];
 
-
 vec3 linearizeSRGB(vec3 srgbColor) {
     return mix(srgbColor / 12.92, pow((srgbColor + vec3(0.055)) / 1.055, vec3(2.4)), step(vec3(0.04045), srgbColor));
 }

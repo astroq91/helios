@@ -44,7 +44,7 @@ void SandboxLayer::on_attach() {
         }
     }
 
-    m_camera = m_scene.create_entity("Camera");
+    m_camera = m_scene.create_entity("PerspectiveCamera");
     m_camera.add_component<TransformComponent>(
         Transform{.position = {4.0f, 4.0f, 25.0f}});
     m_camera.add_component<CameraComponent>();
@@ -81,6 +81,11 @@ void SandboxLayer::on_update(float ts) {
     // InstancingTest();
 
     auto& renderer = Application::get().get_renderer();
+
+    OrthographicCamera ortho_cam(
+        {.position = {0.0f, 0.0f, 1.0f}}, 1, renderer.get_swapchain()->get_aspect_ratio(), 0.1f, 100.0f);
+    renderer.set_orthographic_camera(ortho_cam);
+
     renderer.draw_quad({}, glm::vec4(1.0f));
     renderer.submit_quad_instances();
 
@@ -187,9 +192,8 @@ void SandboxLayer::on_imgui_render() {
 
     glm::mat4 model = transform.to_transform().ToMat4();
 
-    Camera cam(m_camera.get_component<TransformComponent>().to_transform(),
-               (float)renderer.get_swapchain()->get_vk_extent().width /
-                   (float)renderer.get_swapchain()->get_vk_extent().height,
+    PerspectiveCamera cam(m_camera.get_component<TransformComponent>().to_transform(),
+               renderer.get_swapchain()->get_aspect_ratio(),
                120.0f, 0.1f, 100.0f);
 
     // Debug: Flip Y-axis if needed
@@ -215,12 +219,11 @@ void SandboxLayer::on_imgui_render() {
 void SandboxLayer::InstancingTest() {
     Renderer& renderer = Application::get().get_renderer();
 
-    Camera cam(Helios::Transform({4.0f, 4.0f, 25.0f}),
-               (float)renderer.get_swapchain()->get_vk_extent().width /
-                   (float)renderer.get_swapchain()->get_vk_extent().height,
+    PerspectiveCamera cam(Helios::Transform({4.0f, 4.0f, 25.0f}),
+               renderer.get_swapchain()->get_aspect_ratio(),
                120.0f, 0.1f, 100.0f);
 
-    renderer.set_camera(cam);
+    renderer.set_perspective_camera(cam);
 
     renderer.render_directional_light({.direction = glm::vec3(-1)});
 
