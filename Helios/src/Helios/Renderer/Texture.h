@@ -19,11 +19,13 @@ namespace Helios
 		 * \param path The path.
 		 * \return The texture
 		 */
-        static Ref<Texture> create(const std::filesystem::path& path)
+          static Ref<Texture>
+          create(const std::filesystem::path& path,
+                 VkFormat format = VK_FORMAT_R8G8B8A8_SRGB)
 		{
 			Ref<Texture> obj = make_ref<Texture>();
             obj->init_asset(path.string());
-            obj->init(path);
+                        obj->init(path, format);
 			return obj;
 		}
 
@@ -36,11 +38,14 @@ namespace Helios
 		 * \param size The size (in bytes) of the image.
 		 * \return The texture
 		 */
-		static Ref<Texture> create(const std::string& name, void* data, uint32_t width, uint32_t height, size_t size)
+                static Ref<Texture>
+                create(const std::string& name, void* data, uint32_t width,
+                       uint32_t height, size_t size,
+                       VkFormat format = VK_FORMAT_R8G8B8A8_SRGB)
 		{
 			Ref<Texture> obj = make_ref<Texture>();
             obj->init_asset(name);
-            obj->init(data, width, height, size);
+            obj->init(data, width, height, size, format);
 			return obj;
 		}
 
@@ -57,8 +62,9 @@ namespace Helios
 		Texture& operator=(Texture&&) = delete;
 
 	private:
-        void init(const std::filesystem::path& path);
-		void init(void* data, uint32_t width, uint32_t height, size_t size);
+                void init(const std::filesystem::path& path, VkFormat format);
+          void init(void* data, uint32_t width, uint32_t height, size_t size,
+                    VkFormat format);
 
 	private:
 		int32_t m_texture_index;

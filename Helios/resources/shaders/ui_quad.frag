@@ -1,4 +1,5 @@
 #version 450
+#extension GL_EXT_nonuniform_qualifier : require
 
 layout (location = 0) out vec4 outColor;
 
@@ -20,5 +21,6 @@ vec4 linearizeSRGB(vec4 srgbColor) {
 
 void main()
 {
-	outColor = linearizeSRGB(inTintColor) * texture(sampler2D(textures[inTextureIndex], samp), inTexCoord);
+    vec4 texColor = texture(sampler2D(textures[nonuniformEXT(inTextureIndex)], samp), inTexCoord);
+    outColor = inTintColor * vec4(texColor.r, texColor.r, texColor.r, 1.0);
 } 

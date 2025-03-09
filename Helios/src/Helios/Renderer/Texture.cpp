@@ -13,7 +13,7 @@ Texture::~Texture() {
     renderer.deregister_texture(m_texture_index);
 }
 
-void Texture::init(const std::filesystem::path& path) {
+void Texture::init(const std::filesystem::path& path, VkFormat format) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
@@ -51,7 +51,7 @@ void Texture::init(const std::filesystem::path& path) {
     m_image = Image::create({
         .width = static_cast<uint32_t>(tex_width),
         .height = static_cast<uint32_t>(tex_height),
-        .format = VK_FORMAT_R8G8B8A8_SRGB,
+        .format = format,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
         .memory_property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -90,7 +90,7 @@ void Texture::init(const std::filesystem::path& path) {
     m_texture_index = renderer.register_texture(*this);
 }
 
-void Texture::init(void* data, uint32_t width, uint32_t height, size_t size) {
+void Texture::init(void* data, uint32_t width, uint32_t height, size_t size, VkFormat format) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
@@ -109,7 +109,7 @@ void Texture::init(void* data, uint32_t width, uint32_t height, size_t size) {
     m_image = Image::create({
         .width = width,
         .height = height,
-        .format = VK_FORMAT_R8G8B8A8_SRGB,
+        .format = format,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
         .memory_property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

@@ -48,25 +48,25 @@ constexpr uint32_t k_min_instances_for_mt = 500;
 constexpr uint32_t k_mesh_instance_preparation_thread_count = 15;
 
 struct QuadVertex {
-    alignas(16) glm::vec3 position;
+    alignas(8) glm::vec2 position;
     alignas(8) glm::vec2 tex_coord;
 };
 
 namespace Helios {
-std::vector<QuadVertex> quad_vertices = {
-    {{-0.5, -0.5, 0.0f}, {0.0f, 1.0f}},
-    {{-0.5, 0.5, 0.0f}, {0.0f, 0.0f}},
-    {{0.5, 0.5, 0.0f}, {1.0f, 0.0f}},
-    {{0.5, -0.5, 0.0f}, {1.0f, 1.0f}},
+std::vector<QuadVertex> ui_quad_vertices = {
+    {{0.0f, 0.0f}, {0.01f, 0.99f}},
+    {{0.0f, 1.0f}, {0.01f, 0.01f}},
+    {{1.0f, 1.0f}, {0.99f, 0.01f}},
+    {{1.0f, 0.0f}, {0.99f, 0.99f}},
 };
 
-std::vector<uint32_t> quad_indices = {
+std::vector<uint32_t> ui_quad_indices = {
     0, 1, 3,
     1, 2, 3,
 };
 
 std::vector<VertexAttribute> quad_vertex_attributes = {
-    {VertexAttributeFormat::FLOAT3, 0}, // position
+    {VertexAttributeFormat::FLOAT2, 0}, // position
     {VertexAttributeFormat::FLOAT2, 1}, // Texture Coords
 };
 
@@ -76,8 +76,8 @@ std::vector<VertexAttribute> quad_instance_attributes = {
     {VertexAttributeFormat::FLOAT4, 4}, // Model Col2
     {VertexAttributeFormat::FLOAT4, 5}, // Model Col3
 
-    {VertexAttributeFormat::INT32, 6},
-    {VertexAttributeFormat::FLOAT4, 7},
+    {VertexAttributeFormat::FLOAT4, 6}, // tint color
+    {VertexAttributeFormat::INT32, 7}, // texture index
 };
 
 std::vector<VertexAttribute> mesh_rendering_vertex_attributes = {
@@ -104,7 +104,7 @@ struct CameraUniformBuffer {
     alignas(16) glm::mat4 perspective_view_proj;
     alignas(16) glm::vec3 perspective_pos;
 
-    alignas(16) glm::mat4 orthographic_view_proj;
+    alignas(16) glm::mat4 orthographic_proj;
 };
 
 struct LightsPushConstantCount {
@@ -124,6 +124,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     m_max_frames_in_flight = max_frames_in_flight;
     m_num_threads_for_instancing = k_mesh_instance_preparation_thread_count;
     m_min_instances_for_mt = k_min_instances_for_mt;
+
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -277,12 +278,10 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     // Lastly, set up the pipelines for our different default drawable objects.
     setup_camera_uniform();
     setup_lighting_pipeline();
-    setup_quad_pipeline();
+    setup_ui_quad_pipeline();
+    create_ui_camera();
 
-
-    if (FT_Init_FreeType(&m_ft_library)) {
-        HL_ERROR("Could not init FreeType library");
-    }
+    load_fonts();
 }
 
 void Renderer::shutdown() {
@@ -453,24 +452,24 @@ void Renderer::submit_mesh_instances(
     m_point_lights[m_current_frame].clear();
 }
 
-void Renderer::submit_quad_instances(
+void Renderer::submit_ui_quad_instances(
     const BeginRenderingSpec& begin_rendering_spec) {
 
     // Update the current quad instance buffer
-    if (!m_quad_shader_instances[m_current_frame].empty()) {
+    if (!m_ui_quad_shader_instances[m_current_frame].empty()) {
         // Copy the buffer
 
         memcpy(m_instance_staging_buffer->get_mapped_memory(),
-               m_quad_shader_instances[m_current_frame].data(),
-               sizeof(QuadRenderingShaderInstanceData) *
-                   m_quad_shader_instances[m_current_frame].size());
+               m_ui_quad_shader_instances[m_current_frame].data(),
+               sizeof(UIQuadShaderInstanceData) *
+                   m_ui_quad_shader_instances[m_current_frame].size());
 
         VulkanUtils::copy_buffer(
             m_instance_staging_buffer->get_vk_buffer(),
-            m_quad_instances_buffers[m_current_frame]
+            m_ui_quad_instances_buffers[m_current_frame]
                 ->get_vk_buffer(),
-            sizeof(QuadRenderingShaderInstanceData) *
-                m_quad_shader_instances[m_current_frame].size(),
+            sizeof(UIQuadShaderInstanceData) *
+                m_ui_quad_shader_instances[m_current_frame].size(),
             m_vulkan_state->device, VK_NULL_HANDLE, VK_NULL_HANDLE,
             VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
@@ -483,8 +482,8 @@ void Renderer::submit_quad_instances(
     }
     end_rendering();
 
-    m_quad_instances[m_current_frame].clear();
-    m_quad_shader_instances[m_current_frame].clear();
+    m_ui_quad_shader_instances[m_current_frame].clear();
+
 
 }
 
@@ -743,17 +742,13 @@ void Renderer::deregister_texture(uint32_t textureIndex) {
     }
 }
 
-void Renderer::draw_quad(const Transform& transform, const glm::vec4& color,
+void Renderer::draw_ui_quad(const Transform& transform,
+                         const glm::vec4& color,
                          const Ref<Texture>& texture) {
-    m_quad_instances[m_current_frame].push_back({m_quad_mesh,
-         sizeof(QuadRenderingShaderInstanceData) * m_quad_shader_instances[m_current_frame].size(),
-        1,
-    });
-
-    m_quad_shader_instances[m_current_frame].push_back({
+    m_ui_quad_shader_instances[m_current_frame].push_back({
         .model = transform.ToMat4(),
-        .texture_unit = texture ? texture->GetTextureIndex() : m_gray_texture->GetTextureIndex(),
         .tint_color = color,
+        .texture_unit = texture ? texture->GetTextureIndex() : m_gray_texture->GetTextureIndex(),
     });
 }
 
@@ -901,6 +896,36 @@ void Renderer::render_point_light(const PointLight& point_light) {
     m_point_lights[m_current_frame].push_back(point_light);
 }
 
+void Renderer::render_text(const std::string& text, const glm::vec2& position, float scale, const glm::vec4& tint_color)  {
+    if (!m_selected_font) {
+        return;
+    }
+
+    float x_cursor = position.x;
+
+    for (auto c = text.begin(); c != text.end(); ++c) {
+        const Character& ch = m_selected_font->get_charater(*c);
+
+        float x_pos = x_cursor + static_cast<float>(ch.bearing.x) * scale;
+        float y_pos = position.y + static_cast<float>(ch.size.y - ch.bearing.y) * scale;
+
+        float w = static_cast<float>(ch.size.x) * scale;
+        float h = static_cast<float>(ch.size.y) * scale;
+
+        Transform transform {
+            .position = {x_pos, y_pos,0.0f},
+            .scale = {w, h, 1.0f},
+        };
+
+        draw_ui_quad(transform, tint_color, ch.texture);
+
+
+        x_cursor += static_cast<float>(ch.advance >> 6) *
+            scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+    }
+    submit_ui_quad_instances();
+}
+
 Ref<Texture> Renderer::get_texture(const std::string& key) {
     if (key.empty()) {
         HL_ERROR("Empty key when in Renderer::CreateOrGetTexture(). Returning "
@@ -970,7 +995,7 @@ void Renderer::draw_meshes() {
 }
 
 void Renderer::draw_quads() {
-    if (m_quad_instances[m_current_frame].empty()) {
+    if (m_ui_quad_shader_instances[m_current_frame].empty()) {
         return;
     }
 
@@ -978,11 +1003,11 @@ void Renderer::draw_quads() {
 
     vkCmdBindPipeline(m_command_buffers[m_current_frame]->get_command_buffer(),
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      m_quad_pipeline->get_vk_pipeline());
+                      m_ui_quad_pipeline->get_vk_pipeline());
 
     VkBuffer buffers[2] {
-        m_quad_mesh->get_vertex_buffer()->get_vk_buffer(),
-        m_quad_instances_buffers[m_current_frame]->get_vk_buffer(),
+        m_ui_quad_mesh->get_vertex_buffer()->get_vk_buffer(),
+        m_ui_quad_instances_buffers[m_current_frame]->get_vk_buffer(),
     };
     VkDeviceSize offsets[2] = {0, 0};
 
@@ -992,7 +1017,7 @@ void Renderer::draw_quads() {
 
     vkCmdBindIndexBuffer(
         m_command_buffers[m_current_frame]->get_command_buffer(),
-        m_quad_mesh->get_index_buffer()->get_vk_buffer(), 0,
+        m_ui_quad_mesh->get_index_buffer()->get_vk_buffer(), 0,
         VK_INDEX_TYPE_UINT32);
 
     VkDescriptorSet sets[2] = {
@@ -1001,12 +1026,12 @@ void Renderer::draw_quads() {
 
     vkCmdBindDescriptorSets(
         m_command_buffers[m_current_frame]->get_command_buffer(),
-        VK_PIPELINE_BIND_POINT_GRAPHICS, m_quad_pipeline->get_vk_layout(), 0, 2,
+        VK_PIPELINE_BIND_POINT_GRAPHICS, m_ui_quad_pipeline->get_vk_layout(), 0, 2,
         sets, 0, nullptr);
 
     vkCmdDrawIndexed(m_command_buffers[m_current_frame]->get_command_buffer(),
-                     m_quad_mesh->get_index_buffer()->get_index_count(),
-                     static_cast<uint32_t>(m_quad_instances[m_current_frame].size()), 0, 0, 0);
+                     m_ui_quad_mesh->get_index_buffer()->get_index_count(),
+                     static_cast<uint32_t>(m_ui_quad_shader_instances[m_current_frame].size()), 0, 0, 0);
 }
 
 void Renderer::create_default_textures(const Ref<TextureLibrary>& texture_lib) {
@@ -1075,16 +1100,16 @@ void Renderer::load_default_shaders(const Ref<ShaderLibrary>& shader_lib) {
     }
 }
 
-void Renderer::setup_quad_pipeline() {
-    m_quad_mesh = Mesh::create(
-        "Quad", quad_vertices.data(), sizeof(QuadVertex) * quad_vertices.size(),
-        quad_indices.data(), sizeof(uint32_t) * quad_indices.size(),
-        quad_indices.size());
+void Renderer::setup_ui_quad_pipeline() {
+    m_ui_quad_mesh = Mesh::create(
+        "UIQuad", ui_quad_vertices.data(), sizeof(QuadVertex) * ui_quad_vertices.size(),
+        ui_quad_indices.data(), sizeof(uint32_t) * ui_quad_indices.size(),
+        ui_quad_indices.size());
 
-    m_quad_vertex_shader = m_shaders->get_shader("quad.vert");
-    m_quad_fragment_shader = m_shaders->get_shader("quad.frag");
+    m_ui_quad_vertex_shader = m_shaders->get_shader("ui_quad.vert");
+    m_ui_quad_fragment_shader = m_shaders->get_shader("ui_quad.frag");
 
-    m_quad_uniform_pool = DescriptorPool::create(
+    m_ui_quad_uniform_pool = DescriptorPool::create(
         m_max_frames_in_flight,
         {
             VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
@@ -1092,27 +1117,40 @@ void Renderer::setup_quad_pipeline() {
                                      m_max_frames_in_flight)},
         });
 
-    m_quad_vertices_description = VertexBufferDescription(
+    m_ui_quad_vertices_description = VertexBufferDescription(
         VertexInputRate::Vertex, 0, quad_vertex_attributes);
-    m_quad_instance_vertices_description = VertexBufferDescription(
+    m_ui_quad_instance_vertices_description = VertexBufferDescription(
         VertexInputRate::Instance, 1, quad_instance_attributes);
 
-    m_quad_instances.resize(m_max_frames_in_flight);
-    m_quad_shader_instances.resize(m_max_frames_in_flight);
-    m_quad_instances_buffers.resize(m_max_frames_in_flight);
+    m_ui_quad_shader_instances.resize(m_max_frames_in_flight);
+    m_ui_quad_instances_buffers.resize(m_max_frames_in_flight);
 
     for (uint32_t i = 0; i < m_max_frames_in_flight; i++) {
-        m_quad_instances_buffers[i] = VertexBuffer::create(
-            nullptr, sizeof(QuadRenderingShaderInstanceData) * MAX_QUADS);
+        m_ui_quad_instances_buffers[i] = VertexBuffer::create(
+            nullptr, sizeof(UIQuadShaderInstanceData) * MAX_QUADS);
 
     }
 
-    m_quad_pipeline = Pipeline::create_unique({
-        m_swapchain->get_vk_format(),
-        {m_texture_array_layout, m_camera_uniform_set_layout},
-        m_quad_vertex_shader,
-        m_quad_fragment_shader,
-        {m_quad_vertices_description, m_quad_instance_vertices_description},
+    m_ui_quad_pipeline = Pipeline::create_unique({
+        .color_attachment_format= m_swapchain->get_vk_format(),
+        .descriptor_set_layouts= {m_texture_array_layout,
+                                  m_camera_uniform_set_layout},
+        .vertex_shader= m_ui_quad_vertex_shader,
+        .fragment_shader= m_ui_quad_fragment_shader,
+        .vertex_buffer_descriptions= {m_ui_quad_vertices_description, m_ui_quad_instance_vertices_description},
+        .color_blend_attachments= {VkPipelineColorBlendAttachmentState{
+            .blendEnable = VK_TRUE,
+             .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+             .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+             .colorBlendOp = VK_BLEND_OP_ADD,
+             .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+             .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+             .alphaBlendOp = VK_BLEND_OP_ADD,
+            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+
+         }
+         }
     });
 }
 
@@ -1196,17 +1234,34 @@ void Renderer::recreate_swapchain() {
 
     // And also the depth image
     create_depth_image();
+
+    create_ui_camera();
 }
 
 void Renderer::prepare_camera_uniform() {
     CameraUniformBuffer ubo{
         .perspective_view_proj = m_perspective_camera.view_projection_matrix,
         .perspective_pos = m_perspective_camera.position,
-        .orthographic_view_proj = m_orthographic_camera.view_projection_matrix,
+        .orthographic_proj = m_ui_camera,
     };
 
     memcpy(m_camera_uniform_buffers[m_current_frame]->get_mapped_data(), &ubo,
            sizeof(CameraUniformBuffer));
+}
+
+void Renderer::load_fonts() {
+    m_font_library.init();
+    auto font = m_font_library.load_font(RESOURCES_PATH "fonts/arial.ttf");
+    font->set_pixel_size(0, 48);
+    font->load_characters();
+
+    m_selected_font = font;
+}
+
+void Renderer::create_ui_camera() {
+    auto size = m_swapchain->get_vk_extent();
+    m_ui_camera =
+        glm::orthoRH_ZO(0.0f, static_cast<float>(size.width), static_cast<float>(size.height), 0.0f, 0.0f, 1.0f);
 }
 
 void Renderer::create_depth_image() {

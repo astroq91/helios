@@ -4,6 +4,7 @@
 
 #include "CommandBuffer.h"
 #include "DescriptorSet.h"
+#include "FontLibrary.h"
 #include "Helios/Scene/PerspectiveCamera.h"
 #include "Helios/Scene/Transform.h"
 #include "Helios/Vulkan/VulkanContext.h"
@@ -73,17 +74,16 @@ struct MeshRenderingShaderInstanceData {
     glm::vec4 tint_color;
 };
 
-
 struct QuadRenderingInstance {
-    Transform transform;
-    int32_t texture_unit;
+    glm::mat4 model;
     glm::vec4 tint_color;
+    int32_t texture_unit;
 };
 
-struct QuadRenderingShaderInstanceData {
+struct UIQuadShaderInstanceData {
     alignas(16) glm::mat4 model;
-    alignas(4) int32_t texture_unit;
     alignas(16) glm::vec4 tint_color;
+    alignas(4) int32_t texture_unit;
 };
 
 constexpr int MAX_MESHES = 10000;
@@ -118,10 +118,11 @@ class Renderer {
      * clear, the specified lighting so far. \param begin_rendering_spec
      * Optional render pass specification.
      */
-    void submit_mesh_instances(const BeginRenderingSpec& begin_rendering_spec = {});
+    void
+    submit_mesh_instances(const BeginRenderingSpec& begin_rendering_spec = {});
 
     void
-    submit_quad_instances(const BeginRenderingSpec& begin_rendering_spec = {});
+    submit_ui_quad_instances(const BeginRenderingSpec& begin_rendering_spec = {});
 
     /**
      * \brief Submit the current command buffer, and then wait for completion.
@@ -157,7 +158,7 @@ class Renderer {
     int32_t register_texture(const Texture& texture);
     void deregister_texture(uint32_t textureIndex);
 
-    void draw_quad(const Transform& transform, const glm::vec4& color,
+    void draw_ui_quad(const Transform& transform, const glm::vec4& color,
                    const Ref<Texture>& texture = nullptr);
 
     /**
@@ -174,6 +175,9 @@ class Renderer {
 
     void render_directional_light(const DirectionalLight& dir_light);
     void render_point_light(const PointLight& point_light);
+
+    void render_text(const std::string& text, const glm::vec2& position, float scale,
+                     const glm::vec4& tint_color);
 
     /**
      * \brief get a texture.
@@ -222,14 +226,16 @@ class Renderer {
     }
 
     /**
-    * Sets the number of threads to use for preparing instances when calling draw_mesh.
-    */
+     * Sets the number of threads to use for preparing instances when calling
+     * draw_mesh.
+     */
     void set_num_threads_for_instancing(uint32_t num_threads) {
         m_num_threads_for_instancing = num_threads;
     }
 
     /**
-     * Sets the minimum number of instances to use multithreading during draw_mesh.
+     * Sets the minimum number of instances to use multithreading during
+     * draw_mesh.
      */
     void set_min_instances_for_mt(uint32_t min_instances) {
         m_min_instances_for_mt = min_instances;
@@ -239,9 +245,7 @@ class Renderer {
         return m_num_threads_for_instancing;
     }
 
-     uint32_t get_min_instances_for_mt() const {
-        return m_min_instances_for_mt;
-    }
+    uint32_t get_min_instances_for_mt() const { return m_min_instances_for_mt; }
 
   private:
     void draw_meshes();
@@ -252,13 +256,17 @@ class Renderer {
 
     void create_depth_image();
 
-    void setup_quad_pipeline();
+    void setup_ui_quad_pipeline();
     void setup_lighting_pipeline();
     void setup_camera_uniform();
 
     void recreate_swapchain();
 
     void prepare_camera_uniform();
+
+    void load_fonts();
+
+    void create_ui_camera();
 
   private:
     // Vulkan //
@@ -318,13 +326,11 @@ class Renderer {
         m_mesh_rendering_instances_buffers; // One for each frame in flight
     VertexBufferDescription m_mesh_rendering_instance_vertices_description;
 
-    std::vector<std::vector<QuadRenderingShaderInstanceData>>
-        m_quad_shader_instances; // One for each frame in flight
-    std::vector<std::vector<MeshInstances>>
-        m_quad_instances; // One for each frame in flight
+    std::vector<std::vector<UIQuadShaderInstanceData>>
+        m_ui_quad_shader_instances; // One for each frame in flight
     std::vector<Ref<VertexBuffer>>
-        m_quad_instances_buffers; // One for each frame in flight
-    VertexBufferDescription m_quad_instance_vertices_description;
+        m_ui_quad_instances_buffers; // One for each frame in flight
+    VertexBufferDescription m_ui_quad_instance_vertices_description;
 
     Ref<DescriptorPool> m_camera_uniform_pool;
     std::vector<Unique<DescriptorSet>> m_camera_uniform_sets;
@@ -336,18 +342,18 @@ class Renderer {
     Ref<Mesh> m_cube_mesh;
 
     // Quad //
-    Ref<Mesh> m_quad_mesh;
+    Ref<Mesh> m_ui_quad_mesh;
 
-    Unique<Pipeline> m_quad_pipeline;
-    VertexBufferDescription m_quad_vertices_description;
-    Ref<Shader> m_quad_vertex_shader;
-    Ref<Shader> m_quad_fragment_shader;
+    Unique<Pipeline> m_ui_quad_pipeline;
+    VertexBufferDescription m_ui_quad_vertices_description;
+    Ref<Shader> m_ui_quad_vertex_shader;
+    Ref<Shader> m_ui_quad_fragment_shader;
 
-    Ref<DescriptorPool> m_quad_uniform_pool;
-    std::vector<Unique<DescriptorSet>> m_quad_uniform_sets;
-    Ref<DescriptorSetLayout> m_quad_uniform_set_layout;
+    Ref<DescriptorPool> m_ui_quad_uniform_pool;
+    std::vector<Unique<DescriptorSet>> m_ui_quad_uniform_sets;
+    Ref<DescriptorSetLayout> m_ui_quad_uniform_set_layout;
     std::vector<Unique<UniformBuffer>>
-        m_quad_uniform_buffers; // One for each frame in flight
+        m_ui_quad_uniform_buffers; // One for each frame in flight
 
     // -- //
     glm::mat4 m_view_projection_matrix;
@@ -375,6 +381,9 @@ class Renderer {
 
     bool m_shutting_down = false;
 
-    FT_Library m_ft_library;
+    FontLibrary m_font_library;
+    Ref<Font> m_selected_font = nullptr;
+
+    glm::mat4 m_ui_camera;
 };
 } // namespace Helios

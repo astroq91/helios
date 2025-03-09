@@ -70,6 +70,18 @@ void SandboxLayer::on_attach() {
         .mesh = m_viking_mesh,
     };
 
+    if (FT_Init_FreeType(&m_ft_library)) {
+        HL_ERROR("Could not init freetype");
+    }
+
+    if (FT_New_Face(m_ft_library, RESOURCES_PATH "fonts/arial.ttf", 0,
+                    &m_face_arial)) {
+        HL_ERROR("Could not load arial font");
+    }
+    FT_Set_Pixel_Sizes(m_face_arial, 0, 48);
+    if (FT_Load_Char(m_face_arial, 'H', FT_LOAD_RENDER)) {
+        HL_ERROR("Could not load char");
+    }
 }
 
 void SandboxLayer::on_detach() {}
@@ -82,12 +94,7 @@ void SandboxLayer::on_update(float ts) {
 
     auto& renderer = Application::get().get_renderer();
 
-    OrthographicCamera ortho_cam(
-        {.position = {0.0f, 0.0f, 1.0f}}, 1, renderer.get_swapchain()->get_aspect_ratio(), 0.1f, 100.0f);
-    renderer.set_orthographic_camera(ortho_cam);
-
-    renderer.draw_quad({}, glm::vec4(1.0f));
-    renderer.submit_quad_instances();
+    renderer.render_text("ELO", {500, 500}, 1.0f, glm::vec4(1.0f));
 
 
     if (m_fps_time_count >= 1) {
