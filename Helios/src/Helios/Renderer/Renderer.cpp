@@ -572,6 +572,8 @@ void Renderer::end_recording() {
         return;
     }
 
+    submit_ui_quad_instances();
+
     // Transition the image
     const VkImageMemoryBarrier image_memory_barrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -641,6 +643,7 @@ void Renderer::end_frame() {
         m_swapchain_recreated_this_frame = false;
         return;
     }
+
 
     VkSemaphore wait_semaphores[] = {
         m_image_available_semaphores[m_current_frame]};
@@ -923,7 +926,6 @@ void Renderer::render_text(const std::string& text, const glm::vec2& position, f
         x_cursor += static_cast<float>(ch.advance >> 6) *
             scale; // bitshift by 6 to get value in pixels (2^6 = 64)
     }
-    submit_ui_quad_instances();
 }
 
 Ref<Texture> Renderer::get_texture(const std::string& key) {

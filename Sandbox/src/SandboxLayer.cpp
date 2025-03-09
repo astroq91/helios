@@ -95,7 +95,7 @@ void SandboxLayer::on_update(float ts) {
     auto& renderer = Application::get().get_renderer();
 
     renderer.render_text("ELO", {500, 500}, 1.0f, glm::vec4(1.0f));
-
+    renderer.render_text("ELOelo", {700, 500}, 1.0f, glm::vec4(1.0f));
 
     if (m_fps_time_count >= 1) {
         m_current_fps = (float)m_frame_count / m_fps_time_count;
