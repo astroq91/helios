@@ -65,12 +65,16 @@ function swap_if_bigger(i, j)
 end
 
 function on_update(ts)
+    
+    UI:render_text("Bubble sort!", Vec2.new(UI:get_window_width() / 2, UI:get_window_height() - 50), 1.0, Vec4.new(1.0, 1.0, 1.0, 1.0))
+
     if sort_done then
         return
     end
 
     local next_entity_transform = entities[current_index]:get_components():get_transform()
     local curr_entity_transform = entities[current_index-1]:get_components():get_transform()
+
 
     if swap_if_bigger(current_index, current_index-1) then
         swapped = true

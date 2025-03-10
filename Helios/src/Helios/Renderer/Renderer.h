@@ -19,7 +19,6 @@
 #include "TextureLibrary.h"
 #include "TextureSampler.h"
 #include "UniformBuffer.h"
-#include "Helios/Scene/OrthographicCamera.h"
 
 #include <freetype/freetype.h>
 
@@ -86,12 +85,12 @@ struct UIQuadShaderInstanceData {
     alignas(4) int32_t texture_unit;
 };
 
-constexpr int MAX_MESHES = 10000;
-constexpr int MAX_TEXTURES = 1000;
-constexpr int MAX_QUADS = 10000;
+constexpr int k_max_meshes = 10000;
+constexpr int k_max_textures = 1000;
+constexpr int k_max_ui_quads = 10000;
 
-constexpr int MAX_DIRECTIONAL_LIGHTS = 32;
-constexpr int MAX_POINT_LIGHTS = 32;
+constexpr int k_max_directional_lights = 32;
+constexpr int k_max_point_lights = 32;
 
 class Renderer {
   public:
@@ -171,13 +170,14 @@ class Renderer {
                    const std::vector<MeshRenderingInstance>& instances);
 
     void set_perspective_camera(const PerspectiveCamera& camera);
-    void set_orthographic_camera(const OrthographicCamera& camera);
 
     void render_directional_light(const DirectionalLight& dir_light);
     void render_point_light(const PointLight& point_light);
 
     void render_text(const std::string& text, const glm::vec2& position, float scale,
                      const glm::vec4& tint_color);
+
+    void set_ui_projection_matrix(const glm::mat4& proj) { m_ui_projection = proj; }
 
     /**
      * \brief get a texture.
@@ -358,7 +358,6 @@ class Renderer {
     // -- //
     glm::mat4 m_view_projection_matrix;
     PerspectiveCamera m_perspective_camera;
-    OrthographicCamera m_orthographic_camera;
 
     Ref<DescriptorPool> m_lights_uniform_pool;
     std::vector<Unique<DescriptorSet>>
@@ -384,6 +383,6 @@ class Renderer {
     FontLibrary m_font_library;
     Ref<Font> m_selected_font = nullptr;
 
-    glm::mat4 m_ui_camera;
+    glm::mat4 m_ui_projection;
 };
 } // namespace Helios

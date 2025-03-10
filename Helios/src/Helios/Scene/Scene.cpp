@@ -33,22 +33,37 @@ void Scene::destroy_entity(uint32_t handle) {
 
 Entity Scene::get_entity(uint32_t handle) { return Entity(handle, this); }
 
-void Scene::on_update(float ts, const BeginRenderingSpec& editor_spec,
-                      const BeginRenderingSpec& game_spec) {
+void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
+                      const SceneViewportInfo& game_spec) {
+    auto& renderer = Application::get().get_renderer();
+
     if (m_runtime) {
+        m_game_viewport_size = {game_spec.width, game_spec.height};
+        renderer.set_ui_projection_matrix(glm::orthoRH_ZO(
+            0.0f, static_cast<float>(game_spec.width),
+                            static_cast<float>(game_spec.height), 0.0f, 0.0f, 1.0f));
+
         update_scripts(ts);
         scripting_to_physics();
         Application::get().get_physics_manager().step(ts);
         physics_to_scripting();
     }
 
-    auto& renderer = Application::get().get_renderer();
 
     // Editor viewport
     if (m_scene_camera) {
         draw_systems(m_scene_camera->get_camera());
     }
-    renderer.submit_mesh_instances(editor_spec);
+    renderer.submit_mesh_instances({
+        .color_image = editor_spec.color_image,
+        .color_image_layout = editor_spec.color_image_layout,
+        .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
+        .color_clear_value = editor_spec.color_clear_value,
+        .depth_image = editor_spec.depth_image,
+        .width = editor_spec.width,
+        .height = editor_spec.height,
+    });
     // Need to submit because we need to use different cameras (camera is a
     // uniform)
     renderer.submit_command_buffer();
@@ -59,7 +74,29 @@ void Scene::on_update(float ts, const BeginRenderingSpec& editor_spec,
     if (m_has_vaild_camera) {
         draw_systems(m_current_camera);
     }
-    renderer.submit_mesh_instances(game_spec);
+    renderer.submit_mesh_instances({
+        .color_image = game_spec.color_image,
+        .color_image_layout = game_spec.color_image_layout,
+        .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
+        .color_clear_value = game_spec.color_clear_value,
+        .depth_image = game_spec.depth_image,
+        .width = game_spec.width,
+        .height = game_spec.height,
+    });
+
+    // Need to submit because mesh instancing, and ui instancing, share staging buffers
+    renderer.submit_command_buffer();
+
+    renderer.submit_ui_quad_instances({
+        .color_image = game_spec.color_image,
+        .color_image_layout = game_spec.color_image_layout,
+        .color_load_op = VK_ATTACHMENT_LOAD_OP_LOAD,
+        .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
+        .depth_image = game_spec.depth_image,
+        .width = game_spec.width,
+        .height = game_spec.height,
+    });
 }
 
 void Scene::update_rigid_body_mass(Entity entity, float value) {
@@ -87,6 +124,12 @@ void Scene::update_rigid_body_restitution(Entity entity, float value) {
         auto& pm = Application::get().get_physics_manager();
         pm.set_material_restitution(entity, value);
     }
+}
+
+void Scene::render_text(const std::string& text, const glm::vec2& position,
+    float scale, const glm::vec4& tint_color) {
+    auto& renderer = Application::get().get_renderer();
+    renderer.render_text(text, position, scale, tint_color);
 }
 
 void Scene::draw_systems(const PerspectiveCamera& camera) {

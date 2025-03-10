@@ -133,6 +133,27 @@ class ScriptEntities {
     sol::state* m_state;
 };
 
+class ScriptUI {
+public:
+    ScriptUI(Scene* scene) : m_scene(scene) {}
+
+    void render_text(const std::string& text, const glm::vec2& position,
+                     float scale, const glm::vec4& tint_color) {
+        m_scene->render_text(text, position, scale, tint_color);
+    }
+
+    uint32_t get_window_width() const {
+        return m_scene->get_game_viewport_width(); 
+    }
+
+    uint32_t get_window_height() const {
+        return m_scene->get_game_viewport_height();
+    }
+
+private:
+  Scene* m_scene;
+};
+
 Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
                Entity entity)
     : m_scene(scene), m_entity(entity) {
@@ -226,6 +247,10 @@ void Script::on_update(float ts) {
 }
 
 void Script::expose_basic_types() {
+    m_state.new_usertype<glm::vec2>(
+        "Vec2",
+        sol::constructors<glm::vec2(), glm::vec2(float, float)>(), "x",
+        &glm::vec2::x, "y", &glm::vec2::y);
     m_state.new_usertype<glm::vec3>(
         "Vec3",
         sol::constructors<glm::vec3(), glm::vec3(float, float, float)>(), "x",
@@ -272,6 +297,9 @@ void Script::expose_helios_user_types() {
     m_state.new_usertype<Input>("Input", "is_key_pressed",
                                 &Input::is_key_pressed, "is_key_released",
                                 &Input::is_key_released);
+    m_state.new_usertype<ScriptUI>("UI", "render_text", &ScriptUI::render_text,
+                                   "get_window_width",
+                                   &ScriptUI::get_window_width, "get_window_height", &ScriptUI::get_window_height);
 }
 
 void Script::expose_component_user_types() {
@@ -394,6 +422,7 @@ void Script::expose_key_codes() {
 void Script::set_globals() {
     m_state["RootEntity"] = ScriptEntity(m_entity);
     m_state["Entities"] = ScriptEntities(m_scene, &m_state);
+    m_state["UI"] = ScriptUI(m_scene);
 }
 
 } // namespace Helios

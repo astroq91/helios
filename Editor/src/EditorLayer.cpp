@@ -56,7 +56,6 @@ EditorLayer::EditorLayer()
           .sensitivity = 8.0f,
           .fov_y = 80,
       }) {
-    new_scene({.reset_window_title = false});
     m_fps_clock = std::chrono::high_resolution_clock::now();
 }
 
@@ -71,6 +70,8 @@ void EditorLayer::on_attach() {
     populate_viewport_data(m_game_viewport);
     setup_entity_picking();
     setup_editor_grid();
+
+    new_scene({.reset_window_title = false});
 
     m_assets_browser.init();
     m_assets_browser.set_on_scene_selected_callback(
@@ -153,8 +154,6 @@ void EditorLayer::on_update(float ts) {
                 .color_image =
                     m_editor_viewport.images[app.get_current_frame()],
                 .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
                 .color_clear_value = {0.25f, 0.25f, 0.25f, 1.0f},
                 .depth_image =
                     m_editor_viewport.depth_images[app.get_current_frame()],
@@ -164,8 +163,6 @@ void EditorLayer::on_update(float ts) {
             {
                 .color_image = m_game_viewport.images[app.get_current_frame()],
                 .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
                 .color_clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
                 .depth_image =
                     m_game_viewport.depth_images[app.get_current_frame()],
@@ -1153,7 +1150,7 @@ void EditorLayer::setup_entity_picking() {
 
     for (size_t i = 0; i < max_frames_in_flight; i++) {
         m_entity_picking_buffers[i] = VertexBuffer::create(
-            nullptr, sizeof(EntityPickingShaderData) * MAX_MESHES);
+            nullptr, sizeof(EntityPickingShaderData) * k_max_meshes);
 
         m_scene_camera_uniform_buffers[i] =
             Buffer::create(sizeof(CameraUniformBuffer),

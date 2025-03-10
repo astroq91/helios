@@ -1,6 +1,13 @@
 require("lua.key_codes")
 
----@class vec3
+---@class Vec2
+---@field x number The x component
+---@field y number The y component
+---@field new fun() Creates a default vec2
+---@field new fun(x: number, y: number) Creates a vec2 with given values
+Vec2 = Vec2
+
+---@class Vec3
 ---@field x number The x component
 ---@field y number The y component
 ---@field z number The z component
@@ -8,7 +15,7 @@ require("lua.key_codes")
 ---@field new fun(x: number, y: number, z: number) Creates a vec3 with given values
 Vec3 = Vec3
 
----@class vec4
+---@class Vec4
 ---@field x number The x component
 ---@field y number The y component
 ---@field z number The z component
@@ -35,20 +42,20 @@ Name = Name
 Camera = Camera
 
 ---@class DirectionalLight
----@field direction vec3 The direction
----@field ambient vec3   The ambient color of the light 
----@field diffuse vec3   The diffuse color of the light 
----@field specular vec3  The specular color of the light
+---@field direction Vec3 The direction
+---@field ambient Vec3   The ambient color of the light 
+---@field diffuse Vec3   The diffuse color of the light 
+---@field specular Vec3  The specular color of the light
 DirectionalLight = DirectionalLight
 
 ---@class PointLight
----@field position vec3     The position of the light
+---@field position Vec3     The position of the light
 ---@field constant number   The constant co-efficient
 ---@field linear number     The linear co-efficient
 ---@field quadratic number  The quadratic co-efficient
----@field ambient vec3      The ambient color of the light
----@field diffuse vec3      The diffuse color of the light
----@field specular vec3     The specular color of the light
+---@field ambient Vec3      The ambient color of the light
+---@field diffuse Vec3      The diffuse color of the light
+---@field specular Vec3     The specular color of the light
 PointLight = PointLight
 
 ---@class RigidBody 
@@ -62,7 +69,7 @@ RigidBody = RigidBody
 ---@field load_mesh fun(self: MeshRenderer, name: string) Loads a mesh from a relative (based on project path), or absolute path.
 ---                                                   You can also specify default geometries like "Cube"
 ---@field load_material fun(self: MeshRenderer, name: string) Loads a material from a relative (based on project path), or aboslute path.
----@field tint_color vec4 The tinting of the mesh
+---@field tint_color Vec4 The tinting of the mesh
 MeshRenderer = MeshRenderer
 
 ---@class Components
@@ -73,14 +80,14 @@ MeshRenderer = MeshRenderer
 ---@field get_directional_light fun():DirectionalLight Gets the directional light
 ---@field get_point_light fun():PointLight Gets the point light
 ---@field get_rigid_body fun():RigidBody Gets the rigid body 
----@field get_mesh fun():Mesh Gets the mesh 
+---@field get_mesh_renderer fun():MeshRenderer Gets the mesh renderer
 ---
 ---@field add_transform fun():Transform Adds a transform component
 ---@field add_camera fun():Camera Adds a camera component
 ---@field add_directional_light fun():DirectionalLight Adds a directional light component
 ---@field add_point_light fun():PointLight Adds a point light component
 ---@field add_rigid_body fun():RigidBody Adds a rigid body component 
----@field add_mesh fun():Mesh Adds a mesh component 
+---@field add_mesh_renderer fun():MeshRenderer Adds a mesh renderer component 
 Components = Components
 
 ---@class Entity
@@ -94,9 +101,9 @@ RootEntity = RootEntity
 Entities = Entities
 
 ---@class Transform
----@field position vec3 The position
----@field rotation vec3 The rotation 
----@field scale vec3    The scale 
+---@field position Vec3 The position
+---@field rotation Vec3 The rotation 
+---@field scale Vec3    The scale 
 Transform = Transform
 
 ---@class Input
@@ -104,3 +111,8 @@ Transform = Transform
 ---@field is_key_released fun(KeyCode):boolean True if the key was released
 Input = Input
 
+---@class UI
+---@field render_text fun(self: UI, text: string, position: Vec2, scale: number, tint_color: Vec4)
+---@field get_window_width fun(self: UI):number
+---@field get_window_height fun(self: UI):number
+UI = UI

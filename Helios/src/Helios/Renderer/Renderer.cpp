@@ -54,10 +54,10 @@ struct QuadVertex {
 
 namespace Helios {
 std::vector<QuadVertex> ui_quad_vertices = {
-    {{0.0f, 0.0f}, {0.01f, 0.99f}},
-    {{0.0f, 1.0f}, {0.01f, 0.01f}},
-    {{1.0f, 1.0f}, {0.99f, 0.01f}},
-    {{1.0f, 0.0f}, {0.99f, 0.99f}},
+    {{0.0f, 0.0f}, {0.0f, 1.0f}},
+    {{0.0f, 1.0f}, {0.0f, 0.0f}},
+    {{1.0f, 1.0f}, {1.0f, 0.0f}},
+    {{1.0f, 0.0f}, {1.0f, 1.0f}},
 };
 
 std::vector<uint32_t> ui_quad_indices = {
@@ -160,7 +160,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
                               .descriptorCount = 1 * m_max_frames_in_flight},
          VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
                               .descriptorCount = static_cast<uint32_t>(
-                                  MAX_TEXTURES * m_max_frames_in_flight)}});
+                                  k_max_textures * m_max_frames_in_flight)}});
 
     m_texture_sampler = TextureSampler::create_unique();
 
@@ -175,7 +175,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
                                          1,
                                          VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
                                          VK_SHADER_STAGE_FRAGMENT_BIT,
-                                         MAX_TEXTURES,
+                                         k_max_textures,
                                      }});
 
     m_texture_arrays.resize(m_max_frames_in_flight);
@@ -194,7 +194,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     }
 
     // Needed by the default texture creation
-    m_texture_specs.resize(MAX_TEXTURES);
+    m_texture_specs.resize(k_max_textures);
 
     m_textures = make_ref<TextureLibrary>();
     create_default_textures(m_textures);
@@ -233,9 +233,9 @@ void Renderer::init(uint32_t max_frames_in_flight) {
 
     for (size_t i = 0; i < m_max_frames_in_flight; i++) {
         m_directional_lights_uniform_buffers[i] = UniformBuffer::create_unique(
-            sizeof(DirectionalLight) * MAX_DIRECTIONAL_LIGHTS);
+            sizeof(DirectionalLight) * k_max_directional_lights);
         m_point_lights_uniform_buffers[i] =
-            UniformBuffer::create_unique(sizeof(PointLight) * MAX_POINT_LIGHTS);
+            UniformBuffer::create_unique(sizeof(PointLight) * k_max_point_lights);
 
         m_lights_set[i] = DescriptorSet::create_unique(
             m_lights_uniform_pool, m_lights_set_layout,
@@ -268,7 +268,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
 
     for (uint32_t i = 0; i < m_max_frames_in_flight; i++) {
         m_mesh_rendering_instances_buffers[i] = VertexBuffer::create(
-            nullptr, sizeof(MeshRenderingShaderInstanceData) * MAX_MESHES);
+            nullptr, sizeof(MeshRenderingShaderInstanceData) * k_max_meshes);
     }
 
     // Cube //
@@ -572,8 +572,6 @@ void Renderer::end_recording() {
         return;
     }
 
-    submit_ui_quad_instances();
-
     // Transition the image
     const VkImageMemoryBarrier image_memory_barrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -696,8 +694,8 @@ void Renderer::end_frame() {
 }
 
 int32_t Renderer::register_texture(const Texture& texture) {
-    if (m_available_texture_index == MAX_TEXTURES) {
-        HL_ERROR("Maximum number of textures reached ({}).", MAX_TEXTURES);
+    if (m_available_texture_index == k_max_textures) {
+        HL_ERROR("Maximum number of textures reached ({}).", k_max_textures);
         return -1;
     }
 
@@ -889,8 +887,6 @@ void Renderer::draw_mesh(const Ref<Mesh>& geometry,
 
 void Renderer::set_perspective_camera(const PerspectiveCamera& camera) { m_perspective_camera = camera; }
 
-void Renderer::set_orthographic_camera(const OrthographicCamera& camera) { m_orthographic_camera = camera; }
-
 void Renderer::render_directional_light(const DirectionalLight& dir_light) {
     m_directional_lights[m_current_frame].push_back(dir_light);
 }
@@ -921,7 +917,6 @@ void Renderer::render_text(const std::string& text, const glm::vec2& position, f
         };
 
         draw_ui_quad(transform, tint_color, ch.texture);
-
 
         x_cursor += static_cast<float>(ch.advance >> 6) *
             scale; // bitshift by 6 to get value in pixels (2^6 = 64)
@@ -1046,7 +1041,7 @@ void Renderer::create_default_textures(const Ref<TextureLibrary>& texture_lib) {
     texture_lib->add_texture(texture);
 
     // Now update all the slots with the default white texture
-    for (uint32_t i = 0; i < MAX_TEXTURES; i++) {
+    for (uint32_t i = 0; i < k_max_textures; i++) {
         m_texture_specs[i] = DescriptorSpec{
             .binding = 1,
             .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
@@ -1129,7 +1124,7 @@ void Renderer::setup_ui_quad_pipeline() {
 
     for (uint32_t i = 0; i < m_max_frames_in_flight; i++) {
         m_ui_quad_instances_buffers[i] = VertexBuffer::create(
-            nullptr, sizeof(UIQuadShaderInstanceData) * MAX_QUADS);
+            nullptr, sizeof(UIQuadShaderInstanceData) * k_max_ui_quads);
 
     }
 
@@ -1158,7 +1153,7 @@ void Renderer::setup_ui_quad_pipeline() {
 
 void Renderer::setup_lighting_pipeline() {
     m_instance_staging_buffer =
-        Buffer::create_unique(sizeof(MeshRenderingShaderInstanceData) * MAX_MESHES,
+        Buffer::create_unique(sizeof(MeshRenderingShaderInstanceData) * k_max_meshes,
                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -1244,7 +1239,7 @@ void Renderer::prepare_camera_uniform() {
     CameraUniformBuffer ubo{
         .perspective_view_proj = m_perspective_camera.view_projection_matrix,
         .perspective_pos = m_perspective_camera.position,
-        .orthographic_proj = m_ui_camera,
+        .orthographic_proj = m_ui_projection,
     };
 
     memcpy(m_camera_uniform_buffers[m_current_frame]->get_mapped_data(), &ubo,
@@ -1262,8 +1257,9 @@ void Renderer::load_fonts() {
 
 void Renderer::create_ui_camera() {
     auto size = m_swapchain->get_vk_extent();
-    m_ui_camera =
-        glm::orthoRH_ZO(0.0f, static_cast<float>(size.width), static_cast<float>(size.height), 0.0f, 0.0f, 1.0f);
+    m_ui_projection =
+        glm::orthoRH_ZO(0.0f, static_cast<float>(size.width), 0.0f,
+                        static_cast<float>(size.height), 0.0f, 1.0f);
 }
 
 void Renderer::create_depth_image() {

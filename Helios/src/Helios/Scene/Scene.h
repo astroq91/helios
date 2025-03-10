@@ -12,6 +12,15 @@ namespace Helios {
 class Entity;
 class Script;
 
+struct SceneViewportInfo {
+    Ref<Image> color_image = nullptr; 
+    VkImageLayout color_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+    glm::vec4 color_clear_value = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    Ref<Image> depth_image = nullptr; 
+    uint32_t width = 0;
+    uint32_t height = 0;
+};
+
 class Scene {
   public:
     /**
@@ -35,10 +44,9 @@ class Scene {
     /**
      * \brief Call to handle all default ECS systems.
      * \param ts The current timestep.
-     * \param rendering_spec Optional render pass specification.
      */
-    void on_update(float ts, const BeginRenderingSpec& editor_spec = {},
-                   const BeginRenderingSpec& game_spec = {});
+    void on_update(float ts, const SceneViewportInfo& editor_spec,
+                   const SceneViewportInfo& game_spec);
 
     void set_scene_camera(SceneCamera* camera) { m_scene_camera = camera; }
     void start_runtime();
@@ -62,6 +70,17 @@ class Scene {
     void update_rigid_body_static_friction(Entity entity, float value);
     void update_rigid_body_dynamic_friction(Entity entity, float value);
     void update_rigid_body_restitution(Entity entity, float value);
+
+    void render_text(const std::string& text, const glm::vec2& position,
+                     float scale, const glm::vec4& tint_color);
+
+    uint32_t get_game_viewport_width() const {
+        return m_game_viewport_size.x;
+    }
+
+    uint32_t get_game_viewport_height() const {
+        return m_game_viewport_size.y;
+    }
 
   private:
     // SYSTEMS //
@@ -87,6 +106,8 @@ class Scene {
     bool m_has_vaild_camera = false;
 
     bool m_destroyed = false;
+
+    glm::ivec2 m_game_viewport_size;
 
     friend class Entity;
 };
