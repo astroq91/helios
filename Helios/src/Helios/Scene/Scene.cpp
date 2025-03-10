@@ -97,6 +97,8 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
         .width = game_spec.width,
         .height = game_spec.height,
     });
+
+    renderer.submit_command_buffer();
 }
 
 void Scene::update_rigid_body_mass(Entity entity, float value) {

@@ -125,50 +125,48 @@ void EditorLayer::on_update(float ts) {
 
     update_scene_camera_uniform();
     
+    VulkanUtils::transition_image_layout(
+        {.image = m_editor_viewport.images[app.get_current_frame()]
+                      ->get_vk_image(),
+         .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+         .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+         .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+         .dst_stage_mask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+         .command_buffer =
+             renderer.get_current_command_buffer()->get_command_buffer()});
+    VulkanUtils::transition_image_layout(
+        {.image = m_game_viewport.images[app.get_current_frame()]
+                      ->get_vk_image(),
+         .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+         .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+         .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+         .dst_stage_mask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+         .command_buffer =
+             renderer.get_current_command_buffer()->get_command_buffer()});
 
-
-        VulkanUtils::transition_image_layout(
-            {.image = m_editor_viewport.images[app.get_current_frame()]
-                          ->get_vk_image(),
-             .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
-             .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-             .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-             .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-             .dst_stage_mask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-             .command_buffer =
-                 renderer.get_current_command_buffer()->get_command_buffer()});
-        VulkanUtils::transition_image_layout(
-            {.image = m_game_viewport.images[app.get_current_frame()]
-                          ->get_vk_image(),
-             .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
-             .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-             .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-             .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-             .dst_stage_mask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-             .command_buffer =
-                 renderer.get_current_command_buffer()->get_command_buffer()});
-
-        m_scene->on_update(
-            ts,
-            {
-                .color_image =
-                    m_editor_viewport.images[app.get_current_frame()],
-                .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .color_clear_value = {0.25f, 0.25f, 0.25f, 1.0f},
-                .depth_image =
-                    m_editor_viewport.depth_images[app.get_current_frame()],
-                .width = static_cast<uint32_t>(m_editor_viewport.size.x),
-                .height = static_cast<uint32_t>(m_editor_viewport.size.y),
-            },
-            {
-                .color_image = m_game_viewport.images[app.get_current_frame()],
-                .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .color_clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
-                .depth_image =
-                    m_game_viewport.depth_images[app.get_current_frame()],
-                .width = static_cast<uint32_t>(m_game_viewport.size.x),
-                .height = static_cast<uint32_t>(m_game_viewport.size.y),
-            });
+    m_scene->on_update(
+        ts,
+        {
+            .color_image =
+                m_editor_viewport.images[app.get_current_frame()],
+            .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .color_clear_value = {0.25f, 0.25f, 0.25f, 1.0f},
+            .depth_image =
+                m_editor_viewport.depth_images[app.get_current_frame()],
+            .width = static_cast<uint32_t>(m_editor_viewport.size.x),
+            .height = static_cast<uint32_t>(m_editor_viewport.size.y),
+        },
+        {
+            .color_image = m_game_viewport.images[app.get_current_frame()],
+            .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .color_clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
+            .depth_image =
+                m_game_viewport.depth_images[app.get_current_frame()],
+            .width = static_cast<uint32_t>(m_game_viewport.size.x),
+            .height = static_cast<uint32_t>(m_game_viewport.size.y),
+        });
 
         update_entity_picking();
         render_editor_grid();
@@ -442,7 +440,7 @@ void EditorLayer::on_imgui_render() {
 
             // Viewport //
             ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100),
-                                                ImVec2(FLT_MAX, FLT_MAX));
+                                                ImVec2(10000, 10000));
             ImGui::Begin("Game");
             {
                 m_game_viewport.size = ImGui::GetContentRegionAvail();
@@ -454,7 +452,7 @@ void EditorLayer::on_imgui_render() {
             ImGui::End();
                             
             ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100),
-                                                ImVec2(FLT_MAX, FLT_MAX));
+                                                ImVec2(10000, 10000));
             ImGui::Begin("Editor");
             {
                 m_editor_viewport.size = ImGui::GetContentRegionAvail();
