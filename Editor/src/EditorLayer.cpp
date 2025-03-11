@@ -1294,7 +1294,6 @@ void EditorLayer::show_new_project_window() {
         if (!project_name.empty() && !project_folder.empty()) {
             try {
                 fs::path project_path = project_folder / project_name;
-                project_path += fs::path::preferred_separator;
                 if (!fs::exists(project_path)) {
                     m_project = Project(project_path);
                     if (m_project.value().is_valid()) {
@@ -1364,7 +1363,9 @@ void EditorLayer::stop_runtime() {
     SceneSerializer scene_serializer(m_scene);
     scene_serializer.deserialize_from_string(m_scene_copy);
 
-    update_window_title(m_loaded_scene_path.value().string());
+    if (m_loaded_scene_path.has_value()) {
+        update_window_title(m_loaded_scene_path.value().string());
+    }
 
     if (m_selected_entity != k_no_entity) {
         // The previous scene pointer is now invalid

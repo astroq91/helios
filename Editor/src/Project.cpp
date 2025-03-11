@@ -46,7 +46,9 @@ void Project::new_project(std::filesystem::path project_path,
     fs::create_directory(project_path);
 
     fs::create_directory(project_path / "scenes/");
-    std::ofstream default_scene(project_path / "scenes/main.scene");
+
+    auto scene_path = "scenes/main.scene";
+    std::ofstream default_scene(project_path / scene_path);
 
     YAML::Emitter out;
 
@@ -62,6 +64,8 @@ void Project::new_project(std::filesystem::path project_path,
     file.open(project_file_path);
     file << out.c_str();
     file.close();
+
+    m_default_scene = scene_path;
 
     m_name = project_path.filename().string();
 }
