@@ -895,7 +895,8 @@ void Renderer::render_point_light(const PointLight& point_light) {
     m_point_lights[m_current_frame].push_back(point_light);
 }
 
-void Renderer::render_text(const std::string& text, const glm::vec2& position, float scale, const glm::vec4& tint_color)  {
+void Renderer::render_text(const std::string& text, const glm::vec2& position,
+                           float scale, const glm::vec4& tint_color) {
     if (!m_selected_font) {
         return;
     }
@@ -905,8 +906,8 @@ void Renderer::render_text(const std::string& text, const glm::vec2& position, f
     for (auto c = text.begin(); c != text.end(); ++c) {
         const Character& ch = m_selected_font->get_charater(*c);
 
-        float x_pos = x_cursor + static_cast<float>(ch.bearing.x) * scale;
-        float y_pos = position.y + static_cast<float>(ch.size.y - ch.bearing.y) * scale;
+        float x_pos = x_cursor + static_cast<float>(ch.bearing.x);
+        float y_pos = position.y + static_cast<float>(ch.size.y - ch.bearing.y);
 
         float w = static_cast<float>(ch.size.x) * scale;
         float h = static_cast<float>(ch.size.y) * scale;
@@ -1249,6 +1250,10 @@ void Renderer::prepare_camera_uniform() {
 void Renderer::load_fonts() {
     m_font_library.init();
     auto font = m_font_library.load_font(RESOURCES_PATH "fonts/arial.ttf");
+    font->set_pixel_size(0, 48);
+    font->load_characters();
+
+    font = m_font_library.load_font(RESOURCES_PATH "fonts/JetBrainsMono-Regular.ttf");
     font->set_pixel_size(0, 48);
     font->load_characters();
 

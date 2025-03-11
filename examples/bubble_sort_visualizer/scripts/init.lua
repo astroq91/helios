@@ -66,7 +66,7 @@ end
 
 function on_update(ts)
     
-    UI:render_text("Bubble sort!", Vec2.new(UI:get_window_width() / 2, UI:get_window_height() - 50), 1.0, Vec4.new(1.0, 1.0, 1.0, 1.0))
+    UI:render_text("Bubble sort", Vec2.new(0, 0), 0.5, Vec4.new(1.0, 1.0, 1.0, 1.0))
 
     if sort_done then
         return
