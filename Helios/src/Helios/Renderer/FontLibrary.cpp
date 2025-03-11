@@ -1,5 +1,4 @@
-﻿#include "D:/dev/c++/helios/Helios/CMakeFiles/Helios.dir/Debug/cmake_pch.hxx"
-#include "FontLibrary.h"
+﻿#include "FontLibrary.h"
 
 namespace Helios {
 void FontLibrary::init() {
@@ -9,8 +8,8 @@ void FontLibrary::init() {
 }
 
 Ref<Font> FontLibrary::load_font(const std::filesystem::path& path) {
-    m_fonts.insert(std::pair<std::string, Ref<Font>>(path.string(), make_ref<Font>(path, m_library)));
+    m_fonts.insert(std::pair<std::string, Ref<Font>>(
+        path.string(), make_ref<Font>(path, m_library)));
     return m_fonts.at(path.string());
 }
-}
-
+} // namespace Helios
