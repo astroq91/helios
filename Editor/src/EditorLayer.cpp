@@ -1299,20 +1299,23 @@ void EditorLayer::show_new_project_window() {
                     if (m_project.value().is_valid()) {
                         Application::get().set_asset_base_path(
                             m_project.value().get_project_path());
+                        m_assets_browser.set_project(&m_project.value());
 
                         if (m_project.value().get_default_scene()) {
-                            std::string default_scene =
-                                m_project.value().get_default_scene().value();
                             new_scene({.reset_window_title = false});
-                            SceneSerializer serializer(m_scene);
-                            serializer.deserialize_from_path(default_scene);
+                            m_loaded_scene_path =
+                                fs::path(m_project.value().get_default_scene().value());
+
+                            SceneSerializer scene_serializer(m_scene);
+                            scene_serializer.deserialize_from_path(
+                                m_loaded_scene_path.value().string());
                         }
                         update_window_title(
                             m_project.value().get_default_scene());
 
                         m_show_new_project_window = false;
 
-                        m_assets_browser.set_project(&m_project.value());
+                        
                     }
                 } else {
                     HL_ERROR("Directory {} already exists",

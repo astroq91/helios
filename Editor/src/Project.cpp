@@ -10,11 +10,6 @@ Project::Project(const std::filesystem::path& project_path)
     : m_project_path(project_path) {
     fs::path proj_path = project_path;
 
-    // Add trailing slash if missing
-    if (!proj_path.empty() && proj_path.has_filename()) {
-        proj_path += fs::path::preferred_separator;
-    }
-
     fs::path project_file_path = proj_path / "settings.proj";
 
     if (fs::exists(proj_path)) {
