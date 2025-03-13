@@ -37,7 +37,9 @@ class AssetsBrowser {
     void init_icon(const std::filesystem::path& path,
                    VkCommandBuffer command_buffer, Ref<Texture>& texture,
                    VkDescriptorSet& handle);
-    void traverse_directory(FileNode& node);
+    void traverse_directory(FileNode& node, 
+        std::optional<std::filesystem::path> set_current_directory = std::nullopt);
+    void recreate_directory_tree();
     void draw_icons(FileNode* directory);
     void draw_directory_tree(FileNode* root_directory, float width);
     void draw_subdirectory(FileNode* directory);

@@ -93,14 +93,11 @@ void AssetsBrowser::set_project(Project* project) {
     m_root_node = FileNode{.type = FileType::Directory,
                            .path = project->get_project_path()};
 
-    traverse_directory(m_root_node);
-    m_traverse_count = 0;
-
-    m_current_directory = &m_root_node;
+    recreate_directory_tree();
     m_directory_tree_width = k_min_directory_tree_width;
 }
 
-void AssetsBrowser::traverse_directory(FileNode& node) {
+void AssetsBrowser::traverse_directory(FileNode& node, std::optional<fs::path> set_current_directory) {
     if (m_traverse_count > k_max_traverse_count) {
         return;
     }
@@ -112,6 +109,12 @@ void AssetsBrowser::traverse_directory(FileNode& node) {
                 .icon = m_directory_icon_handle,
             });
             auto& new_dir = node.files.back();
+
+            if (set_current_directory) {
+                if (dir_entry.path() == set_current_directory.value()) {
+                    m_current_directory = &node.files[node.files.size() - 1];
+                }
+            }
 
             traverse_directory(new_dir);
         } else {
@@ -149,6 +152,22 @@ void AssetsBrowser::traverse_directory(FileNode& node) {
     m_traverse_count++;
 }
 
+void AssetsBrowser::recreate_directory_tree() {
+    std::optional<fs::path> current_path;
+    if (m_current_directory && fs::exists(m_current_directory->path)) {
+        current_path = m_current_directory->path;
+    }
+
+    m_current_directory = nullptr;
+    m_root_node.files.clear();
+    traverse_directory(m_root_node, current_path);
+    m_traverse_count = 0;
+
+    if (!m_current_directory) {
+        m_current_directory = &m_root_node;
+    }
+}
+
 void AssetsBrowser::draw_icons(FileNode* directory) {
     
     if (!directory || directory->type != FileType::Directory) {
@@ -168,6 +187,9 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
                               m_current_directory->path.string().c_str(),
                               nullptr, nullptr, SW_SHOWDEFAULT);
 #endif
+            }
+            if (ImGui::MenuItem("Refresh files")) {
+                recreate_directory_tree();
             }
             ImGui::EndPopup();
         }
