@@ -1203,7 +1203,7 @@ void EditorLayer::new_scene(const NewSceneInfo& info) {
 
 void EditorLayer::save_scene(const std::string& path) {
     SceneSerializer scene_serializer(m_scene);
-    scene_serializer.deserialize_from_path(path);
+    scene_serializer.serialize_to_path(path);
 }
 
 void EditorLayer::show_welcome_window() {
@@ -1356,6 +1356,10 @@ void EditorLayer::reset_editor() {
 }
 
 void EditorLayer::stop_runtime() {
+    if (!m_scene->is_running()) {
+        return;
+    }
+
     new_scene({
         .reset_selected_entity = false,
         .reset_scene_camera = false,
@@ -1376,6 +1380,8 @@ void EditorLayer::stop_runtime() {
         m_selected_entity_transform =
             m_selected_entity.try_get_component<TransformComponent>();
     }
+
+
 }
 
 
