@@ -49,7 +49,7 @@ void Project::new_project(std::filesystem::path project_path,
 
     out << YAML::BeginMap;
     out << YAML::Key << "project_name" << YAML::Value
-        << project_path.parent_path().filename().string();
+        << project_path.filename().string();
     out << YAML::Key << "default_scene" << YAML::Value
         << "scenes/main.scene";
 
