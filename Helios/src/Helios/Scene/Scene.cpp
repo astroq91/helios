@@ -47,6 +47,7 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
         scripting_to_physics();
         Application::get().get_physics_manager().step(ts);
         physics_to_scripting();
+        update_children();
     }
 
 
@@ -224,7 +225,8 @@ void Scene::start_runtime() {
     }
 
     auto rb_view =
-        m_registry.view<const TransformComponent, const RigidBodyComponent>();
+        m_registry.view<const TransformComponent, const RigidBodyComponent>(
+            entt::exclude<ParentComponent>);
     for (auto [entity, transform, rb] : rb_view.each()) {
         Physics::Geometry geom = Physics::BoxGeometry();
         bool use_geometry = false;
@@ -260,7 +262,8 @@ void Scene::setup_signals() {
 void Scene::scripting_to_physics() {
     auto& pm = Application::get().get_physics_manager();
     auto rigid_body_view =
-        m_registry.view<const TransformComponent, const RigidBodyComponent>();
+        m_registry.view<const TransformComponent, const RigidBodyComponent>(
+            entt::exclude<ParentComponent>);
     for (auto [entity, transform, rb] : rigid_body_view.each()) {
         if (rb.type == RigidBodyType::Static || rb.kinematic ||
             rb.override_dynamic_physics) {
@@ -273,7 +276,7 @@ void Scene::scripting_to_physics() {
 void Scene::physics_to_scripting() {
     auto& pm = Application::get().get_physics_manager();
     auto rigid_body_view =
-        m_registry.view<TransformComponent, const RigidBodyComponent>();
+        m_registry.view<TransformComponent, const RigidBodyComponent>(entt::exclude<ParentComponent>);
     for (auto [entity, transform, rb] : rigid_body_view.each()) {
         Transform t = pm.get_actor_transform(static_cast<uint32_t>(entity));
         transform.position = t.position;
@@ -291,6 +294,22 @@ void Scene::on_rigid_body_destroyed(entt::registry& registry,
             registry.remove<BoxColliderComponent>(entity);
         }
         pm.remove_actor(static_cast<uint32_t>(entity));
+    }
+}
+
+void Scene::update_children() {
+    auto view = m_registry.view<TransformComponent, const ParentComponent>();
+    for (auto [entity, transform, parent] : view.each()) {
+        Entity parent_ent = get_entity(parent.parent);
+        if (parent_ent != k_no_entity) {
+            auto& parent_transform =
+                parent_ent.get_component<const TransformComponent>();
+            transform.position =
+                parent_transform.position + transform.local_position;
+            transform.rotation =
+                parent_transform.rotation + transform.local_rotation;
+            transform.scale = parent_transform.scale + transform.local_scale;
+        }
     }
 }
 

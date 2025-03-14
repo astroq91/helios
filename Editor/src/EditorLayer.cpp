@@ -564,13 +564,38 @@ void EditorLayer::on_imgui_render() {
                 m_scene->sort_component<NameComponent>();
                 auto view = m_scene->get_view<NameComponent>();
 
-                for (auto [entity, name] : view.each()) {
-                    ImGui::PushID((int)entity);
+                for (const auto& [entity, name] : view.each()) {
+                    uint32_t entity_id = static_cast<uint32_t>(entity);
+                    ImGui::PushID(static_cast<int>(entity));
                     bool isSelected =
                         (m_selected_entity == static_cast<uint32_t>(entity));
 
                     if (ImGui::Selectable(name.name.c_str(), isSelected)) {
                         select_entity(static_cast<uint32_t>(entity));
+                    }
+
+                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                        ImGui::SetDragDropPayload("ENTITY_BROWSER_ENTITY",
+                                                  &entity_id, sizeof(uint32_t));
+                        ImGui::Text("%s", name.name.c_str());
+                        ImGui::EndDragDropSource();
+                    }
+
+                    if (ImGui::BeginDragDropTarget()) {
+                        if (const ImGuiPayload* payload =
+                                ImGui::AcceptDragDropPayload(
+                                    "ENTITY_BROWSER_ENTITY")) {
+                            uint32_t received_entity_id = *static_cast<uint32_t*>(payload->Data);
+
+                            if (received_entity_id != entity_id) {
+                                Entity received_entity =
+                                    m_scene->get_entity(received_entity_id);
+                                auto& parent_component = received_entity
+                                    .add_component<ParentComponent>();
+                                parent_component.parent = entity_id;
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
                     }
 
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {

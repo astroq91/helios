@@ -97,6 +97,8 @@ class Scene {
 
     void on_rigid_body_destroyed(entt::registry& registry, entt::entity entity);
 
+    void update_children();
+
   private:
     entt::registry m_registry;
     SceneCamera* m_scene_camera;

@@ -475,6 +475,11 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 ImGui::Text("(Current: %s)", script_name_buffer);
             });
 
+        Utils::render_component<ParentComponent>(
+            "Parent info", selected_entity, [](auto component) {
+                ImGui::Text("Parent entity: %d", component->parent);
+            });
+
         ImGui::Separator();
 
         ImGui::Dummy(ImVec2(0.0f, 5.0f));

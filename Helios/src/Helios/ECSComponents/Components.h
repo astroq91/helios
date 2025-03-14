@@ -19,6 +19,10 @@ struct TransformComponent {
     glm::quat rotation = {0.0f, 0.0f, 0.0f, 1.0f};
     glm::vec3 scale = {1.0f, 1.0f, 1.0f};
 
+    glm::vec3 local_position = {0.0f, 0.0f, 0.0f};
+    glm::quat local_rotation = {0.0f, 0.0f, 0.0f, 1.0f};
+    glm::vec3 local_scale = {1.0f, 1.0f, 1.0f};
+
     TransformComponent() = default;
 
     TransformComponent(const Transform& transform) {
@@ -31,12 +35,23 @@ struct TransformComponent {
         return Transform{position, rotation, scale};
     }
 
+    Transform to_transform_local() const {
+        return Transform{local_position, local_rotation, local_scale};
+    }
+
     glm::vec3 get_euler() const {
         return glm::degrees(glm::eulerAngles(rotation));
     }
 
+    glm::vec3 get_euler_local() const {
+        return glm::degrees(glm::eulerAngles(local_rotation));
+    }
+
     void set_euler(const glm::vec3& euler) {
         rotation = glm::quat(glm::radians(euler));
+    }
+    void set_euler_local(const glm::vec3& euler) {
+        local_rotation = glm::quat(glm::radians(euler));
     }
 };
 
@@ -117,6 +132,10 @@ struct RigidBodyComponent {
 
 struct BoxColliderComponent {
     glm::vec3 size = {0.5f, 0.5, 0.5f};
+};
+
+struct ParentComponent {
+    uint32_t parent;
 };
 
 } // namespace Helios
