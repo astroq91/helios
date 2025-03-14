@@ -1,8 +1,7 @@
 #include "AssetsBrowser.h"
-#include "AssetsBrowser.h"
 
-#include "imgui_internal.h"
 #include "Helios/Core/Application.h"
+#include "imgui_internal.h"
 #include "vulkan/vulkan_core.h"
 #include <imgui.h>
 #include <imgui_impl_vulkan.h>
@@ -12,6 +11,9 @@
 
 #ifdef _WINDOWS
 #include <shellapi.h>
+#endif
+#ifdef _LINUX
+#include <cstdlib>
 #endif
 
 using directory_iterator = std::filesystem::directory_iterator;
@@ -24,12 +26,11 @@ constexpr ImVec2 k_drag_drop_icon_size = {40, 40};
 constexpr float k_icon_padding = 15.0f;
 
 const std::unordered_map<Helios::FileType, const char*>
-    k_file_types_payload_identifiers {
-    {Helios::FileType::Script, "PAYLOAD_SCRIPT"},
+    k_file_types_payload_identifiers{
+        {Helios::FileType::Script, "PAYLOAD_SCRIPT"},
         {Helios::FileType::Material, "PAYLOAD_MATERIAL"},
         {Helios::FileType::Mesh, "PAYLOAD_MESH"},
     };
-
 
 namespace Helios {
 
@@ -72,15 +73,15 @@ void AssetsBrowser::init_icon(const fs::path& path,
                               Ref<Texture>& texture, VkDescriptorSet& handle) {
     texture = Texture::create(path);
 
-    VulkanUtils::transition_image_layout(
-        {.image = texture->get_image()->get_vk_image(),
-         .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
-         .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-         .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
-         .src_stage_mask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-         .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-         .command_buffer = command_buffer,
-        });
+    VulkanUtils::transition_image_layout({
+        .image = texture->get_image()->get_vk_image(),
+        .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
+        .src_stage_mask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        .command_buffer = command_buffer,
+    });
     handle =
         ImGui_ImplVulkan_AddTexture(m_icon_sampler->get_vk_sampler(),
                                     texture->get_image()->get_vk_image_view(),
@@ -97,7 +98,8 @@ void AssetsBrowser::set_project(Project* project) {
     m_directory_tree_width = k_min_directory_tree_width;
 }
 
-void AssetsBrowser::traverse_directory(FileNode& node, std::optional<fs::path> set_current_directory) {
+void AssetsBrowser::traverse_directory(
+    FileNode& node, std::optional<fs::path> set_current_directory) {
     if (m_traverse_count > k_max_traverse_count) {
         return;
     }
@@ -169,14 +171,16 @@ void AssetsBrowser::recreate_directory_tree() {
 }
 
 void AssetsBrowser::draw_icons(FileNode* directory) {
-    
+
     if (!directory || directory->type != FileType::Directory) {
         return;
     }
 
     ImGui::BeginChild("FileBox");
     {
-        if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !ImGui::IsAnyItemHovered()) {
+        if (ImGui::IsWindowHovered() &&
+            ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
+            !ImGui::IsAnyItemHovered()) {
             ImGui::OpenPopup("Assets actions");
         }
 
@@ -186,6 +190,11 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
                 ShellExecuteA(nullptr, "open",
                               m_current_directory->path.string().c_str(),
                               nullptr, nullptr, SW_SHOWDEFAULT);
+#endif
+#ifdef _LINUX
+                std::string cmd =
+                    "xdg-open " + m_current_directory->path.string();
+                std::system(cmd.c_str());
 #endif
             }
             if (ImGui::MenuItem("Refresh files")) {
@@ -198,7 +207,6 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
             ImGui::GetContentRegionAvail().x; // Available width in the window
         float xCursor = 0.0f; // Tracks current X position on the row
 
-
         for (auto& file : directory->files) {
 
             if (xCursor + k_icon_size.x > windowWidth) {
@@ -208,21 +216,24 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
 
             ImGui::SameLine(0, k_icon_padding);
 
-            ImGui::BeginGroup(); 
+            ImGui::BeginGroup();
             {
                 ImGui::PushID(file.path.string().c_str());
                 ImGui::PushStyleColor(ImGuiCol_Button,
                                       ImVec4(0, 0, 0, 0)); // No button color
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                ImGui::PushStyleColor(
+                    ImGuiCol_ButtonHovered,
                     ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No hover color
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                ImGui::PushStyleColor(
+                    ImGuiCol_ButtonActive,
                     ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No active color
-                ImGui::ImageButton(file.icon, k_icon_size,
-                                   ImVec2{0, 1}, ImVec2{1, 0});
+                ImGui::ImageButton(file.icon, k_icon_size, ImVec2{0, 1},
+                                   ImVec2{1, 0});
                 ImGui::PopStyleColor(3); // Restore previous colors
                 ImGui::PopID();
 
-                if (file.draggable() && k_file_types_payload_identifiers.contains(file.type)) {
+                if (file.draggable() &&
+                    k_file_types_payload_identifiers.contains(file.type)) {
                     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
                         ImGui::SetDragDropPayload(
                             k_file_types_payload_identifiers.at(file.type),
@@ -231,7 +242,7 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
                         ImGui::EndDragDropSource();
                     }
                 }
-     
+
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                     if (file.type == FileType::Directory) {
                         m_current_directory = &file;
@@ -254,7 +265,7 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
         }
     }
 
-    ImGui::EndChild();       
+    ImGui::EndChild();
 }
 
 void AssetsBrowser::draw_directory_tree(FileNode* root_directory, float width) {
@@ -274,8 +285,9 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
     if (filename.string().empty()) {
         filename = directory->path.parent_path().filename();
     }
-    ImGuiTreeNodeFlags node_flags =
-        ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
+    ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_SpanAvailWidth |
+                                    ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                                    ImGuiTreeNodeFlags_OpenOnArrow;
     if (m_current_directory == directory) {
         node_flags |= ImGuiTreeNodeFlags_Selected;
         if (m_open_selected_directory) {
@@ -292,7 +304,7 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
     bool node_open = ImGui::TreeNodeEx(filename.string().c_str(), node_flags);
 
     ImVec2 node_end_pos = ImVec2(node_start_pos.x + ImGui::GetItemRectSize().x,
-                               node_start_pos.y + ImGui::GetItemRectSize().y);
+                                 node_start_pos.y + ImGui::GetItemRectSize().y);
     ImVec2 mouse_pos = ImGui::GetMousePos();
 
     bool clicked_inside_node =
@@ -315,10 +327,12 @@ void AssetsBrowser::draw_subdirectory(FileNode* directory) {
 
 void AssetsBrowser::draw_divider() {
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.2f, 0.2f, 1.0f});
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.3f, 0.3f, 1.0f});
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.3f, 0.3f, 0.3f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          ImVec4{0.3f, 0.3f, 0.3f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          ImVec4{0.3f, 0.3f, 0.3f, 1.0f});
     ImGui::Button("##Divider", ImVec2(5.0f, ImGui::GetWindowHeight()));
-    ImGui::PopStyleColor(3); 
+    ImGui::PopStyleColor(3);
     if (ImGui::IsItemActive()) {
         m_directory_tree_width += ImGui::GetIO().MouseDelta.x;
         m_directory_tree_width = std::clamp(
@@ -327,13 +341,10 @@ void AssetsBrowser::draw_divider() {
                 60.0f); // include extra padding for scrollbar and such
     }
     if (ImGui::IsItemActive() || ImGui::IsItemHovered()) {
-        ImGui::SetMouseCursor(
-            ImGuiMouseCursor_ResizeEW); 
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
     } else {
-        ImGui::SetMouseCursor(
-            ImGuiMouseCursor_Arrow); 
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
     }
-
 }
 
 void AssetsBrowser::handle_icon_click(const FileNode* file) const {
@@ -346,11 +357,12 @@ void AssetsBrowser::handle_icon_click(const FileNode* file) const {
     }
     case FileType::Script: {
 #ifdef _WINDOWS
-        ShellExecuteA(nullptr, "open", file->path.string().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        ShellExecuteA(nullptr, "open", file->path.string().c_str(), nullptr,
+                      nullptr, SW_SHOWNORMAL);
 #endif
         break;
     }
-    default: ;
+    default:;
     }
 }
 
@@ -361,16 +373,14 @@ void AssetsBrowser::on_update() {
     }
     ImGui::Begin("Assets Browser");
     {
-        if (m_current_directory)
-        {
+        if (m_current_directory) {
             draw_directory_tree(&m_root_node, m_directory_tree_width);
             ImGui::SameLine();
             draw_divider();
             ImGui::SameLine();
             draw_icons(m_current_directory);
         }
-     
     }
     ImGui::End();
 }
-} 
+} // namespace Helios
