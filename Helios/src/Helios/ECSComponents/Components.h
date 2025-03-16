@@ -135,7 +135,8 @@ struct BoxColliderComponent {
 };
 
 struct ParentComponent {
-    uint32_t parent;
+    explicit ParentComponent(uint32_t _parent) : parent(_parent) {}
+    const uint32_t parent;
 };
 
 } // namespace Helios

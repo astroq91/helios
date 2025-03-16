@@ -75,8 +75,7 @@ void EditorLayer::on_attach() {
 
     m_assets_browser.init();
     m_assets_browser.set_on_scene_selected_callback(
-        [&](const auto& scene_path) { load_scene(scene_path);
-    });
+        [&](const auto& scene_path) { load_scene(scene_path); });
 }
 
 void EditorLayer::on_detach() {}
@@ -124,10 +123,10 @@ void EditorLayer::on_update(float ts) {
     }
 
     update_scene_camera_uniform();
-    
+
     VulkanUtils::transition_image_layout(
-        {.image = m_editor_viewport.images[app.get_current_frame()]
-                      ->get_vk_image(),
+        {.image =
+             m_editor_viewport.images[app.get_current_frame()]->get_vk_image(),
          .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
          .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
          .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -136,8 +135,8 @@ void EditorLayer::on_update(float ts) {
          .command_buffer =
              renderer.get_current_command_buffer()->get_command_buffer()});
     VulkanUtils::transition_image_layout(
-        {.image = m_game_viewport.images[app.get_current_frame()]
-                      ->get_vk_image(),
+        {.image =
+             m_game_viewport.images[app.get_current_frame()]->get_vk_image(),
          .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,
          .new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
          .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -149,8 +148,7 @@ void EditorLayer::on_update(float ts) {
     m_scene->on_update(
         ts,
         {
-            .color_image =
-                m_editor_viewport.images[app.get_current_frame()],
+            .color_image = m_editor_viewport.images[app.get_current_frame()],
             .color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .color_clear_value = {0.25f, 0.25f, 0.25f, 1.0f},
             .depth_image =
@@ -168,37 +166,34 @@ void EditorLayer::on_update(float ts) {
             .height = static_cast<uint32_t>(m_game_viewport.size.y),
         });
 
-        update_entity_picking();
-        render_editor_grid();
+    update_entity_picking();
+    render_editor_grid();
 
-            // Transition the game viewport image (to be used in imgui image)
-        VulkanUtils::transition_image_layout(
-            {.image = m_game_viewport.images[app.get_current_frame()]
-                          ->get_vk_image(),
-             .old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-             .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-             .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-             .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
-             .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-             .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-             .command_buffer =
-                 renderer.get_current_command_buffer()->get_command_buffer()});
+    // Transition the game viewport image (to be used in imgui image)
+    VulkanUtils::transition_image_layout(
+        {.image =
+             m_game_viewport.images[app.get_current_frame()]->get_vk_image(),
+         .old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+         .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+         .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
+         .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+         .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+         .command_buffer =
+             renderer.get_current_command_buffer()->get_command_buffer()});
 
-        // Now transition the editor viewport image (to be used in imgui image)
-        VulkanUtils::transition_image_layout(
-            {.image = m_editor_viewport.images[app.get_current_frame()]
-                          ->get_vk_image(),
-             .old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-             .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-             .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-             .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
-             .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-             .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-             .command_buffer =
-                 renderer.get_current_command_buffer()->get_command_buffer()});
- 
-
-
+    // Now transition the editor viewport image (to be used in imgui image)
+    VulkanUtils::transition_image_layout(
+        {.image =
+             m_editor_viewport.images[app.get_current_frame()]->get_vk_image(),
+         .old_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+         .new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+         .src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
+         .src_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+         .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+         .command_buffer =
+             renderer.get_current_command_buffer()->get_command_buffer()});
 }
 
 void EditorLayer::on_event(Event& e) {
@@ -338,10 +333,9 @@ void EditorLayer::on_imgui_render() {
                             },
                             m_project.value().get_project_path());
                         load_scene(ret.path);
-
                     }
                     ImGui::BeginDisabled(!m_loaded_scene_path);
-                    if (ImGui::MenuItem("Save scene")) { 
+                    if (ImGui::MenuItem("Save scene")) {
                         stop_runtime();
                         save_scene(m_loaded_scene_path.value().string());
                     }
@@ -365,7 +359,8 @@ void EditorLayer::on_imgui_render() {
                             scene_serializer.deserialize_from_path(
                                 m_loaded_scene_path.value().string());
 
-                            update_window_title(m_loaded_scene_path.value().string());
+                            update_window_title(
+                                m_loaded_scene_path.value().string());
                         }
                     }
                     ImGui::EndMenu();
@@ -424,7 +419,6 @@ void EditorLayer::on_imgui_render() {
                 ImGui::BeginDisabled(!m_scene->is_running());
                 if (ImGui::Button("Stop")) {
                     stop_runtime();
-
                 }
                 ImGui::EndDisabled();
 
@@ -445,111 +439,107 @@ void EditorLayer::on_imgui_render() {
             {
                 m_game_viewport.size = ImGui::GetContentRegionAvail();
 
-                    ImGui::Image(
-                        m_game_viewport.handles[app.get_current_frame()],
-                        m_game_viewport.size);
+                ImGui::Image(m_game_viewport.handles[app.get_current_frame()],
+                             m_game_viewport.size);
             }
             ImGui::End();
-                            
+
             ImGui::SetNextWindowSizeConstraints(ImVec2(100, 100),
                                                 ImVec2(10000, 10000));
             ImGui::Begin("Editor");
             {
                 m_editor_viewport.size = ImGui::GetContentRegionAvail();
-                    ImVec2 global_mouse_pos = ImGui::GetIO().MousePos;
+                ImVec2 global_mouse_pos = ImGui::GetIO().MousePos;
 
-                    // get the current window's position
-                    ImVec2 window_pos = ImGui::GetWindowPos();
+                // get the current window's position
+                ImVec2 window_pos = ImGui::GetWindowPos();
 
-                    // Calculate the mouse position relative to the window's
-                    // top-left corner
-                    ImVec2 mouse_pos_in_window =
-                        ImVec2(global_mouse_pos.x - window_pos.x,
-                               global_mouse_pos.y - window_pos.y);
+                // Calculate the mouse position relative to the window's
+                // top-left corner
+                ImVec2 mouse_pos_in_window =
+                    ImVec2(global_mouse_pos.x - window_pos.x,
+                           global_mouse_pos.y - window_pos.y);
 
-                    // Optionally, you can also consider the window's title bar
-                    // height and any window padding as follows
-                    float title_bar_height = ImGui::GetStyle().FramePadding.y +
-                                             ImGui::GetFontSize() +
-                                             ImGui::GetStyle().WindowPadding.y;
-                    m_editor_viewport.mouse_pos =
-                        ImVec2(mouse_pos_in_window.x -
-                                   ImGui::GetStyle().WindowPadding.x,
-                               mouse_pos_in_window.y - title_bar_height);
+                // Optionally, you can also consider the window's title bar
+                // height and any window padding as follows
+                float title_bar_height = ImGui::GetStyle().FramePadding.y +
+                                         ImGui::GetFontSize() +
+                                         ImGui::GetStyle().WindowPadding.y;
+                m_editor_viewport.mouse_pos = ImVec2(
+                    mouse_pos_in_window.x - ImGui::GetStyle().WindowPadding.x,
+                    mouse_pos_in_window.y - title_bar_height);
 
-                    ImVec2 window_pos_without_padding =
-                        ImVec2(window_pos.x - ImGui::GetStyle().WindowPadding.x,
-                               window_pos.y - title_bar_height);
+                ImVec2 window_pos_without_padding =
+                    ImVec2(window_pos.x - ImGui::GetStyle().WindowPadding.x,
+                           window_pos.y - title_bar_height);
 
-                    m_editor_viewport.focused = ImGui::IsWindowFocused();
-                    m_editor_viewport.hovered = ImGui::IsWindowHovered();
-                    Application::get().get_imgui_layer()->set_block_events(
-                        !m_editor_viewport.focused);
+                m_editor_viewport.focused = ImGui::IsWindowFocused();
+                m_editor_viewport.hovered = ImGui::IsWindowHovered();
+                Application::get().get_imgui_layer()->set_block_events(
+                    !m_editor_viewport.focused);
 
-                    ImGui::Image(
-                        m_editor_viewport.handles[app.get_current_frame()],
-                        m_editor_viewport.size);
+                ImGui::Image(m_editor_viewport.handles[app.get_current_frame()],
+                             m_editor_viewport.size);
 
-                    // Disable manipulation if an entity has a dynamic rb,
-                    // without override_dynamic_physics=true
-                    bool disable_gizmo = false;
-                    if (m_selected_entity != k_no_entity) {
-                        RigidBodyComponent* rb =
-                            m_selected_entity
-                                .try_get_component<RigidBodyComponent>();
+                // Disable manipulation if an entity has a dynamic rb,
+                // without override_dynamic_physics=true
+                bool disable_gizmo = false;
+                if (m_selected_entity != k_no_entity) {
+                    RigidBodyComponent* rb =
+                        m_selected_entity
+                            .try_get_component<RigidBodyComponent>();
 
-                        if (m_scene->is_running() && rb &&
-                            rb->type == RigidBodyType::Dynamic &&
-                            !rb->kinematic && !rb->override_dynamic_physics) {
-                            disable_gizmo = true;
-                        }
+                    if (m_scene->is_running() && rb &&
+                        rb->type == RigidBodyType::Dynamic && !rb->kinematic &&
+                        !rb->override_dynamic_physics) {
+                        disable_gizmo = true;
+                    }
+                }
+
+                if (m_selected_entity != k_no_entity &&
+                    m_selected_entity_transform && !disable_gizmo) {
+                    ImGuizmo::BeginFrame();
+                    ImGuizmo::SetOrthographic(false);
+                    ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+
+                    // x += 19, y += 59 are magic numbers for dealing with
+                    // the viewport image being offset from the imgui window
+                    // (ie. padding)
+                    ImGuizmo::SetRect(window_pos_without_padding.x + 19,
+                                      window_pos_without_padding.y + 59,
+                                      m_editor_viewport.size.x,
+                                      m_editor_viewport.size.y);
+
+                    glm::mat4 model =
+                        m_selected_entity_transform->to_transform().ToMat4();
+
+                    PerspectiveCamera cam = m_scene_camera.get_camera();
+                    cam.projection_matrix[1][1] *= -1;
+
+                    glm::vec3 snap = {0.5f, 0.5f, 0.5f};
+
+                    ImGuizmo::Manipulate(glm::value_ptr(cam.view_matrix),
+                                         glm::value_ptr(cam.projection_matrix),
+                                         m_gizmo_operation, m_gizmo_mode,
+                                         glm::value_ptr(model), nullptr,
+                                         m_use_snap ? &snap.x : nullptr);
+
+                    if (ImGuizmo::IsUsing()) {
+                        Math::decompose_transform(
+                            model, m_selected_entity_transform->position,
+                            m_selected_entity_transform->rotation,
+                            m_selected_entity_transform->scale);
+                        m_scene->on_entity_transform_updated(m_selected_entity);
+
+                        m_use_mouse_picking = false;
                     }
 
-                    if (m_selected_entity != k_no_entity &&
-                        m_selected_entity_transform && !disable_gizmo) {
-                        ImGuizmo::BeginFrame();
-                        ImGuizmo::SetOrthographic(false);
-                        ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
-
-                        // x += 19, y += 59 are magic numbers for dealing with
-                        // the viewport image being offset from the imgui window
-                        // (ie. padding)
-                        ImGuizmo::SetRect(window_pos_without_padding.x + 19,
-                                          window_pos_without_padding.y + 59,
-                                          m_editor_viewport.size.x,
-                                          m_editor_viewport.size.y);
-
-                        glm::mat4 model =
-                            m_selected_entity_transform->to_transform()
-                                .ToMat4();
-
-                        PerspectiveCamera cam = m_scene_camera.get_camera();
-                        cam.projection_matrix[1][1] *= -1;
-
-                        glm::vec3 snap = {0.5f, 0.5f, 0.5f};
-
-                        ImGuizmo::Manipulate(
-                            glm::value_ptr(cam.view_matrix),
-                            glm::value_ptr(cam.projection_matrix),
-                            m_gizmo_operation, m_gizmo_mode,
-                            glm::value_ptr(model), nullptr,
-                            m_use_snap ? &snap.x : nullptr);
-
-                        if (ImGuizmo::IsUsing()) {
-                            Math::decompose_transform(
-                                model, m_selected_entity_transform->position,
-                                m_selected_entity_transform->rotation,
-                                m_selected_entity_transform->scale);
-
-                            m_use_mouse_picking = false;
-                        }
-
-                        if (ImGuizmo::IsOver()) {
-                            m_using_gizmo = true;
-                        } else {
-                            m_using_gizmo = false;
-                        }
+                    if (ImGuizmo::IsOver()) {
+                        m_using_gizmo = true;
+                    } else {
+                        m_using_gizmo = false;
                     }
+                }
             }
             ImGui::End();
 
@@ -585,14 +575,24 @@ void EditorLayer::on_imgui_render() {
                         if (const ImGuiPayload* payload =
                                 ImGui::AcceptDragDropPayload(
                                     "ENTITY_BROWSER_ENTITY")) {
-                            uint32_t received_entity_id = *static_cast<uint32_t*>(payload->Data);
+                            uint32_t received_entity_id =
+                                *static_cast<uint32_t*>(payload->Data);
 
                             if (received_entity_id != entity_id) {
                                 Entity received_entity =
                                     m_scene->get_entity(received_entity_id);
-                                auto& parent_component = received_entity
-                                    .add_component<ParentComponent>();
-                                parent_component.parent = entity_id;
+                                auto& parent_component =
+                                    received_entity
+                                        .add_component<ParentComponent>(
+                                            entity_id);
+
+                                auto received_entity_transform =
+                                    received_entity.try_get_component<
+                                        TransformComponent>();
+                                if (received_entity_transform) {
+                                    m_scene->on_entity_transform_updated(
+                                        received_entity);
+                                }
                             }
                         }
                         ImGui::EndDragDropTarget();
@@ -626,18 +626,14 @@ void EditorLayer::on_imgui_render() {
                     }
                 }
 
-                static int min_instances_for_mt = app
-                                               .get_renderer()
-                                               .get_min_instances_for_mt();
+                static int min_instances_for_mt =
+                    app.get_renderer().get_min_instances_for_mt();
                 static int num_threads_for_mt =
-                         app
-                        .get_renderer()
-                        .get_num_threads_for_instancing();
+                    app.get_renderer().get_num_threads_for_instancing();
 
                 if (ImGui::TreeNode("Instancing")) {
                     if (ImGui::TreeNode("Multithreading")) {
-                        if (ImGui::InputInt(
-                            "Minimum number of instances",
+                        if (ImGui::InputInt("Minimum number of instances",
                                             &min_instances_for_mt)) {
                             app.get_renderer().set_min_instances_for_mt(
                                 min_instances_for_mt);
@@ -650,7 +646,6 @@ void EditorLayer::on_imgui_render() {
                         }
                         ImGui::TreePop();
                     }
-
 
                     ImGui::TreePop();
                 }
@@ -825,7 +820,8 @@ void EditorLayer::update_entity_picking() {
     auto& app = Application::get();
     auto& renderer = app.get_renderer();
     if (m_use_mouse_picking && !m_using_gizmo) {
-        auto view = m_scene->get_view<TransformComponent, MeshRendererComponent>();
+        auto view =
+            m_scene->get_view<TransformComponent, MeshRendererComponent>();
 
         if (view.front() != entt::null) {
             // First we prepare the data
@@ -880,8 +876,7 @@ void EditorLayer::update_entity_picking() {
             for (auto [entity, transform_component, mesh_component] :
                  view.each()) {
                 VkBuffer buffers[2] = {
-                    mesh_component.mesh->get_vertex_buffer()
-                        ->get_vk_buffer(),
+                    mesh_component.mesh->get_vertex_buffer()->get_vk_buffer(),
                     m_entity_picking_buffers[app.get_current_frame()]
                         ->get_vk_buffer()};
                 VkDeviceSize offsets[2] = {0, offset};
@@ -891,9 +886,8 @@ void EditorLayer::update_entity_picking() {
 
                 vkCmdBindIndexBuffer(
                     renderer.get_current_command_buffer()->get_command_buffer(),
-                    mesh_component.mesh->get_index_buffer()
-                        ->get_vk_buffer(),
-                    0, VK_INDEX_TYPE_UINT32);
+                    mesh_component.mesh->get_index_buffer()->get_vk_buffer(), 0,
+                    VK_INDEX_TYPE_UINT32);
 
                 VkDescriptorSet sets[] = {
                     m_scene_camera_descriptor_sets[app.get_current_frame()]
@@ -908,8 +902,7 @@ void EditorLayer::update_entity_picking() {
 
                 vkCmdDrawIndexed(
                     renderer.get_current_command_buffer()->get_command_buffer(),
-                    mesh_component.mesh->get_index_buffer()
-                        ->get_index_count(),
+                    mesh_component.mesh->get_index_buffer()->get_index_count(),
                     1, 0, 0, 0);
 
                 offset += sizeof(EntityPickingShaderData);
@@ -1328,8 +1321,8 @@ void EditorLayer::show_new_project_window() {
 
                         if (m_project.value().get_default_scene()) {
                             new_scene({.reset_window_title = false});
-                            m_loaded_scene_path =
-                                fs::path(m_project.value().get_default_scene().value());
+                            m_loaded_scene_path = fs::path(
+                                m_project.value().get_default_scene().value());
 
                             SceneSerializer scene_serializer(m_scene);
                             scene_serializer.deserialize_from_path(
@@ -1339,8 +1332,6 @@ void EditorLayer::show_new_project_window() {
                             m_project.value().get_default_scene());
 
                         m_show_new_project_window = false;
-
-                        
                     }
                 } else {
                     HL_ERROR("Directory {} already exists",
@@ -1405,23 +1396,19 @@ void EditorLayer::stop_runtime() {
         m_selected_entity_transform =
             m_selected_entity.try_get_component<TransformComponent>();
     }
-
-
 }
-
 
 void EditorLayer::load_scene(const std::filesystem::path& path) {
     if (!path.empty()) {
         new_scene({.reset_window_title = false});
 
-        m_loaded_scene_path = IOUtils::relative_path(
-            m_project.value().get_project_path(), path);
+        m_loaded_scene_path =
+            IOUtils::relative_path(m_project.value().get_project_path(), path);
 
         SceneSerializer scene_serializer(m_scene);
-        scene_serializer.deserialize_from_path(m_loaded_scene_path.value().string());
+        scene_serializer.deserialize_from_path(
+            m_loaded_scene_path.value().string());
 
         update_window_title(m_loaded_scene_path.value().string());
     }
 }
-
-

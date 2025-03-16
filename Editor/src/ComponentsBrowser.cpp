@@ -120,6 +120,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 if (component != lastComponent ||
                     component->rotation != lastRotation) {
                     eulerCache = component->get_euler(); // Refresh Euler cache
+
                     lastRotation =
                         component->rotation; // Update last known rotation
                     lastComponent =
@@ -137,7 +138,9 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     ImGui::BeginDisabled();
                 }
 
-                ImGui::InputFloat3("position", &component->position.x);
+                if (ImGui::InputFloat3("position", &component->position.x)) {
+                    scene->on_entity_position_updated(selected_entity);
+                }
 
                 if (ImGui::InputFloat3("rotation", &eulerCache.x)) {
                     eulerCache = Utils::clamp_euler(
@@ -145,9 +148,12 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     component->set_euler(eulerCache); // Update quaternion
                     lastRotation =
                         component->rotation; // Sync last known rotation
+                    scene->on_entity_rotation_updated(selected_entity);
                 }
 
-                ImGui::InputFloat3("scale", &component->scale.x);
+                if (ImGui::InputFloat3("scale", &component->scale.x)) {
+                    scene->on_entity_scale_updated(selected_entity);
+                }
 
                 if (disable_transform) {
                     ImGui::EndDisabled();
@@ -207,9 +213,8 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                         const ImGuiPayload* payload =
                             ImGui::AcceptDragDropPayload("PAYLOAD_MESH");
                         if (payload) {
-                            abs_path =
-                                *static_cast<std::filesystem::path*>(
-                                    payload->Data);
+                            abs_path = *static_cast<std::filesystem::path*>(
+                                payload->Data);
                         }
                     }
 
@@ -245,7 +250,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                         },
                                     },
                                     project.get_project_path());
-    
+
                                 abs_path = dialog_ret.path;
                                 show_choose_mesh_modal = false;
                             }
@@ -304,7 +309,8 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
                         if (ImGui::BeginDragDropTarget()) {
                             const ImGuiPayload* payload =
-                                ImGui::AcceptDragDropPayload("PAYLOAD_MATERIAL");
+                                ImGui::AcceptDragDropPayload(
+                                    "PAYLOAD_MATERIAL");
                             if (payload) {
                                 abs_path = *static_cast<std::filesystem::path*>(
                                     payload->Data);
@@ -434,7 +440,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     strcpy(script_name_buffer, "None");
                 }
 
-                std::filesystem::path abs_path {};
+                std::filesystem::path abs_path{};
 
                 if (ImGui::Button("Choose")) {
                     DialogReturn dialog_ret = IOUtils::open_file(
@@ -445,14 +451,15 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                             },
                         },
                         project.get_project_path());
-                        abs_path = dialog_ret.path;
+                    abs_path = dialog_ret.path;
                 }
 
                 if (ImGui::BeginDragDropTarget()) {
                     const ImGuiPayload* payload =
                         ImGui::AcceptDragDropPayload("PAYLOAD_SCRIPT");
                     if (payload) {
-                        abs_path = *static_cast<std::filesystem::path*>(payload->Data);
+                        abs_path =
+                            *static_cast<std::filesystem::path*>(payload->Data);
                     }
                 }
 

@@ -2,6 +2,7 @@
 
 #include <entt/entt.hpp>
 #include <stdexcept>
+#include <unordered_map>
 
 #include "Helios/Renderer/Renderer.h"
 #include "Helios/Scene/PerspectiveCamera.h"
@@ -13,10 +14,10 @@ class Entity;
 class Script;
 
 struct SceneViewportInfo {
-    Ref<Image> color_image = nullptr; 
+    Ref<Image> color_image = nullptr;
     VkImageLayout color_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
     glm::vec4 color_clear_value = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    Ref<Image> depth_image = nullptr; 
+    Ref<Image> depth_image = nullptr;
     uint32_t width = 0;
     uint32_t height = 0;
 };
@@ -53,8 +54,9 @@ class Scene {
 
     bool is_running() const { return m_runtime; }
 
-    template <typename... Type> auto get_view() {
-        return m_registry.view<Type...>();
+    template <typename... Type, typename... Exclude>
+    auto get_view(entt::exclude_t<Exclude...> = entt::exclude_t{}) {
+        return m_registry.view<Type...>(entt::exclude<Exclude...>);
     }
 
     template <typename... Type> auto get_view() const {
@@ -71,16 +73,25 @@ class Scene {
     void update_rigid_body_dynamic_friction(Entity entity, float value);
     void update_rigid_body_restitution(Entity entity, float value);
 
+    void on_entity_transform_updated(Entity entity);
+    // TODO?: void on_entity_local_transform_updated(Entity entity);
+
+    void on_entity_position_updated(Entity entity);
+    void on_entity_rotation_updated(Entity entity);
+    void on_entity_scale_updated(Entity entity);
+    void on_entity_local_position_updated(Entity entity);
+    void on_entity_local_rotation_updated(Entity entity);
+    void on_entity_local_scale_updated(Entity entity);
+
     void render_text(const std::string& text, const glm::vec2& position,
                      float scale, const glm::vec4& tint_color);
 
-    uint32_t get_game_viewport_width() const {
-        return m_game_viewport_size.x;
-    }
+    uint32_t get_game_viewport_width() const { return m_game_viewport_size.x; }
 
-    uint32_t get_game_viewport_height() const {
-        return m_game_viewport_size.y;
-    }
+    uint32_t get_game_viewport_height() const { return m_game_viewport_size.y; }
+
+    const std::unordered_map<uint32_t, bool>* const
+    try_get_entity_children(Entity entity) const;
 
   private:
     // SYSTEMS //
@@ -96,6 +107,10 @@ class Scene {
     void physics_to_scripting();
 
     void on_rigid_body_destroyed(entt::registry& registry, entt::entity entity);
+    void on_parent_component_added(entt::registry& registry,
+                                   entt::entity entity);
+    void on_parent_component_destroyed(entt::registry& registry,
+                                       entt::entity entity);
 
     void update_children();
 
@@ -110,6 +125,9 @@ class Scene {
     bool m_destroyed = false;
 
     glm::ivec2 m_game_viewport_size;
+
+    std::unordered_map<uint32_t, std::unordered_map<uint32_t, bool>>
+        m_entity_children;
 
     friend class Entity;
 };

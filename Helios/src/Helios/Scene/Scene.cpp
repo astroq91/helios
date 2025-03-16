@@ -41,15 +41,14 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
         m_game_viewport_size = {game_spec.width, game_spec.height};
         renderer.set_ui_projection_matrix(glm::orthoRH_ZO(
             0.0f, static_cast<float>(game_spec.width),
-                            static_cast<float>(game_spec.height), 0.0f, 0.0f, 1.0f));
+            static_cast<float>(game_spec.height), 0.0f, 0.0f, 1.0f));
 
         update_scripts(ts);
         scripting_to_physics();
         Application::get().get_physics_manager().step(ts);
         physics_to_scripting();
-        update_children();
     }
-
+    update_children();
 
     // Editor viewport
     if (m_scene_camera) {
@@ -86,7 +85,8 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
         .height = game_spec.height,
     });
 
-    // Need to submit because mesh instancing, and ui instancing, share staging buffers
+    // Need to submit because mesh instancing, and ui instancing, share staging
+    // buffers
     renderer.submit_command_buffer();
 
     renderer.submit_ui_quad_instances({
@@ -129,8 +129,171 @@ void Scene::update_rigid_body_restitution(Entity entity, float value) {
     }
 }
 
+void Scene::on_entity_transform_updated(Entity entity) {
+    on_entity_position_updated(entity);
+    on_entity_rotation_updated(entity);
+    on_entity_scale_updated(entity);
+}
+
+void Scene::on_entity_position_updated(Entity entity) {
+    bool local_transform_relative_to_world = false;
+    auto transform = entity.try_get_component<TransformComponent>();
+    if (transform) {
+        auto parent_component = entity.try_get_component<ParentComponent>();
+        if (parent_component) {
+            auto parent = get_entity(parent_component->parent);
+
+            auto parent_transform =
+                parent.try_get_component<TransformComponent>();
+            if (parent_transform) {
+
+                transform->local_position =
+                    transform->position - parent_transform->position;
+            } else {
+                local_transform_relative_to_world = true;
+            }
+        } else {
+            local_transform_relative_to_world = true;
+        }
+    }
+
+    if (local_transform_relative_to_world) {
+        transform->local_position = transform->position;
+    }
+}
+void Scene::on_entity_rotation_updated(Entity entity) {
+    bool local_transform_relative_to_world = false;
+    auto transform = entity.try_get_component<TransformComponent>();
+    if (transform) {
+        auto parent_component = entity.try_get_component<ParentComponent>();
+        if (parent_component) {
+            auto parent = get_entity(parent_component->parent);
+
+            auto parent_transform =
+                parent.try_get_component<TransformComponent>();
+            if (parent_transform) {
+
+                transform->local_rotation =
+                    transform->rotation - parent_transform->rotation;
+            } else {
+                local_transform_relative_to_world = true;
+            }
+        } else {
+            local_transform_relative_to_world = true;
+        }
+    }
+
+    if (local_transform_relative_to_world) {
+        transform->local_rotation = transform->rotation;
+    }
+}
+void Scene::on_entity_scale_updated(Entity entity) {
+    bool local_transform_relative_to_world = false;
+    auto transform = entity.try_get_component<TransformComponent>();
+    if (transform) {
+        auto parent_component = entity.try_get_component<ParentComponent>();
+        if (parent_component) {
+            auto parent = get_entity(parent_component->parent);
+
+            auto parent_transform =
+                parent.try_get_component<TransformComponent>();
+            if (parent_transform) {
+
+                transform->local_scale =
+                    transform->scale - parent_transform->scale;
+            } else {
+                local_transform_relative_to_world = true;
+            }
+        } else {
+            local_transform_relative_to_world = true;
+        }
+    }
+
+    if (local_transform_relative_to_world) {
+        transform->local_scale = transform->scale;
+    }
+}
+
+void Scene::on_entity_local_position_updated(Entity entity) {
+    bool local_transform_relative_to_world = false;
+    auto transform = entity.try_get_component<TransformComponent>();
+    if (transform) {
+        auto parent_component = entity.try_get_component<ParentComponent>();
+        if (parent_component) {
+            auto parent = get_entity(parent_component->parent);
+
+            auto parent_transform =
+                parent.try_get_component<TransformComponent>();
+            if (parent_transform) {
+
+                transform->position =
+                    parent_transform->position + transform->local_position;
+            } else {
+                local_transform_relative_to_world = true;
+            }
+        } else {
+            local_transform_relative_to_world = true;
+        }
+    }
+
+    if (local_transform_relative_to_world) {
+        transform->position = transform->local_position;
+    }
+}
+void Scene::on_entity_local_rotation_updated(Entity entity) {
+    bool local_transform_relative_to_world = false;
+    auto transform = entity.try_get_component<TransformComponent>();
+    if (transform) {
+        auto parent_component = entity.try_get_component<ParentComponent>();
+        if (parent_component) {
+            auto parent = get_entity(parent_component->parent);
+
+            auto parent_transform =
+                parent.try_get_component<TransformComponent>();
+            if (parent_transform) {
+
+                transform->rotation =
+                    parent_transform->rotation + transform->local_rotation;
+            } else {
+                local_transform_relative_to_world = true;
+            }
+        } else {
+            local_transform_relative_to_world = true;
+        }
+    }
+
+    if (local_transform_relative_to_world) {
+        transform->rotation = transform->local_rotation;
+    }
+}
+void Scene::on_entity_local_scale_updated(Entity entity) {
+    bool local_transform_relative_to_world = false;
+    auto transform = entity.try_get_component<TransformComponent>();
+    if (transform) {
+        auto parent_component = entity.try_get_component<ParentComponent>();
+        if (parent_component) {
+            auto parent = get_entity(parent_component->parent);
+
+            auto parent_transform =
+                parent.try_get_component<TransformComponent>();
+            if (parent_transform) {
+
+                transform->scale =
+                    parent_transform->scale + transform->local_scale;
+            } else {
+                local_transform_relative_to_world = true;
+            }
+        } else {
+            local_transform_relative_to_world = true;
+        }
+    }
+
+    if (local_transform_relative_to_world) {
+        transform->scale = transform->local_scale;
+    }
+}
 void Scene::render_text(const std::string& text, const glm::vec2& position,
-    float scale, const glm::vec4& tint_color) {
+                        float scale, const glm::vec4& tint_color) {
     auto& renderer = Application::get().get_renderer();
     renderer.render_text(text, position, scale, tint_color);
 }
@@ -157,8 +320,9 @@ void Scene::update_camera(float aspect_ratio) {
     }
 
     for (auto [entity, transform, cam] : camera_view.each()) {
-        m_current_camera = PerspectiveCamera(transform.to_transform(), aspect_ratio,
-                                  cam.fovY, cam.z_near, cam.z_far);
+        m_current_camera =
+            PerspectiveCamera(transform.to_transform(), aspect_ratio, cam.fovY,
+                              cam.z_near, cam.z_far);
         break;
     }
 }
@@ -182,9 +346,11 @@ void Scene::draw_meshes() {
     auto& renderer = Application::get().get_renderer();
 
     auto meshes_view =
-        m_registry.view<const TransformComponent, const MeshRendererComponent>();
+        m_registry
+            .view<const TransformComponent, const MeshRendererComponent>();
 
-    std::unordered_map<uuids::uuid, std::vector<MeshRenderingInstance>> mesh_groups;
+    std::unordered_map<uuids::uuid, std::vector<MeshRenderingInstance>>
+        mesh_groups;
     std::unordered_map<uuids::uuid, Ref<Mesh>> meshes;
 
     for (auto [entity, transform, mesh] : meshes_view.each()) {
@@ -254,9 +420,21 @@ void Scene::start_runtime() {
     m_runtime = true;
 }
 
+const std::unordered_map<uint32_t, bool>* const
+Scene::try_get_entity_children(Entity entity) const {
+    if (m_entity_children.find(entity) != m_entity_children.end()) {
+        return &m_entity_children.find(entity)->second;
+    }
+    return nullptr;
+}
+
 void Scene::setup_signals() {
     m_registry.on_destroy<RigidBodyComponent>()
         .connect<&Scene::on_rigid_body_destroyed>(*this);
+    m_registry.on_construct<ParentComponent>()
+        .connect<&Scene::on_parent_component_added>(*this);
+    m_registry.on_destroy<ParentComponent>()
+        .connect<&Scene::on_parent_component_destroyed>(*this);
 }
 
 void Scene::scripting_to_physics() {
@@ -276,7 +454,8 @@ void Scene::scripting_to_physics() {
 void Scene::physics_to_scripting() {
     auto& pm = Application::get().get_physics_manager();
     auto rigid_body_view =
-        m_registry.view<TransformComponent, const RigidBodyComponent>(entt::exclude<ParentComponent>);
+        m_registry.view<TransformComponent, const RigidBodyComponent>(
+            entt::exclude<ParentComponent>);
     for (auto [entity, transform, rb] : rigid_body_view.each()) {
         Transform t = pm.get_actor_transform(static_cast<uint32_t>(entity));
         transform.position = t.position;
@@ -295,6 +474,22 @@ void Scene::on_rigid_body_destroyed(entt::registry& registry,
         }
         pm.remove_actor(static_cast<uint32_t>(entity));
     }
+}
+
+void Scene::on_parent_component_added(entt::registry& registry,
+                                      entt::entity entity) {
+    auto& pc = registry.get<ParentComponent>(entity);
+    m_entity_children.try_emplace(pc.parent,
+                                  std::unordered_map<uint32_t, bool>());
+    auto& map = m_entity_children.at(pc.parent);
+    map[static_cast<uint32_t>(entity)] = true;
+}
+
+void Scene::on_parent_component_destroyed(entt::registry& registry,
+                                          entt::entity entity) {
+    auto& pc = registry.get<ParentComponent>(entity);
+    auto& map = m_entity_children.at(pc.parent);
+    map.erase(static_cast<uint32_t>(entity));
 }
 
 void Scene::update_children() {
