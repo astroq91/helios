@@ -11,8 +11,8 @@
 
 #include <imgui.h>
 
-#include "ComponentsBrowser.h"
 #include "AssetsBrowser.h"
+#include "ComponentsBrowser.h"
 #include "Helios/Scene/Scene.h"
 #include "Helios/Scene/SceneCamera.h"
 #include "ImGuizmo.h"
@@ -83,6 +83,8 @@ class EditorLayer : public Helios::Layer {
     void update_window_title(const std::optional<std::string>& scene_path);
     void reset_editor();
     void stop_runtime();
+    void draw_entity_list_entry(uint32_t entity,
+                                const Helios::NameComponent& name);
 
   private:
     std::optional<Project> m_project;
@@ -135,7 +137,7 @@ class EditorLayer : public Helios::Layer {
     uint32_t m_fps = 0;
     uint32_t m_frame_counter = 0;
     std::chrono::time_point<std::chrono::high_resolution_clock> m_fps_clock;
-    double m_fps_sampling_rate = 1.0;//s
+    double m_fps_sampling_rate = 1.0; // s
 
     std::string m_scene_copy;
 };
