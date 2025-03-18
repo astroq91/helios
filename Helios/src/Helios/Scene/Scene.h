@@ -90,7 +90,7 @@ class Scene {
 
     uint32_t get_game_viewport_height() const { return m_game_viewport_size.y; }
 
-    const std::unordered_map<uint32_t, bool>* const
+    const std::vector<uint32_t>* const
     try_get_entity_children(Entity entity) const;
 
   private:
@@ -126,7 +126,7 @@ class Scene {
 
     glm::ivec2 m_game_viewport_size;
 
-    std::unordered_map<uint32_t, std::unordered_map<uint32_t, bool>>
+    std::unordered_map < uint32_t, std::vector<uint32_t>>
         m_entity_children;
 
     friend class Entity;

@@ -1362,11 +1362,26 @@ void EditorLayer::load_scene(const std::filesystem::path& path) {
 void EditorLayer::draw_entity_list_entry(uint32_t entity,
                                          const NameComponent& name) {
     uint32_t entity_id = static_cast<uint32_t>(entity);
-    ImGui::PushID(static_cast<int>(entity));
+    
     bool isSelected = (m_selected_entity == static_cast<uint32_t>(entity));
 
-    if (ImGui::Selectable(name.name.c_str(), isSelected)) {
-        select_entity(static_cast<uint32_t>(entity));
+    const std::vector<uint32_t>* children =
+        m_scene->try_get_entity_children(m_scene->get_entity(entity));
+    if (children && !children->empty()) {
+        ImGui::PushID(static_cast<int>(entity));
+
+        ImGui::TreeNode("")
+
+        for (uint32_t child : children) {
+            draw_entity_list_entry(
+                child,
+                m_scene->get_entity(child).get_component<NameComponent>());
+        }
+    } else {
+        ImGui::PushID(static_cast<int>(entity));
+        if (ImGui::Selectable(name.name.c_str(), isSelected)) {
+            select_entity(static_cast<uint32_t>(entity));
+        }
     }
 
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {

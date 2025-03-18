@@ -420,9 +420,9 @@ void Scene::start_runtime() {
     m_runtime = true;
 }
 
-const std::unordered_map<uint32_t, bool>* const
+const std::array<bool, k_max_children>* const
 Scene::try_get_entity_children(Entity entity) const {
-    if (m_entity_children.find(entity) != m_entity_children.end()) {
+    if (m_entity_children.contains(entity)) {
         return &m_entity_children.find(entity)->second;
     }
     return nullptr;
@@ -480,16 +480,22 @@ void Scene::on_parent_component_added(entt::registry& registry,
                                       entt::entity entity) {
     auto& pc = registry.get<ParentComponent>(entity);
     m_entity_children.try_emplace(pc.parent,
-                                  std::unordered_map<uint32_t, bool>());
-    auto& map = m_entity_children.at(pc.parent);
-    map[static_cast<uint32_t>(entity)] = true;
+                                  std::vector<uint32_t>());
+    auto& vec = m_entity_children.at(pc.parent);
+    vec.push_back(static_cast<uint32_t>(entity));
 }
 
 void Scene::on_parent_component_destroyed(entt::registry& registry,
                                           entt::entity entity) {
     auto& pc = registry.get<ParentComponent>(entity);
-    auto& map = m_entity_children.at(pc.parent);
-    map.erase(static_cast<uint32_t>(entity));
+    auto& vec = m_entity_children.at(pc.parent);
+    vec[static_cast<uint32_t>(entity)] = false;
+    for (size_t i = 0; i < vec.size(); i++) {
+        if (vec[i] == static_cast<uint32_t>(entity)) {
+            vec.erase(vec.begin() + i);
+        }
+    }
+
 }
 
 void Scene::update_children() {
