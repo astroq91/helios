@@ -85,6 +85,7 @@ class EditorLayer : public Helios::Layer {
     void stop_runtime();
     void draw_entity_list_entry(uint32_t entity,
                                 const Helios::NameComponent& name);
+    void drag_drop_entity_list_entry(uint32_t entity, const std::string& name);
 
   private:
     std::optional<Project> m_project;

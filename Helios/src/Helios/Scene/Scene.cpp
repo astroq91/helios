@@ -420,7 +420,7 @@ void Scene::start_runtime() {
     m_runtime = true;
 }
 
-const std::array<bool, k_max_children>* const
+const std::vector<uint32_t>* const
 Scene::try_get_entity_children(Entity entity) const {
     if (m_entity_children.contains(entity)) {
         return &m_entity_children.find(entity)->second;
@@ -489,7 +489,6 @@ void Scene::on_parent_component_destroyed(entt::registry& registry,
                                           entt::entity entity) {
     auto& pc = registry.get<ParentComponent>(entity);
     auto& vec = m_entity_children.at(pc.parent);
-    vec[static_cast<uint32_t>(entity)] = false;
     for (size_t i = 0; i < vec.size(); i++) {
         if (vec[i] == static_cast<uint32_t>(entity)) {
             vec.erase(vec.begin() + i);
@@ -502,7 +501,7 @@ void Scene::update_children() {
     auto view = m_registry.view<TransformComponent, const ParentComponent>();
     for (auto [entity, transform, parent] : view.each()) {
         Entity parent_ent = get_entity(parent.parent);
-        if (parent_ent != k_no_entity) {
+        if (parent_ent != k_no_entity && parent_ent.has_component<TransformComponent>()) {
             auto& parent_transform =
                 parent_ent.get_component<const TransformComponent>();
             transform.position =

@@ -1361,56 +1361,38 @@ void EditorLayer::load_scene(const std::filesystem::path& path) {
 
 void EditorLayer::draw_entity_list_entry(uint32_t entity,
                                          const NameComponent& name) {
-    uint32_t entity_id = static_cast<uint32_t>(entity);
+    ImGui::PushID(static_cast<int>(entity));
     
-    bool isSelected = (m_selected_entity == static_cast<uint32_t>(entity));
+    bool isSelected = (m_selected_entity == entity);
 
     const std::vector<uint32_t>* children =
         m_scene->try_get_entity_children(m_scene->get_entity(entity));
     if (children && !children->empty()) {
-        ImGui::PushID(static_cast<int>(entity));
-
-        ImGui::TreeNode("")
-
-        for (uint32_t child : children) {
-            draw_entity_list_entry(
-                child,
-                m_scene->get_entity(child).get_component<NameComponent>());
-        }
-    } else {
-        ImGui::PushID(static_cast<int>(entity));
-        if (ImGui::Selectable(name.name.c_str(), isSelected)) {
-            select_entity(static_cast<uint32_t>(entity));
-        }
-    }
-
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-        ImGui::SetDragDropPayload("ENTITY_BROWSER_ENTITY", &entity_id,
-                                  sizeof(uint32_t));
-        ImGui::Text("%s", name.name.c_str());
-        ImGui::EndDragDropSource();
-    }
-
-    if (ImGui::BeginDragDropTarget()) {
-        if (const ImGuiPayload* payload =
-                ImGui::AcceptDragDropPayload("ENTITY_BROWSER_ENTITY")) {
-            uint32_t received_entity_id =
-                *static_cast<uint32_t*>(payload->Data);
-
-            if (received_entity_id != entity_id) {
-                Entity received_entity =
-                    m_scene->get_entity(received_entity_id);
-                auto& parent_component =
-                    received_entity.add_component<ParentComponent>(entity_id);
-
-                auto received_entity_transform =
-                    received_entity.try_get_component<TransformComponent>();
-                if (received_entity_transform) {
-                    m_scene->on_entity_transform_updated(received_entity);
-                }
+        if (ImGui::TreeNodeEx(name.name.c_str(),
+                              ImGuiTreeNodeFlags_OpenOnArrow |
+                                  ImGuiTreeNodeFlags_SpanFullWidth)) {
+            drag_drop_entity_list_entry(entity, name.name);
+            if (ImGui::IsItemClicked()) {
+                select_entity(entity);
+            }
+            for (uint32_t child : *children) {
+                draw_entity_list_entry(
+                    child,
+                    m_scene->get_entity(child).get_component<NameComponent>());
+            }
+            ImGui::TreePop();
+        } else {
+            drag_drop_entity_list_entry(entity, name.name);
+            if (ImGui::IsItemClicked()) {
+                select_entity(entity);
             }
         }
-        ImGui::EndDragDropTarget();
+
+    } else {
+        if (ImGui::Selectable(name.name.c_str(), isSelected)) {
+            select_entity(entity);
+        }
+        drag_drop_entity_list_entry(entity, name.name);
     }
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
@@ -1426,4 +1408,38 @@ void EditorLayer::draw_entity_list_entry(uint32_t entity,
     }
 
     ImGui::PopID();
+}
+
+void EditorLayer::drag_drop_entity_list_entry(uint32_t entity, const std::string& name) {
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+        ImGui::SetDragDropPayload("ENTITY_BROWSER_ENTITY", &entity,
+                                  sizeof(uint32_t));
+        ImGui::Text("%s", name.c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    if (ImGui::BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload =
+                ImGui::AcceptDragDropPayload("ENTITY_BROWSER_ENTITY")) {
+            uint32_t received_entity_id =
+                *static_cast<uint32_t*>(payload->Data);
+
+            if (received_entity_id != entity) {
+                Entity received_entity =
+                    m_scene->get_entity(received_entity_id);
+                if (received_entity.has_component<ParentComponent>()) {
+                    received_entity.remove_component<ParentComponent>();
+                }
+                auto& parent_component =
+                    received_entity.add_component<ParentComponent>(entity);
+
+                auto received_entity_transform =
+                    received_entity.try_get_component<TransformComponent>();
+                if (received_entity_transform) {
+                    m_scene->on_entity_transform_updated(received_entity);
+                }
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
 }

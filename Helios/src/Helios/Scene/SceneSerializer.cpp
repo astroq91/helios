@@ -259,7 +259,7 @@ void SceneSerializer::serialize_entity(YAML::Emitter& out, Entity entity) {
     if (children) {
         out << YAML::Key << "children" << YAML::Value << YAML::BeginSeq;
         for (auto it = children->begin(); it != children->end(); ++it) {
-            serialize_entity(out, Entity(it->first, m_scene));
+            serialize_entity(out, Entity(*it, m_scene));
         }
         out << YAML::EndSeq;
     }
