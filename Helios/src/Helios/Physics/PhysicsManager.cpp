@@ -3,6 +3,7 @@
 #include "Helios/Physics/RigidBody.h"
 #include "PxMaterial.h"
 #include "PxRigidActor.h"
+#include "PxRigidBody.h"
 #include "PxRigidDynamic.h"
 #include "PxRigidStatic.h"
 #include "PxSceneDesc.h"
@@ -111,6 +112,7 @@ void PhysicsManager::add_actor(uint32_t entity, const ActorInfo& info) {
         actor = m_physics->createRigidDynamic(transform);
         PxRigidDynamic* dynamic = actor->is<PxRigidDynamic>();
         dynamic->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, info.kinematic);
+        dynamic->setRigidDynamicLockFlags(info.lock_flags);
     } else {
         actor = m_physics->createRigidStatic(transform);
     }

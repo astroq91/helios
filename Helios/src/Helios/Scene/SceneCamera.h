@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "PerspectiveCamera.h"
 #include "Helios/Events/Input.h"
 #include "Helios/Events/KeyEvents.h"
 #include "Helios/Events/MouseEvents.h"
+#include "PerspectiveCamera.h"
 #include "Transform.h"
 
 namespace Helios {
@@ -49,7 +49,8 @@ class SceneCamera {
     float get_far() const { return m_far; }
 
     PerspectiveCamera get_camera() const {
-        return PerspectiveCamera(m_transform, m_aspect_ratio, m_fov_y, m_near, m_far);
+        return PerspectiveCamera(m_transform, m_aspect_ratio, m_fov_y, m_near,
+                                 m_far);
     }
 
     /**
@@ -74,6 +75,7 @@ class SceneCamera {
   private:
     void update_camera_vectors();
     bool on_key_pressed(KeyPressedEvent& e);
+    bool on_key_released(KeyReleasedEvent& e);
 
     bool on_mouse_pressed(MouseButtonPressedEvent& e);
     bool on_mouse_released(MouseButtonReleasedEvent& e);

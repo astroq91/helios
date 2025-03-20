@@ -7,6 +7,7 @@
 #include "Helios/Physics/RigidBody.h"
 #include "Helios/Renderer/Renderer.h"
 #include "Helios/Scene/Transform.h"
+#include "PxRigidDynamic.h"
 
 namespace Helios {
 
@@ -397,6 +398,26 @@ void Scene::start_runtime() {
         Physics::Geometry geom = Physics::BoxGeometry();
         bool use_geometry = false;
 
+        physx::PxRigidDynamicLockFlags lock_flags;
+        if (rb.lock_linear_x) {
+            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X;
+        }
+        if (rb.lock_linear_y) {
+            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y;
+        }
+        if (rb.lock_linear_z) {
+            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z;
+        }
+        if (rb.lock_angular_x) {
+            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X;
+        }
+        if (rb.lock_angular_y) {
+            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y;
+        }
+        if (rb.lock_angular_z) {
+            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z;
+        }
+
         BoxColliderComponent* bc =
             m_registry.try_get<BoxColliderComponent>(entity);
         if (bc) {
@@ -409,6 +430,7 @@ void Scene::start_runtime() {
                          .type = rb.type,
                          .geometry = use_geometry ? &geom : nullptr,
                          .transform = {},
+                         .lock_flags = lock_flags,
                          .static_friction = rb.static_friction,
                          .dynamic_friction = rb.dynamic_friction,
                          .restitution = rb.restitution,
@@ -479,8 +501,7 @@ void Scene::on_rigid_body_destroyed(entt::registry& registry,
 void Scene::on_parent_component_added(entt::registry& registry,
                                       entt::entity entity) {
     auto& pc = registry.get<ParentComponent>(entity);
-    m_entity_children.try_emplace(pc.parent,
-                                  std::vector<uint32_t>());
+    m_entity_children.try_emplace(pc.parent, std::vector<uint32_t>());
     auto& vec = m_entity_children.at(pc.parent);
     vec.push_back(static_cast<uint32_t>(entity));
 }
@@ -494,14 +515,14 @@ void Scene::on_parent_component_destroyed(entt::registry& registry,
             vec.erase(vec.begin() + i);
         }
     }
-
 }
 
 void Scene::update_children() {
     auto view = m_registry.view<TransformComponent, const ParentComponent>();
     for (auto [entity, transform, parent] : view.each()) {
         Entity parent_ent = get_entity(parent.parent);
-        if (parent_ent != k_no_entity && parent_ent.has_component<TransformComponent>()) {
+        if (parent_ent != k_no_entity &&
+            parent_ent.has_component<TransformComponent>()) {
             auto& parent_transform =
                 parent_ent.get_component<const TransformComponent>();
             transform.position =

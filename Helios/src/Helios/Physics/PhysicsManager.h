@@ -18,6 +18,7 @@ struct ActorInfo {
     RigidBodyType type;
     Geometry* geometry = nullptr;
     Transform transform;
+    physx::PxRigidDynamicLockFlags lock_flags;
     bool kinematic = false;
 
     float static_friction = 0.5f;

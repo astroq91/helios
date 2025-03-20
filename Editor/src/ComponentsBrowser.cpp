@@ -112,17 +112,37 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
         Utils::render_component<TransformComponent>(
             "Transform", selected_entity, [&](auto component) {
-                static glm::vec3 eulerCache;
+                static glm::vec3 euler_cache;
                 static glm::quat
                     lastRotation; // Tracks the last known quaternion
                 static TransformComponent* lastComponent = nullptr;
 
-                if (component != lastComponent ||
-                    component->rotation != lastRotation) {
-                    eulerCache = component->get_euler(); // Refresh Euler cache
+                bool use_local_transform =
+                    selected_entity.has_component<ParentComponent>();
 
-                    lastRotation =
-                        component->rotation; // Update last known rotation
+                glm::vec3* position = nullptr;
+                glm::quat* rotation = nullptr;
+                glm::vec3* scale = nullptr;
+                if (use_local_transform) {
+                    position = &component->local_position;
+                    rotation = &component->local_rotation;
+                    scale = &component->local_scale;
+                } else {
+                    position = &component->position;
+                    rotation = &component->rotation;
+                    scale = &component->scale;
+                }
+
+                if (component != lastComponent || *rotation != lastRotation) {
+                    if (use_local_transform) {
+                        euler_cache =
+                            component->get_euler_local(); // Refresh Euler cache
+                    } else {
+                        euler_cache =
+                            component->get_euler(); // Refresh Euler cache
+                    }
+
+                    lastRotation = *rotation; // Update last known rotation
                     lastComponent =
                         component; // Track the currently edited component
                 }
@@ -138,21 +158,34 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     ImGui::BeginDisabled();
                 }
 
-                if (ImGui::InputFloat3("position", &component->position.x)) {
-                    scene->on_entity_position_updated(selected_entity);
+                if (ImGui::InputFloat3("position", &position->x)) {
+                    if (!use_local_transform) {
+                        // Update the local position if the global position has
+                        // been modified
+                        scene->on_entity_position_updated(selected_entity);
+                    }
                 }
 
-                if (ImGui::InputFloat3("rotation", &eulerCache.x)) {
-                    eulerCache = Utils::clamp_euler(
-                        eulerCache); // Clamp Euler angles to [-180, 180]
-                    component->set_euler(eulerCache); // Update quaternion
-                    lastRotation =
-                        component->rotation; // Sync last known rotation
-                    scene->on_entity_rotation_updated(selected_entity);
+                if (ImGui::InputFloat3("rotation", &euler_cache.x)) {
+                    euler_cache = Utils::clamp_euler(
+                        euler_cache); // Clamp Euler angles to [-180, 180]
+                    if (use_local_transform) {
+                        component->set_euler_local(
+                            euler_cache); // Update quaternion
+                    } else {
+                        component->set_euler(euler_cache);
+                    }
+                    lastRotation = *rotation; // Sync last known rotation
+                    if (!use_local_transform) {
+
+                        scene->on_entity_rotation_updated(selected_entity);
+                    }
                 }
 
-                if (ImGui::InputFloat3("scale", &component->scale.x)) {
-                    scene->on_entity_scale_updated(selected_entity);
+                if (ImGui::InputFloat3("scale", &scale->x)) {
+                    if (!use_local_transform) {
+                        scene->on_entity_scale_updated(selected_entity);
+                    }
                 }
 
                 if (disable_transform) {
@@ -403,6 +436,14 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     scene->update_rigid_body_restitution(
                         selected_entity, component->restitution);
                 }
+
+                ImGui::Separator();
+                ImGui::Checkbox("Lock linear x", &component->lock_linear_x);
+                ImGui::Checkbox("Lock linear y", &component->lock_linear_y);
+                ImGui::Checkbox("Lock linear z", &component->lock_linear_z);
+                ImGui::Checkbox("Lock angular x", &component->lock_angular_x);
+                ImGui::Checkbox("Lock angular y", &component->lock_angular_y);
+                ImGui::Checkbox("Lock angular z", &component->lock_angular_z);
 
                 if (current_type == 0) {
                     ImGui::Separator();

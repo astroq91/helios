@@ -84,6 +84,8 @@ void CameraController::on_update(float ts) {
         glm::angleAxis(glm::radians(-x_offset), glm::vec3(0.0f, 1.0f, 0.0f));
     m_transform->rotation =
         glm::normalize(yawQuat * pitchQuat * m_transform->rotation);
+
+    Input::set_mouse_pos(m_last_mouse_pos.x, m_last_mouse_pos.y);
 }
 
 void CameraController::on_event(Event& e) {

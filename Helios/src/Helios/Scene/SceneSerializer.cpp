@@ -222,6 +222,19 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
         out << YAML::Key << "override_dynamic_physics" << YAML::Value
             << component.override_dynamic_physics;
 
+        out << YAML::Key << "lock_linear_x" << YAML::Value
+            << component.lock_linear_x;
+        out << YAML::Key << "lock_linear_y" << YAML::Value
+            << component.lock_linear_y;
+        out << YAML::Key << "lock_linear_z" << YAML::Value
+            << component.lock_linear_z;
+        out << YAML::Key << "lock_angular_x" << YAML::Value
+            << component.lock_angular_x;
+        out << YAML::Key << "lock_angular_y" << YAML::Value
+            << component.lock_angular_y;
+        out << YAML::Key << "lock_angular_z" << YAML::Value
+            << component.lock_angular_z;
+
         out << YAML::EndMap;
     }
 
@@ -343,9 +356,11 @@ void SceneSerializer::deserialize_from_string_with_parent(
             if (transform_component) {
                 auto& tc =
                     deserialized_entity.add_component<TransformComponent>();
-                tc.position = transform_component["position"].as<glm::vec3>();
-                tc.rotation = transform_component["rotation"].as<glm::quat>();
-                tc.scale = transform_component["scale"].as<glm::vec3>();
+                tc.position =
+                    transform_component["position"].as<glm::vec3>(tc.position);
+                tc.rotation =
+                    transform_component["rotation"].as<glm::quat>(tc.rotation);
+                tc.scale = transform_component["scale"].as<glm::vec3>(tc.scale);
 
                 m_scene->on_entity_transform_updated(deserialized_entity);
             }
@@ -353,9 +368,9 @@ void SceneSerializer::deserialize_from_string_with_parent(
             auto camera_component = components["camera_component"];
             if (camera_component) {
                 auto& cc = deserialized_entity.add_component<CameraComponent>();
-                cc.fovY = camera_component["fov_y"].as<float>();
-                cc.z_near = camera_component["near"].as<float>();
-                cc.z_far = camera_component["far"].as<float>();
+                cc.fovY = camera_component["fov_y"].as<float>(cc.fovY);
+                cc.z_near = camera_component["near"].as<float>(cc.z_near);
+                cc.z_far = camera_component["far"].as<float>(cc.z_far);
             }
 
             auto directional_light_component =
@@ -364,30 +379,39 @@ void SceneSerializer::deserialize_from_string_with_parent(
                 auto& dlc = deserialized_entity
                                 .add_component<DirectionalLightComponent>();
                 dlc.direction =
-                    directional_light_component["direction"].as<glm::vec3>();
+                    directional_light_component["direction"].as<glm::vec3>(
+                        dlc.direction);
                 dlc.ambient =
-                    directional_light_component["ambient"].as<glm::vec3>();
+                    directional_light_component["ambient"].as<glm::vec3>(
+                        dlc.ambient);
                 dlc.diffuse =
-                    directional_light_component["diffuse"].as<glm::vec3>();
+                    directional_light_component["diffuse"].as<glm::vec3>(
+                        dlc.diffuse);
                 dlc.specular =
-                    directional_light_component["specular"].as<glm::vec3>();
+                    directional_light_component["specular"].as<glm::vec3>(
+                        dlc.specular);
             }
 
             auto point_light_component = components["point_light_component"];
             if (point_light_component) {
                 auto& plc =
                     deserialized_entity.add_component<PointLightComponent>();
-                plc.position =
-                    point_light_component["position"].as<glm::vec3>();
+                plc.position = point_light_component["position"].as<glm::vec3>(
+                    plc.position);
 
-                plc.constant = point_light_component["constant"].as<float>();
-                plc.linear = point_light_component["linear"].as<float>();
-                plc.quadratic = point_light_component["quadratic"].as<float>();
+                plc.constant =
+                    point_light_component["constant"].as<float>(plc.constant);
+                plc.linear =
+                    point_light_component["linear"].as<float>(plc.linear);
+                plc.quadratic =
+                    point_light_component["quadratic"].as<float>(plc.quadratic);
 
-                plc.ambient = point_light_component["ambient"].as<glm::vec3>();
-                plc.diffuse = point_light_component["diffuse"].as<glm::vec3>();
-                plc.specular =
-                    point_light_component["specular"].as<glm::vec3>();
+                plc.ambient =
+                    point_light_component["ambient"].as<glm::vec3>(plc.ambient);
+                plc.diffuse =
+                    point_light_component["diffuse"].as<glm::vec3>(plc.diffuse);
+                plc.specular = point_light_component["specular"].as<glm::vec3>(
+                    plc.specular);
             }
 
             auto mesh_renderer_component =
@@ -455,22 +479,37 @@ void SceneSerializer::deserialize_from_string_with_parent(
                     rb.type = RigidBodyType::Dynamic;
                 }
 
-                rb.mass = rb_component["mass"].as<float>();
-                rb.kinematic = rb_component["kinematic"].as<bool>();
-                rb.static_friction =
-                    rb_component["static_friction"].as<float>();
+                rb.mass = rb_component["mass"].as<float>(rb.mass);
+                rb.kinematic = rb_component["kinematic"].as<bool>(rb.kinematic);
+                rb.static_friction = rb_component["static_friction"].as<float>(
+                    rb.static_friction);
                 rb.dynamic_friction =
-                    rb_component["dynamic_friction"].as<float>();
-                rb.restitution = rb_component["restitution"].as<float>();
+                    rb_component["dynamic_friction"].as<float>(
+                        rb.dynamic_friction);
+                rb.restitution =
+                    rb_component["restitution"].as<float>(rb.restitution);
                 rb.override_dynamic_physics =
-                    rb_component["override_dynamic_physics"].as<bool>();
+                    rb_component["override_dynamic_physics"].as<bool>(
+                        rb.override_dynamic_physics);
+                rb.lock_linear_x =
+                    rb_component["lock_linear_x"].as<bool>(rb.lock_linear_x);
+                rb.lock_linear_y =
+                    rb_component["lock_linear_y"].as<bool>(rb.lock_linear_y);
+                rb.lock_linear_z =
+                    rb_component["lock_linear_z"].as<bool>(rb.lock_linear_z);
+                rb.lock_angular_x =
+                    rb_component["lock_angular_x"].as<bool>(rb.lock_angular_x);
+                rb.lock_angular_y =
+                    rb_component["lock_angular_y"].as<bool>(rb.lock_angular_y);
+                rb.lock_angular_z =
+                    rb_component["lock_angular_z"].as<bool>(rb.lock_angular_z);
             }
 
             auto bc_component = components["box_collider_component"];
             if (bc_component) {
                 auto& bc =
                     deserialized_entity.add_component<BoxColliderComponent>();
-                bc.size = bc_component["size"].as<glm::vec3>();
+                bc.size = bc_component["size"].as<glm::vec3>(bc.size);
             }
 
             auto script_component = components["script_component"];

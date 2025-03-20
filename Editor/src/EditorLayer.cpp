@@ -53,7 +53,7 @@ EditorLayer::EditorLayer()
                   .position = {0.0f, 3.0f, 4.0f},
               },
           .movement_speed = 6.0f,
-          .sensitivity = 8.0f,
+          .sensitivity = 16.0f,
           .fov_y = 80,
       }) {
     m_fps_clock = std::chrono::high_resolution_clock::now();
@@ -1362,15 +1362,17 @@ void EditorLayer::load_scene(const std::filesystem::path& path) {
 void EditorLayer::draw_entity_list_entry(uint32_t entity,
                                          const NameComponent& name) {
     ImGui::PushID(static_cast<int>(entity));
-    
-    bool isSelected = (m_selected_entity == entity);
+
+    bool is_selected = (m_selected_entity == entity);
 
     const std::vector<uint32_t>* children =
         m_scene->try_get_entity_children(m_scene->get_entity(entity));
     if (children && !children->empty()) {
-        if (ImGui::TreeNodeEx(name.name.c_str(),
-                              ImGuiTreeNodeFlags_OpenOnArrow |
-                                  ImGuiTreeNodeFlags_SpanFullWidth)) {
+        if (ImGui::TreeNodeEx(
+                name.name.c_str(),
+                ImGuiTreeNodeFlags_OpenOnArrow |
+                    ImGuiTreeNodeFlags_SpanFullWidth |
+                    (is_selected ? ImGuiTreeNodeFlags_Selected : 0))) {
             drag_drop_entity_list_entry(entity, name.name);
             if (ImGui::IsItemClicked()) {
                 select_entity(entity);
@@ -1389,7 +1391,7 @@ void EditorLayer::draw_entity_list_entry(uint32_t entity,
         }
 
     } else {
-        if (ImGui::Selectable(name.name.c_str(), isSelected)) {
+        if (ImGui::Selectable(name.name.c_str(), is_selected)) {
             select_entity(entity);
         }
         drag_drop_entity_list_entry(entity, name.name);
@@ -1410,7 +1412,8 @@ void EditorLayer::draw_entity_list_entry(uint32_t entity,
     ImGui::PopID();
 }
 
-void EditorLayer::drag_drop_entity_list_entry(uint32_t entity, const std::string& name) {
+void EditorLayer::drag_drop_entity_list_entry(uint32_t entity,
+                                              const std::string& name) {
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
         ImGui::SetDragDropPayload("ENTITY_BROWSER_ENTITY", &entity,
                                   sizeof(uint32_t));

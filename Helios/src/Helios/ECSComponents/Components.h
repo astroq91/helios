@@ -128,6 +128,12 @@ struct RigidBodyComponent {
     float restitution = 0.6f;
 
     bool override_dynamic_physics = false;
+    bool lock_linear_x = false;
+    bool lock_linear_y = false;
+    bool lock_linear_z = false;
+    bool lock_angular_x = false;
+    bool lock_angular_y = false;
+    bool lock_angular_z = false;
 };
 
 struct BoxColliderComponent {

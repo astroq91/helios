@@ -9,6 +9,8 @@
 constexpr glm::vec3 k_world_up = glm::vec3(0.0f, 1.0f, 0.0f); // Fixed world up
 constexpr float k_pitch_limit = 89.0f; // Clamp pitch to avoid flipping
 
+constexpr float k_extra_speed = 2;
+
 namespace Helios {
 glm::vec3 SceneCamera::get_forward() const {
     glm::vec3 front;
@@ -38,7 +40,7 @@ void SceneCamera::on_update(float ts) {
         m_transform.position += m_movement_speed * ts * m_camera_right;
     }
 
-    if (Input::is_key_pressed(KeyCode::Space)) {
+    if (Input::is_key_pressed(KeyCode::Enter)) {
         m_transform.position += m_movement_speed * ts * m_camera_up;
     }
 
@@ -55,8 +57,6 @@ void SceneCamera::on_update(float ts) {
     float y_offset =
         m_last_mouse_pos.y -
         mouse_pos.y; // reversed since y-coordinates range from bottom to top
-    m_last_mouse_pos.x = mouse_pos.x;
-    m_last_mouse_pos.y = mouse_pos.y;
 
     x_offset *= m_sensitivity * ts;
     y_offset *= m_sensitivity * ts;
@@ -84,6 +84,8 @@ void SceneCamera::on_update(float ts) {
         glm::angleAxis(glm::radians(-x_offset), glm::vec3(0.0f, 1.0f, 0.0f));
     m_transform.rotation =
         glm::normalize(yawQuat * pitchQuat * m_transform.rotation);
+
+    Input::set_mouse_pos(m_last_mouse_pos.x, m_last_mouse_pos.y);
 }
 
 void SceneCamera::reset_camera() {
@@ -101,6 +103,8 @@ void SceneCamera::on_event(Event& e) {
     EventDispatcher dispatcher = EventDispatcher(e);
     dispatcher.dispatch<KeyPressedEvent>(
         HL_BIND_EVENT_FN(SceneCamera::on_key_pressed));
+    dispatcher.dispatch<KeyReleasedEvent>(
+        HL_BIND_EVENT_FN(SceneCamera::on_key_released));
     dispatcher.dispatch<MouseButtonPressedEvent>(
         HL_BIND_EVENT_FN(SceneCamera::on_mouse_pressed));
     dispatcher.dispatch<MouseButtonReleasedEvent>(
@@ -108,16 +112,16 @@ void SceneCamera::on_event(Event& e) {
 }
 
 bool SceneCamera::on_key_pressed(KeyPressedEvent& e) {
-    if (e.get_key_code() == KeyCode::D8) {
-        set_locked_rotation(false);
-        glfwSetInputMode(Application::get().get_native_window(), GLFW_CURSOR,
-                         GLFW_CURSOR_DISABLED);
-        m_last_mouse_pos = Input::get_mouse_pos();
-    } else if (e.get_key_code() == KeyCode::D9) {
-        set_locked_rotation(true);
-        glfwSetInputMode(Application::get().get_native_window(), GLFW_CURSOR,
-                         GLFW_CURSOR_NORMAL);
-        m_last_mouse_pos = Input::get_mouse_pos();
+    if (e.get_key_code() == KeyCode::LeftControl) {
+        m_movement_speed *= k_extra_speed;
+    }
+
+    return false;
+}
+
+bool SceneCamera::on_key_released(KeyReleasedEvent& e) {
+    if (e.get_key_code() == KeyCode::LeftControl) {
+        m_movement_speed /= k_extra_speed;
     }
 
     return false;

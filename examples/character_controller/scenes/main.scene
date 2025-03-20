@@ -1,2 +1,71 @@
 entities:
-  []
+  - components:
+      name_component:
+        name: Ground
+      transform_component:
+        position: [0, 0, 0]
+        rotation: [0, 0, 0, 1]
+        scale: [10, 1, 10]
+      mesh_renderer_component:
+        mesh: Cube
+        material: ~
+        tint_color: [1, 1, 1, 1]
+      rigid_body_component:
+        type: static
+        mass: 1
+        kinematic: false
+        static_friction: 0.5
+        dynamic_friction: 0.5
+        restitution: 0
+        override_dynamic_physics: false
+        lock_linear_x: false
+        lock_linear_y: false
+        lock_linear_z: false
+        lock_angular_x: false
+        lock_angular_y: false
+        lock_angular_z: false
+      box_collider_component:
+        size: [5, 0.5, 5]
+  - components:
+      name_component:
+        name: Light
+      directional_light_component:
+        direction: [1, 1, 1]
+        ambient: [1, 1, 1]
+        diffuse: [1, 1, 1]
+        specular: [1, 1, 1]
+  - components:
+      name_component:
+        name: Player
+      transform_component:
+        position: [0, 3.48311377, 0]
+        rotation: [0, 0, 0, 1]
+        scale: [1, 1, 1]
+      rigid_body_component:
+        type: dynamic
+        mass: 1
+        kinematic: true
+        static_friction: 0
+        dynamic_friction: 0
+        restitution: 0
+        override_dynamic_physics: false
+        lock_linear_x: false
+        lock_linear_y: false
+        lock_linear_z: false
+        lock_angular_x: true
+        lock_angular_y: true
+        lock_angular_z: true
+      box_collider_component:
+        size: [0.5, 1.5, 0.5]
+    children:
+      - components:
+          name_component:
+            name: Camera
+          transform_component:
+            position: [0, 3.48311377, 0]
+            rotation: [0, 0, 0, 1]
+            scale: [1, 1, 1]
+          camera_component:
+            fov_y: 120
+            near: 0.100000001
+            far: 100
