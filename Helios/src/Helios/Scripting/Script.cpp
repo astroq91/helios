@@ -6,6 +6,12 @@
 #include "Helios/Events/Input.h"
 #include "Helios/Scene/Entity.h"
 #include "Helios/Scene/Scene.h"
+
+#include "Helios/Scripting/ScriptUserTypes/Entities.h"
+#include "Helios/Scripting/ScriptUserTypes/Entity.h"
+#include "Helios/Scripting/ScriptUserTypes/MeshRenderer.h"
+
+#include "Helios/Scripting/ScriptUserTypes/UI.h"
 #include "sol/property.hpp"
 #include "sol/variadic_args.hpp"
 #include <fstream>
@@ -13,146 +19,6 @@
 #include <sstream>
 
 namespace Helios {
-
-/**
- * Used to interface with a mesh component
- */
-class ScriptMeshRenderer {
-  public:
-    ScriptMeshRenderer(MeshRendererComponent* component) : m_component(component) {}
-
-    void load_mesh(const std::string& path) {
-        if (path == "Cube") {
-            m_component->mesh =
-                Application::get().get_asset_manager().get_mesh("Cube");
-        } else {
-            m_component->mesh = Mesh::create(path);
-        }
-    }
-    void load_material(const std::string& path) {
-        m_component->material = Material::create(path);
-    }
-
-    MeshRendererComponent* get_component() { return m_component; }
-
-  private:
-    MeshRendererComponent* m_component;
-};
-
-class Components {
-  public:
-    Components(Entity entity) : m_entity(entity) {}
-
-    /* Getters */
-
-    TransformComponent* get_transform() {
-        return m_entity.try_get_component<TransformComponent>();
-    }
-
-    NameComponent* get_name() {
-        return m_entity.try_get_component<NameComponent>();
-    }
-
-    CameraComponent* get_camera() {
-        return m_entity.try_get_component<CameraComponent>();
-    }
-
-    DirectionalLightComponent* get_directional_light() {
-        return m_entity.try_get_component<DirectionalLightComponent>();
-    }
-
-    PointLightComponent* get_point_light() {
-        return m_entity.try_get_component<PointLightComponent>();
-    }
-
-    RigidBodyComponent* get_rigid_body() {
-        return m_entity.try_get_component<RigidBodyComponent>();
-    }
-
-    ScriptMeshRenderer get_mesh_renderer() {
-        return ScriptMeshRenderer(m_entity.try_get_component<MeshRendererComponent>());
-    }
-
-    /* Adders */
-
-    TransformComponent* add_transform() {
-        return &m_entity.add_component<TransformComponent>();
-    }
-
-    CameraComponent* add_camera() {
-        return &m_entity.add_component<CameraComponent>();
-    }
-
-    DirectionalLightComponent* add_directional_light() {
-        return &m_entity.add_component<DirectionalLightComponent>();
-    }
-
-    PointLightComponent* add_point_light() {
-        return &m_entity.add_component<PointLightComponent>();
-    }
-
-    RigidBodyComponent* add_rigid_body() {
-        return &m_entity.add_component<RigidBodyComponent>();
-    }
-
-    ScriptMeshRenderer add_mesh_renderer() {
-        return ScriptMeshRenderer(&m_entity.add_component<MeshRendererComponent>());
-    }
-
-  private:
-    Entity m_entity;
-};
-
-/**
- * Interface for a single entity.
- */
-class ScriptEntity {
-  public:
-    ScriptEntity(Entity entity) : m_entity(entity), m_components(entity) {}
-    Components* get_components() { return &m_components; }
-
-  private:
-    Entity m_entity;
-    Components m_components;
-};
-
-/**
- * Used to manage all the entities in the scene.
- */
-class ScriptEntities {
-  public:
-    ScriptEntities(Scene* scene, sol::state* state)
-        : m_scene(scene), m_state(state) {}
-    ScriptEntity create_entity(const std::string& name) {
-        Entity entity = m_scene->create_entity(name);
-        return ScriptEntity(entity);
-    }
-
-  private:
-    Scene* m_scene;
-    sol::state* m_state;
-};
-
-class ScriptUI {
-public:
-    ScriptUI(Scene* scene) : m_scene(scene) {}
-
-    void render_text(const std::string& text, const glm::vec2& position,
-                     float scale, const glm::vec4& tint_color) {
-        m_scene->render_text(text, position, scale, tint_color);
-    }
-
-    uint32_t get_window_width() const {
-        return m_scene->get_game_viewport_width(); 
-    }
-
-    uint32_t get_window_height() const {
-        return m_scene->get_game_viewport_height();
-    }
-
-private:
-  Scene* m_scene;
-};
 
 Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
                Entity entity)
@@ -172,6 +38,7 @@ Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
     expose_basic_types();
     expose_helios_user_types();
     set_globals();
+    load_globals();
 
     // Add the base dir to the package path to access the type annotations
     std::stringstream ss;
@@ -186,9 +53,10 @@ void Script::load_script(const std::string& src, ScriptLoadType load_type) {
     if (load_type == ScriptLoadType::Source) {
         m_state.script(src);
     } else {
-        std::ifstream file(IOUtils::resolve_path(
-                               Application::get().get_asset_base_path(), std::filesystem::path(src)),
-                           std::ios::ate | std::ios::binary);
+        std::ifstream file(
+            IOUtils::resolve_path(Application::get().get_asset_base_path(),
+                                  std::filesystem::path(src)),
+            std::ios::ate | std::ios::binary);
 
         if (file.fail()) {
             HL_ERROR("[Scripting] Could not open script file: {0}", src);
@@ -248,8 +116,7 @@ void Script::on_update(float ts) {
 
 void Script::expose_basic_types() {
     m_state.new_usertype<glm::vec2>(
-        "Vec2",
-        sol::constructors<glm::vec2(), glm::vec2(float, float)>(), "x",
+        "Vec2", sol::constructors<glm::vec2(), glm::vec2(float, float)>(), "x",
         &glm::vec2::x, "y", &glm::vec2::y);
     m_state.new_usertype<glm::vec3>(
         "Vec3",
@@ -276,30 +143,39 @@ void Script::expose_functions() {
 }
 
 void Script::expose_helios_user_types() {
-    m_state.new_usertype<ScriptEntity>("Entity", "get_components",
-                                       &ScriptEntity::get_components);
+    m_state.new_usertype<ScriptUserTypes::ScriptEntity>(
+        "Entity", "get_components",
+        &ScriptUserTypes::ScriptEntity::get_components);
 
-    m_state.new_usertype<ScriptEntities>("Entities", "create_entity",
-                                         &ScriptEntities::create_entity);
-    m_state.new_usertype<Components>(
-        "Components", "get_name", &Components::get_name, "get_transform",
-        &Components::get_transform, "add_transform", &Components::add_transform,
-        "get_camera", &Components::get_camera, "add_camera",
-        &Components::add_camera, "get_directional_light",
-        &Components::get_directional_light, "add_directional_light",
-        &Components::add_directional_light, "get_point_light",
-        &Components::get_point_light, "add_point_light",
-        &Components::add_point_light, "get_rigid_body",
-        &Components::get_rigid_body, "add_rigid_body",
-        &Components::add_rigid_body, "get_mesh_renderer", &Components::get_mesh_renderer,
-        "add_mesh_renderer", &Components::add_mesh_renderer);
+    m_state.new_usertype<ScriptUserTypes::ScriptEntities>(
+        "Entities", "create_entity",
+        &ScriptUserTypes::ScriptEntities::create_entity);
+    m_state.new_usertype<ScriptUserTypes::ScriptComponents>(
+        "ScriptUserTypes::ScriptComponents", "get_name",
+        &ScriptUserTypes::ScriptComponents::get_name, "get_transform",
+        &ScriptUserTypes::ScriptComponents::get_transform, "add_transform",
+        &ScriptUserTypes::ScriptComponents::add_transform, "get_camera",
+        &ScriptUserTypes::ScriptComponents::get_camera, "add_camera",
+        &ScriptUserTypes::ScriptComponents::add_camera, "get_directional_light",
+        &ScriptUserTypes::ScriptComponents::get_directional_light,
+        "add_directional_light",
+        &ScriptUserTypes::ScriptComponents::add_directional_light,
+        "get_point_light", &ScriptUserTypes::ScriptComponents::get_point_light,
+        "add_point_light", &ScriptUserTypes::ScriptComponents::add_point_light,
+        "get_rigid_body", &ScriptUserTypes::ScriptComponents::get_rigid_body,
+        "add_rigid_body", &ScriptUserTypes::ScriptComponents::add_rigid_body,
+        "get_mesh_renderer",
+        &ScriptUserTypes::ScriptComponents::get_mesh_renderer,
+        "add_mesh_renderer",
+        &ScriptUserTypes::ScriptComponents::add_mesh_renderer);
 
     m_state.new_usertype<Input>("Input", "is_key_pressed",
                                 &Input::is_key_pressed, "is_key_released",
                                 &Input::is_key_released);
-    m_state.new_usertype<ScriptUI>("UI", "render_text", &ScriptUI::render_text,
-                                   "get_window_width",
-                                   &ScriptUI::get_window_width, "get_window_height", &ScriptUI::get_window_height);
+    m_state.new_usertype<ScriptUserTypes::ScriptUI>(
+        "UI", "render_text", &ScriptUserTypes::ScriptUI::render_text,
+        "get_window_width", &ScriptUserTypes::ScriptUI::get_window_width,
+        "get_window_height", &ScriptUserTypes::ScriptUI::get_window_height);
 }
 
 void Script::expose_component_user_types() {
@@ -363,12 +239,15 @@ void Script::expose_component_user_types() {
                 m_entity.update_rigid_body_restitution(value);
             }));
 
-    m_state.new_usertype<ScriptMeshRenderer>(
-        "MeshRenderer", "load_mesh", &ScriptMeshRenderer::load_mesh, "load_material",
-        &ScriptMeshRenderer::load_material, "tint_color",
+    m_state.new_usertype<ScriptUserTypes::ScriptMeshRenderer>(
+        "MeshRenderer", "load_mesh",
+        &ScriptUserTypes::ScriptMeshRenderer::load_mesh, "load_material",
+        &ScriptUserTypes::ScriptMeshRenderer::load_material, "tint_color",
         sol::property(
-            [&](ScriptMeshRenderer& mesh) { return mesh.get_component()->tint_color; },
-            [&](ScriptMeshRenderer& mesh, glm::vec4 color) {
+            [&](ScriptUserTypes::ScriptMeshRenderer& mesh) {
+                return mesh.get_component()->tint_color;
+            },
+            [&](ScriptUserTypes::ScriptMeshRenderer& mesh, glm::vec4 color) {
                 mesh.get_component()->tint_color = color;
             }));
 }
@@ -420,9 +299,23 @@ void Script::expose_key_codes() {
 }
 
 void Script::set_globals() {
-    m_state["RootEntity"] = ScriptEntity(m_entity);
-    m_state["Entities"] = ScriptEntities(m_scene, &m_state);
-    m_state["UI"] = ScriptUI(m_scene);
+    m_state["RootEntity"] = ScriptUserTypes::ScriptEntity(m_entity);
+    m_state["Entities"] = ScriptUserTypes::ScriptEntities(m_scene, &m_state);
+    m_state["UI"] = ScriptUserTypes::ScriptUI(m_scene);
+}
+
+void Script::load_globals() {
+    sol::table globals = m_state.globals();
+
+    for (auto& pair : globals) {
+        std::string key = pair.first.as<std::string>();
+        sol::object value = pair.second;
+
+        if (value.is<ScriptUserTypes::ScriptEntity>()) {
+            m_exposed_fields.push_back(EntityScriptField(value));
+        }
+    }
 }
 
 } // namespace Helios
+//
