@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include "Helios/Physics/PhysicsManager.h"
 #include "Helios/Physics/RigidBody.h"
 #include "Helios/Renderer/Light.h"
 #include "Helios/Renderer/Material.h"

@@ -1,33 +1,31 @@
-#include "ScriptUserTypes/Entity.h"
 #include <sol/sol.hpp>
 namespace Helios {
-
-enum class ScriptFieldType {
-    Entity,
-};
+namespace ScriptUserTypes {
+class ScriptEntity;
+}
 
 class ScriptField {
   public:
-    explicit ScriptField(ScriptFieldType type, sol::object object)
-        : m_type(type), m_object(object) {}
-    sol::object get_object() { return m_object; }
-    ScriptFieldType get_type() const { return m_type; }
-    template <typename T> T& as() { return dynamic_cast<T&>(*this); }
+    explicit ScriptField(const std::string& name) : m_name(name) {}
+    const std::string& get_name() const { return m_name; }
 
   private:
-    ScriptFieldType m_type;
-    sol::object m_object;
-};
+    std::string m_name;
+}; // namespace ScriptUserTypes
 
-class EntityScriptField : public ScriptField {
+class ScriptFieldEntity : public ScriptField {
   public:
-    EntityScriptField(sol::object object)
-        : ScriptField(ScriptFieldType::Entity, object) {}
+    ScriptFieldEntity(const std::string& name,
+                      ScriptUserTypes::ScriptEntity* object)
+        : ScriptField(name), m_object(object) {}
 
     void set_field(uint32_t entity) { m_entity = entity; }
     uint32_t get_field() const { return m_entity; }
+    ScriptUserTypes::ScriptEntity* get_object() { return m_object; }
 
   private:
+  public:
+    ScriptUserTypes::ScriptEntity* m_object;
     uint32_t m_entity;
 };
 

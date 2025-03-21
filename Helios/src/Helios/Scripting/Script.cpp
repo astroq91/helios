@@ -98,6 +98,7 @@ void Script::on_start() {
 }
 
 void Script::on_update(float ts) {
+    set_exposed_fields_state();
     auto func = m_state["on_update"];
     if (func.valid()) {
         try {
@@ -112,6 +113,7 @@ void Script::on_update(float ts) {
                 static_cast<uint32_t>(m_entity));
         }
     }
+    get_exposed_fields_state();
 }
 
 void Script::expose_basic_types() {
@@ -312,10 +314,23 @@ void Script::load_globals() {
         sol::object value = pair.second;
 
         if (value.is<ScriptUserTypes::ScriptEntity>()) {
-            m_exposed_fields.push_back(EntityScriptField(value));
+            m_exposed_fields_entity.push_back(ScriptFieldEntity(
+                key, value.as<ScriptUserTypes::ScriptEntity*>()));
         }
     }
 }
 
+void Script::get_exposed_fields_state() {
+    for (ScriptFieldEntity& field : m_exposed_fields_entity) {
+        ScriptUserTypes::ScriptEntity* obj = field.get_object();
+        field.set_field(obj->get_id());
+    }
+}
+
+void Script::set_exposed_fields_state() {
+    for (ScriptFieldEntity& field : m_exposed_fields_entity) {
+        ScriptUserTypes::ScriptEntity* obj = field.get_object();
+        obj->set_entity(Entity(field.get_field(), m_scene));
+    }
+}
 } // namespace Helios
-//

@@ -14,6 +14,7 @@
 
 #include "Helios/Core/Application.h"
 #include "Helios/Core/IOUtils.h"
+#include "Helios/Scripting/ScriptUserTypes/Entity.h"
 
 enum class TextureType { Diffuse, Specular, Emission };
 
@@ -521,6 +522,17 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
                 ImGui::SameLine();
                 ImGui::Text("(Current: %s)", script_name_buffer);
+
+                ImGui::Separator();
+
+                if (ImGui::TreeNode("Exposed fields")) {
+                    std::vector<ScriptFieldEntity>& entity_fields =
+                        component->script->get_exposed_fields_entity();
+                    for (auto& field : entity_fields) {
+                        ImGui::Text("%s", field.get_name().c_str());
+                    }
+                    ImGui::TreePop();
+                }
             });
 
         Utils::render_component<ParentComponent>(

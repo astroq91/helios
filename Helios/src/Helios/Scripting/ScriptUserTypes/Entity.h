@@ -6,6 +6,9 @@ class ScriptEntity {
   public:
     ScriptEntity(Entity entity) : m_entity(entity), m_components(entity) {}
     ScriptComponents* get_components() { return &m_components; }
+    uint32_t get_id() const { return m_entity; }
+
+    void set_entity(Entity entity) { m_entity = entity; }
 
   private:
     Entity m_entity;
