@@ -46,7 +46,7 @@ class ScriptFieldEntity : public ScriptField {
     uint32_t get_state() const { return m_entity; }
 
   private:
-    uint32_t m_entity;
+    uint32_t m_entity = k_no_entity;
     ScriptUserTypes::ScriptEntity* m_object;
 };
 

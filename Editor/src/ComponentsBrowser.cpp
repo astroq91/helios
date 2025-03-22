@@ -537,8 +537,10 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                         case ScriptFieldType::Entity: {
                             auto concrete_field =
                                 field->as<ScriptFieldEntity>();
-                            int id = concrete_field->get_state();
-                            if (ImGui::InputInt("ID:", &id)) {
+                            uint32_t id = concrete_field->get_state();
+
+                            if (ImGui::InputScalar("ID", ImGuiDataType_U32,
+                                                   &id)) {
                                 concrete_field->set_state(id);
                             }
 
