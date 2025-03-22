@@ -526,9 +526,9 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 ImGui::Separator();
 
                 if (ImGui::TreeNode("Exposed fields")) {
-                    std::vector<ScriptFieldEntity>& entity_fields =
-                        component->script->get_exposed_fields_entity();
-                    for (auto& field : entity_fields) {
+                    std::vector<ScriptField>& fields =
+                        component->script->get_exposed_fields();
+                    for (auto& field : fields) {
                         ImGui::Text("%s", field.get_name().c_str());
                     }
                     ImGui::TreePop();

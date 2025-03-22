@@ -19,9 +19,7 @@ class Script : public Asset {
     void on_start();
     void on_update(float ts);
 
-    std::vector<ScriptFieldEntity>& get_exposed_fields_entity() {
-        return m_exposed_fields_entity;
-    }
+    std::vector<ScriptField>& get_exposed_fields() { return m_exposed_fields; }
 
   private:
     void load_script(const std::string& src, ScriptLoadType load_type);
@@ -40,6 +38,6 @@ class Script : public Asset {
     sol::state m_state;
     Scene* m_scene;
     Entity m_entity;
-    std::vector<ScriptFieldEntity> m_exposed_fields_entity;
+    std::vector<ScriptField> m_exposed_fields;
 };
 } // namespace Helios

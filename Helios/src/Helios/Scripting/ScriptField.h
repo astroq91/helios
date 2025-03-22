@@ -1,32 +1,45 @@
+#include "Helios/Scripting/SerializableField.h"
+#include "ScriptUserTypes/Entity.h"
 #include <sol/sol.hpp>
 namespace Helios {
-namespace ScriptUserTypes {
-class ScriptEntity;
-}
+
+enum class ScriptFieldType {
+    Entity,
+};
 
 class ScriptField {
   public:
-    explicit ScriptField(const std::string& name) : m_name(name) {}
+    explicit ScriptField(const std::string& name, ScriptFieldType type)
+        : m_name(name), m_type(type) {}
+    virtual SerializableField* get_object() { return nullptr; };
+    ScriptFieldType get_type() const { return m_type; }
     const std::string& get_name() const { return m_name; }
+
+    template <typename Derived> Derived* as() {
+        return static_cast<Derived*>(this);
+    }
 
   private:
     std::string m_name;
-}; // namespace ScriptUserTypes
+    ScriptFieldType m_type;
+};
 
 class ScriptFieldEntity : public ScriptField {
   public:
     ScriptFieldEntity(const std::string& name,
                       ScriptUserTypes::ScriptEntity* object)
-        : ScriptField(name), m_object(object) {}
+        : ScriptField(name, ScriptFieldType::Entity) {}
 
-    void set_field(uint32_t entity) { m_entity = entity; }
-    uint32_t get_field() const { return m_entity; }
-    ScriptUserTypes::ScriptEntity* get_object() { return m_object; }
+    virtual ScriptUserTypes::ScriptEntity* get_object() override {
+        return m_object;
+    }
+
+    void set_state(uint32_t entity) { m_entity = entity; }
+    uint32_t get_state() const { return m_entity; }
 
   private:
-  public:
-    ScriptUserTypes::ScriptEntity* m_object;
     uint32_t m_entity;
+    ScriptUserTypes::ScriptEntity* m_object;
 };
 
 } // namespace Helios

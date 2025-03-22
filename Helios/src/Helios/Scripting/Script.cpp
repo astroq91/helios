@@ -314,23 +314,37 @@ void Script::load_globals() {
         sol::object value = pair.second;
 
         if (value.is<ScriptUserTypes::ScriptEntity>()) {
-            m_exposed_fields_entity.push_back(ScriptFieldEntity(
+            m_exposed_fields.push_back(ScriptFieldEntity(
                 key, value.as<ScriptUserTypes::ScriptEntity*>()));
         }
     }
 }
 
 void Script::get_exposed_fields_state() {
-    for (ScriptFieldEntity& field : m_exposed_fields_entity) {
-        ScriptUserTypes::ScriptEntity* obj = field.get_object();
-        field.set_field(obj->get_id());
+    for (ScriptField& field : m_exposed_fields) {
+        switch (field.get_type()) {
+        case ScriptFieldType::Entity: {
+            auto concrete_field = field.as<ScriptFieldEntity>();
+
+            concrete_field->set_state(concrete_field->get_object()->get_id());
+            break;
+        }
+        }
     }
 }
 
 void Script::set_exposed_fields_state() {
-    for (ScriptFieldEntity& field : m_exposed_fields_entity) {
-        ScriptUserTypes::ScriptEntity* obj = field.get_object();
-        obj->set_entity(Entity(field.get_field(), m_scene));
+    for (ScriptField& field : m_exposed_fields) {
+        switch (field.get_type()) {
+        case ScriptFieldType::Entity: {
+            auto concrete_field = field.as<ScriptFieldEntity>();
+
+            concrete_field->set_state(concrete_field->get_object()->get_id());
+            concrete_field->get_object()->set_entity(
+                Entity(concrete_field->get_state(), m_scene));
+            break;
+        }
+        }
     }
 }
 } // namespace Helios
