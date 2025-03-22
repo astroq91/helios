@@ -5,6 +5,7 @@
 namespace Helios::ScriptUserTypes {
 class ScriptEntity : public SerializableField {
   public:
+    ScriptEntity() {};
     ScriptEntity(Entity entity) : m_entity(entity), m_components(entity) {}
     ScriptComponents* get_components() { return &m_components; }
     uint32_t get_id() const { return m_entity; }

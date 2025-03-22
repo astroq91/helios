@@ -17,6 +17,7 @@
 #include <fstream>
 #include <glm/glm.hpp>
 #include <sstream>
+#include <utility>
 
 namespace Helios {
 
@@ -38,7 +39,7 @@ Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
     expose_basic_types();
     expose_helios_user_types();
     set_globals();
-    load_globals();
+    // load_global_fields();
 
     // Add the base dir to the package path to access the type annotations
     std::stringstream ss;
@@ -52,6 +53,7 @@ Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
 void Script::load_script(const std::string& src, ScriptLoadType load_type) {
     if (load_type == ScriptLoadType::Source) {
         m_state.script(src);
+        parse_exposed_fields(src);
     } else {
         std::ifstream file(
             IOUtils::resolve_path(Application::get().get_asset_base_path(),
@@ -78,6 +80,8 @@ void Script::load_script(const std::string& src, ScriptLoadType load_type) {
             HL_ERROR("Failed to parse script ({}): {}", src.data(),
                      error.what());
         }
+
+        parse_exposed_fields(script);
     }
 }
 
@@ -146,8 +150,8 @@ void Script::expose_functions() {
 
 void Script::expose_helios_user_types() {
     m_state.new_usertype<ScriptUserTypes::ScriptEntity>(
-        "Entity", "get_components",
-        &ScriptUserTypes::ScriptEntity::get_components);
+        "Entity", sol::constructors<ScriptUserTypes::ScriptEntity()>(),
+        "get_components", &ScriptUserTypes::ScriptEntity::get_components);
 
     m_state.new_usertype<ScriptUserTypes::ScriptEntities>(
         "Entities", "create_entity",
@@ -306,17 +310,12 @@ void Script::set_globals() {
     m_state["UI"] = ScriptUserTypes::ScriptUI(m_scene);
 }
 
-void Script::load_globals() {
-    sol::table globals = m_state.globals();
+void Script::load_global_fields() {}
 
-    for (auto& pair : globals) {
-        std::string key = pair.first.as<std::string>();
-        sol::object value = pair.second;
-
-        if (value.is<ScriptUserTypes::ScriptEntity>()) {
-            m_exposed_fields.push_back(ScriptFieldEntity(
-                key, value.as<ScriptUserTypes::ScriptEntity*>()));
-        }
+void Script::load_user_type_field(const std::string& name, sol::object object) {
+    if (object.is<ScriptUserTypes::ScriptEntity>()) {
+        m_exposed_fields.push_back(ScriptFieldEntity(
+            name, object.as<ScriptUserTypes::ScriptEntity*>()));
     }
 }
 
@@ -344,6 +343,67 @@ void Script::set_exposed_fields_state() {
                 Entity(concrete_field->get_state(), m_scene));
             break;
         }
+        }
+    }
+}
+
+int count_occurrences(const std::string& str, const std::string& sub,
+                      size_t start, size_t end) {
+    int count = 0;
+    size_t pos =
+        str.find(sub, start); // Find the first occurrence of the substring
+
+    while (pos != std::string::npos && pos < end) {
+        count++;
+        pos = str.find(sub, pos + 1); // Move to the next occurrence
+    }
+
+    return count;
+}
+
+void Script::parse_exposed_fields(const std::string& src) {
+    sol::table globals = m_state.globals();
+
+    std::vector<std::tuple<std::string, sol::object>> relevant_globals;
+    for (auto pair : globals) {
+        std::string name = pair.first.as<std::string>();
+
+        if (name == "RootEntity" || name == "Entities" || name == "UI" ||
+            name == "Entity") {
+            continue;
+        }
+
+        std::string::size_type field_index = src.find(name);
+
+        std::string::size_type tag_index = src.rfind("---@expose", field_index);
+        if (tag_index == std::string::npos) {
+            continue;
+        }
+        if (count_occurrences(src, "\n", tag_index, field_index) > 1) {
+            continue;
+        }
+
+        relevant_globals.push_back(std::make_tuple<std::string, sol::object>(
+            std::move(name), std::move(pair.second)));
+    }
+
+    for (auto& [name, object] : relevant_globals) {
+        switch (object.get_type()) {
+        case sol::type::number: {
+            break;
+        }
+        case sol::type::boolean: {
+            break;
+        }
+        case sol::type::string: {
+            break;
+        }
+        case sol::type::userdata: {
+            load_user_type_field(name, object);
+            break;
+        }
+        default:
+            break;
         }
     }
 }

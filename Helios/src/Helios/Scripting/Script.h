@@ -29,10 +29,13 @@ class Script : public Asset {
     void expose_component_user_types();
     void expose_key_codes();
     void set_globals();
-    void load_globals();
+    void load_global_fields();
+    void load_user_type_field(const std::string& name, sol::object object);
 
     void get_exposed_fields_state();
     void set_exposed_fields_state();
+
+    void parse_exposed_fields(const std::string& src);
 
   private:
     sol::state m_state;

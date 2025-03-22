@@ -1,5 +1,8 @@
 require("lua.helios")
 
+---@expose
+ExampleField = Entity.new()
+
 function on_start()
   print("on_start!")
 end

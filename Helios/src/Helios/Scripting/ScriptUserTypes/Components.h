@@ -13,6 +13,7 @@ namespace Helios::ScriptUserTypes {
 
 class ScriptComponents {
   public:
+    ScriptComponents() {}
     ScriptComponents(Entity entity) : m_entity(entity) {}
 
     /* Getters */
