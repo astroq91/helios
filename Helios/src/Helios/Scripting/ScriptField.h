@@ -9,7 +9,7 @@ enum class ScriptFieldType {
 
 class ScriptField {
   public:
-    virtual SerializableField* get_object() { return nullptr; };
+    virtual SerializableField* get_object() { return nullptr; }
     ScriptFieldType get_type() const { return m_type; }
     const std::string& get_name() const { return m_name; }
     bool updated() const { return m_updated; }
@@ -30,9 +30,10 @@ class ScriptField {
 
 class ScriptFieldEntity : public ScriptField {
   public:
+    ScriptFieldEntity() = delete;
     ScriptFieldEntity(const std::string& name,
                       ScriptUserTypes::ScriptEntity* object)
-        : ScriptField(name, ScriptFieldType::Entity) {}
+        : ScriptField(name, ScriptFieldType::Entity), m_object(object) {}
 
     virtual ScriptUserTypes::ScriptEntity* get_object() override {
         return m_object;

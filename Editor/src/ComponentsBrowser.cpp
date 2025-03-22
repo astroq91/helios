@@ -527,15 +527,16 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 ImGui::Separator();
 
                 if (ImGui::TreeNode("Exposed fields")) {
-                    std::vector<ScriptField>& fields =
+                    std::vector<Unique<ScriptField>>& fields =
                         component->script->get_exposed_fields();
 
                     for (auto& field : fields) {
-                        ImGui::Text("%s", field.get_name().c_str());
+                        ImGui::Text("%s", field->get_name().c_str());
 
-                        switch (field.get_type()) {
+                        switch (field->get_type()) {
                         case ScriptFieldType::Entity: {
-                            auto concrete_field = field.as<ScriptFieldEntity>();
+                            auto concrete_field =
+                                field->as<ScriptFieldEntity>();
                             int id = concrete_field->get_state();
                             if (ImGui::InputInt("ID:", &id)) {
                                 concrete_field->set_state(id);

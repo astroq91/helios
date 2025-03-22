@@ -315,20 +315,20 @@ void Script::load_global_fields() {}
 
 void Script::load_user_type_field(const std::string& name, sol::object object) {
     if (object.is<ScriptUserTypes::ScriptEntity>()) {
-        m_exposed_fields.push_back(ScriptFieldEntity(
+        m_exposed_fields.push_back(std::make_unique<ScriptFieldEntity>(
             name, object.as<ScriptUserTypes::ScriptEntity*>()));
     }
 }
 
 void Script::get_exposed_fields_state() {
-    for (ScriptField& field : m_exposed_fields) {
-        switch (field.get_type()) {
+    for (Unique<ScriptField>& field : m_exposed_fields) {
+        switch (field->get_type()) {
         case ScriptFieldType::Entity: {
-            auto concrete_field = field.as<ScriptFieldEntity>();
-            if (concrete_field->get_object()->get_id() == k_no_entity) {
-                continue;
+            auto concrete_field = field->as<ScriptFieldEntity>();
+            ScriptUserTypes::ScriptEntity* obj = concrete_field->get_object();
+            if (obj->get_id() == k_no_entity) {
+                break;
             }
-            HL_INFO("{}", concrete_field->get_object()->get_id());
 
             concrete_field->set_state(concrete_field->get_object()->get_id());
             break;
@@ -338,19 +338,19 @@ void Script::get_exposed_fields_state() {
 }
 
 void Script::set_exposed_fields_state() {
-    for (ScriptField& field : m_exposed_fields) {
-        if (!field.updated()) {
+    for (Unique<ScriptField>& field : m_exposed_fields) {
+        if (!field->updated()) {
             continue;
         }
 
-        switch (field.get_type()) {
+        switch (field->get_type()) {
         case ScriptFieldType::Entity: {
-            auto concrete_field = field.as<ScriptFieldEntity>();
+            auto concrete_field = field->as<ScriptFieldEntity>();
             if (m_scene->get_entity(concrete_field->get_state()) ==
                 k_no_entity) {
                 HL_WARN("Invalid entity id: {}, for exposed field: {}",
-                        concrete_field->get_state(), field.get_name());
-                continue;
+                        concrete_field->get_state(), field->get_name());
+                break;
             }
 
             concrete_field->set_state(concrete_field->get_object()->get_id());
