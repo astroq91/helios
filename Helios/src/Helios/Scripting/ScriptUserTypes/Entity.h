@@ -10,7 +10,10 @@ class ScriptEntity : public SerializableField {
     ScriptComponents* get_components() { return &m_components; }
     uint32_t get_id() const { return m_entity; }
 
-    void set_entity(Entity entity) { m_entity = entity; }
+    void set_entity(Entity entity) {
+        m_entity = entity;
+        m_components = ScriptComponents(entity);
+    }
 
   private:
     Entity m_entity;

@@ -32,7 +32,13 @@ void Scene::destroy_entity(uint32_t handle) {
     m_registry.destroy(static_cast<entt::entity>(handle));
 }
 
-Entity Scene::get_entity(uint32_t handle) { return Entity(handle, this); }
+Entity Scene::get_entity(uint32_t handle) {
+    // Check if the entity exists (has a name component)
+    if (m_registry.try_get<NameComponent>(static_cast<entt::entity>(handle))) {
+        return Entity(handle, this);
+    }
+    return Entity();
+}
 
 void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
                       const SceneViewportInfo& game_spec) {
@@ -49,6 +55,7 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
         Application::get().get_physics_manager().step(ts);
         physics_to_scripting();
     }
+
     update_children();
 
     // Editor viewport

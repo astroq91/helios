@@ -86,6 +86,7 @@ void Script::load_script(const std::string& src, ScriptLoadType load_type) {
 }
 
 void Script::on_start() {
+    set_exposed_fields_state();
     auto func = m_state["on_start"];
     if (func.valid()) {
         try {
@@ -324,6 +325,10 @@ void Script::get_exposed_fields_state() {
         switch (field.get_type()) {
         case ScriptFieldType::Entity: {
             auto concrete_field = field.as<ScriptFieldEntity>();
+            if (concrete_field->get_object()->get_id() == k_no_entity) {
+                continue;
+            }
+            HL_INFO("{}", concrete_field->get_object()->get_id());
 
             concrete_field->set_state(concrete_field->get_object()->get_id());
             break;
@@ -334,9 +339,19 @@ void Script::get_exposed_fields_state() {
 
 void Script::set_exposed_fields_state() {
     for (ScriptField& field : m_exposed_fields) {
+        if (!field.updated()) {
+            continue;
+        }
+
         switch (field.get_type()) {
         case ScriptFieldType::Entity: {
             auto concrete_field = field.as<ScriptFieldEntity>();
+            if (m_scene->get_entity(concrete_field->get_state()) ==
+                k_no_entity) {
+                HL_WARN("Invalid entity id: {}, for exposed field: {}",
+                        concrete_field->get_state(), field.get_name());
+                continue;
+            }
 
             concrete_field->set_state(concrete_field->get_object()->get_id());
             concrete_field->get_object()->set_entity(

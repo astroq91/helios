@@ -9,19 +9,23 @@ enum class ScriptFieldType {
 
 class ScriptField {
   public:
-    explicit ScriptField(const std::string& name, ScriptFieldType type)
-        : m_name(name), m_type(type) {}
     virtual SerializableField* get_object() { return nullptr; };
     ScriptFieldType get_type() const { return m_type; }
     const std::string& get_name() const { return m_name; }
+    bool updated() const { return m_updated; }
 
     template <typename Derived> Derived* as() {
         return static_cast<Derived*>(this);
     }
 
-  private:
+  protected:
+    explicit ScriptField(const std::string& name, ScriptFieldType type)
+        : m_name(name), m_type(type) {}
+
+  protected:
     std::string m_name;
     ScriptFieldType m_type;
+    bool m_updated = false;
 };
 
 class ScriptFieldEntity : public ScriptField {
@@ -34,7 +38,10 @@ class ScriptFieldEntity : public ScriptField {
         return m_object;
     }
 
-    void set_state(uint32_t entity) { m_entity = entity; }
+    void set_state(uint32_t entity) {
+        m_entity = entity;
+        m_updated = true;
+    }
     uint32_t get_state() const { return m_entity; }
 
   private:
