@@ -92,11 +92,12 @@ Components = Components
 
 ---@class Entity
 ---An entity object
----@field new fun() Creates an empty Entity
----@field get_components fun():Components Gets the components object
+---@field new fun():Entity Creates an empty Entity
+---@field get_components fun(self: Entity):Components Gets the components object
 Entity = Entity
 
----@class Entity
+---@class RootEntity : Entity
+---The entity the script is attached to
 RootEntity = RootEntity
 
 ---@class Entities

@@ -1,10 +1,11 @@
 require("lua.helios")
 
 ---@expose
-ExampleField = Entity.new()
+CubeEntity = Entity.new()
 
 function on_start()
   print("on_start!")
+  print(CubeEntity:get_components():get_name().name);
 end
 
 function on_update(ts)

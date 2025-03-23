@@ -31,6 +31,7 @@ class ScriptField {
     void set_value(const ScriptFieldValueType& value) {
         // TODO: Add type checks
         m_value = value;
+        m_updated = true;
     }
     const ScriptFieldValueType& get_value() const { return m_value; }
 
