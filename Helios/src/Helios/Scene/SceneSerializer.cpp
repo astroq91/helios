@@ -93,12 +93,9 @@ template <> struct convert<uuids::uuid> {
         if (!node.IsScalar()) {
             return false;
         }
-        auto uuid = uuids::uuid::from_string(node.as<std::string>());
-        if (uuid) {
-            rhs = uuid.value();
-            return true;
-        }
-        return false;
+        auto uuid = uuids::uuid::from_string(node.as<std::string>())
+                        .value_or(uuids::uuid());
+        return true;
     }
 };
 } // namespace YAML
@@ -125,16 +122,6 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& value) {
     return out;
 }
 
-YAML::Emitter& operator<<(YAML::Emitter& out, const ScriptFieldType& value) {
-    switch (value) {
-    case ScriptFieldType::Entity: {
-        out << "entity";
-        break;
-    }
-    }
-    return out;
-}
-
 void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
                                                   Entity entity) {
     out << YAML::Key << "components" << YAML::Value;
@@ -142,7 +129,10 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
     if (entity.has_component<PersistentIdComponent>()) {
         const auto& component = entity.get_component<PersistentIdComponent>();
         out << YAML::Key << "persistent_id_component" << YAML::Value
+            << YAML::BeginMap;
+        out << YAML::Key << "id" << YAML::Value
             << uuids::to_string(component.get_id());
+        out << YAML::EndMap;
     }
     if (entity.has_component<NameComponent>()) {
         const auto& component = entity.get_component<NameComponent>();
@@ -298,8 +288,9 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
 
         out << YAML::Key << "exposed_fields" << YAML::Value << YAML::BeginSeq;
         for (auto& field : component.exposed_fields) {
+            out << YAML::BeginMap;
+
             out << YAML::Key << "field" << YAML::Value << field.name;
-            out << YAML::Key << "type" << YAML::Value << field.type;
 
             switch (field.type) {
             case ScriptFieldType::Entity: {
@@ -310,6 +301,8 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
                 break;
             }
             }
+
+            out << YAML::EndMap;
         }
         out << YAML::EndSeq;
 
@@ -596,36 +589,33 @@ void SceneSerializer::deserialize_from_string_with_parent(
                 if (!fields.IsNull() && fields.IsSequence()) {
                     for (auto field : fields) {
                         auto name = field["field"];
-                        auto type = field["type"];
                         auto value = field["value"];
-                        if (name.IsNull() || !name.IsScalar() ||
-                            type.IsNull() || !type.IsScalar()) {
+                        if (name.IsNull() || !name.IsScalar()) {
                             // Valid field name, and type, is needed
                             HL_WARN("Invalid field type or name, when loading "
                                     "scene");
                             continue;
                         }
 
-                        ExposedFieldEntry entry;
-                        entry.name = name.as<std::string>();
+                        auto script_field = sc.script->get_exposed_field(
+                            name.as<std::string>());
 
-                        if (type.as<std::string>() == "entity") {
-                            entry.type = ScriptFieldType::Entity;
-                        } else {
-                            HL_WARN("Invalid field type, when loading scene");
+                        if (!script_field) {
+                            HL_ERROR("Could not find script field: {}",
+                                     name.as<std::string>());
                             continue;
                         }
 
                         if (!value.IsNull() && value.IsScalar()) {
-                            switch (entry.type) {
+                            switch (script_field->get_type()) {
                             case ScriptFieldType::Entity: {
-                                entry.value = value.as<uuids::uuid>();
+                                uuids::uuid uuid = value.as<uuids::uuid>();
+                                script_field->set_value(
+                                    m_scene->get_entity_from_uuid(uuid));
                                 break;
                             }
                             }
                         }
-
-                        sc.exposed_fields.emplace_back(std::move(entry));
                     }
                 }
             }

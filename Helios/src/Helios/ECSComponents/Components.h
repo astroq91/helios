@@ -15,7 +15,7 @@ namespace Helios {
 enum class MeshType { Cube };
 
 struct PersistentIdComponent {
-    PersistentIdComponent() = default;
+    PersistentIdComponent() : m_id(uuids::uuid_system_generator{}()) {}
     PersistentIdComponent(const uuids::uuid& id) : m_id(id) {}
 
     const uuids::uuid& get_id() const { return m_id; }

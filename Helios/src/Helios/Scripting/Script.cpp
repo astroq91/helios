@@ -18,6 +18,7 @@
 #include <glm/glm.hpp>
 #include <sstream>
 #include <utility>
+#include <variant>
 
 namespace Helios {
 
@@ -315,22 +316,22 @@ void Script::load_global_fields() {}
 
 void Script::load_user_type_field(const std::string& name, sol::object object) {
     if (object.is<ScriptUserTypes::ScriptEntity>()) {
-        m_exposed_fields.push_back(std::make_unique<ScriptFieldEntity>(
-            name, object.as<ScriptUserTypes::ScriptEntity*>()));
+        m_exposed_fields.push_back(
+            ScriptField(name, ScriptFieldType::Entity,
+                        object.as<ScriptUserTypes::ScriptEntity*>()));
     }
 }
 
 void Script::get_exposed_fields_state() {
-    for (Unique<ScriptField>& field : m_exposed_fields) {
-        switch (field->get_type()) {
+    for (ScriptField& field : m_exposed_fields) {
+        switch (field.get_type()) {
         case ScriptFieldType::Entity: {
-            auto concrete_field = field->as<ScriptFieldEntity>();
-            ScriptUserTypes::ScriptEntity* obj = concrete_field->get_object();
+            auto obj = field.get_object<ScriptUserTypes::ScriptEntity>();
             if (obj->get_id() == k_no_entity) {
                 break;
             }
 
-            concrete_field->set_state(concrete_field->get_object()->get_id());
+            field.set_value(obj->get_id());
             break;
         }
         }
@@ -338,23 +339,23 @@ void Script::get_exposed_fields_state() {
 }
 
 void Script::set_exposed_fields_state() {
-    for (Unique<ScriptField>& field : m_exposed_fields) {
-        if (!field->updated()) {
+    for (ScriptField& field : m_exposed_fields) {
+        if (!field.updated()) {
             continue;
         }
 
-        switch (field->get_type()) {
+        switch (field.get_type()) {
         case ScriptFieldType::Entity: {
-            auto concrete_field = field->as<ScriptFieldEntity>();
-            if (m_scene->get_entity(concrete_field->get_state()) ==
-                k_no_entity) {
-                HL_WARN("Invalid entity id: {}, for exposed field: {}",
-                        concrete_field->get_state(), field->get_name());
+            Entity entity =
+                m_scene->get_entity(std::get<uint32_t>(field.get_value()));
+            if (entity == k_no_entity) {
+                HL_WARN("Invalid entity id: {}, for exposed field: {}", entity,
+                        field.get_name());
                 break;
             }
 
-            concrete_field->get_object()->set_entity(
-                Entity(concrete_field->get_state(), m_scene));
+            field.get_object<ScriptUserTypes::ScriptEntity>()->set_entity(
+                entity);
             break;
         }
         }
@@ -401,6 +402,9 @@ void Script::parse_exposed_fields(const std::string& src) {
             std::move(name), std::move(pair.second)));
     }
 
+    auto& exposed_fields =
+        m_entity.get_component<ScriptComponent>().exposed_fields;
+    exposed_fields.clear();
     for (auto& [name, object] : relevant_globals) {
         switch (object.get_type()) {
         case sol::type::number: {
@@ -419,6 +423,29 @@ void Script::parse_exposed_fields(const std::string& src) {
         default:
             break;
         }
+
+        auto& field = m_exposed_fields[m_exposed_fields.size() - 1];
+
+        ExposedFieldEntry entry;
+        entry.name = name;
+        entry.type = field.get_type();
+
+        if (std::holds_alternative<uint32_t>(field.get_value())) {
+            Entity ent =
+                m_scene->get_entity(std::get<uint32_t>(field.get_value()));
+            if (ent != k_no_entity) {
+                entry.value =
+                    ent.add_component<PersistentIdComponent>().get_id();
+            }
+        } else if (std::holds_alternative<double>(field.get_value())) {
+            entry.value = std::get<double>(field.get_value());
+        } else if (std::holds_alternative<bool>(field.get_value())) {
+            entry.value = std::get<bool>(field.get_value());
+        } else if (std::holds_alternative<std::string>(field.get_value())) {
+            entry.value = std::get<std::string>(field.get_value());
+        }
+
+        exposed_fields.emplace_back(std::move(entry));
     }
 }
 } // namespace Helios

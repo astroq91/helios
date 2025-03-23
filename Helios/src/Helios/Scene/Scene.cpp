@@ -27,20 +27,18 @@ void Scene::scene_load_done() {
 
     for (auto [entity, script] : view.each()) {
         for (auto& field : script.exposed_fields) {
-            Unique<ScriptField>* script_field =
+            ScriptField* script_field =
                 script.script->get_exposed_field(field.name);
 
             if (script_field) {
-                switch ((*script_field)->get_type()) {
+                switch (script_field->get_type()) {
                 case ScriptFieldType::Entity: {
                     if (std::holds_alternative<uuids::uuid>(field.value)) {
                         const uuids::uuid& id =
                             std::get<uuids::uuid>(field.value);
                         if (m_entity_id_map.contains(id)) {
                             uint32_t entity_id = m_entity_id_map.at(id);
-                            auto concrete_field =
-                                (*script_field)->as<ScriptFieldEntity>();
-                            concrete_field->set_state(entity_id);
+                            script_field->set_value(entity_id);
                         }
                     }
                     break;
@@ -488,6 +486,10 @@ Scene::try_get_entity_children(Entity entity) const {
 }
 
 void Scene::setup_signals() {
+    m_registry.on_construct<PersistentIdComponent>()
+        .connect<&Scene::on_persistent_id_component_added>(*this);
+    m_registry.on_construct<PersistentIdComponent>()
+        .connect<&Scene::on_persistent_id_component_destroyed>(*this);
     m_registry.on_destroy<RigidBodyComponent>()
         .connect<&Scene::on_rigid_body_destroyed>(*this);
     m_registry.on_construct<ParentComponent>()
@@ -557,12 +559,8 @@ void Scene::on_parent_component_destroyed(entt::registry& registry,
 void Scene::on_persistent_id_component_added(entt::registry& registry,
                                              entt::entity entity) {
     auto& pic = registry.get<PersistentIdComponent>(entity);
-    uuids::uuid id = pic.get_id();
-    if (id.is_nil()) {
-        id = uuids::uuid_system_generator{}();
-    }
-    m_entity_id_map.insert(
-        std::pair<uuids::uuid, uint32_t>(id, static_cast<uint32_t>(entity)));
+    m_entity_id_map.insert(std::pair<uuids::uuid, uint32_t>(
+        pic.get_id(), static_cast<uint32_t>(entity)));
 }
 
 void Scene::on_persistent_id_component_destroyed(entt::registry& registry,

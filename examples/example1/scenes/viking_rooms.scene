@@ -1,5 +1,7 @@
 entities:
   - components:
+      persistent_id_component:
+        id: 153d71b7-232e-4a43-a249-2170f14c372e
       name_component:
         name: Cube
       transform_component:
@@ -23,6 +25,9 @@ entities:
         tint_color: [1, 1, 1, 1]
       script_component:
         path: scripts/script.lua
+        exposed_fields:
+          - field: ExampleField
+            value: 153d71b7-232e-4a43-a249-2170f14c372e
     children:
       - components:
           name_component:

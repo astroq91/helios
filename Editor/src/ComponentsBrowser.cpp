@@ -114,6 +114,12 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
             }
         }
 
+        Utils::render_component<PersistentIdComponent>(
+            "Persistent Id", selected_entity, [&](auto component) {
+                std::string uuid_str = uuids::to_string(component->get_id());
+                ImGui::Text("Id: %s", uuid_str.c_str());
+            });
+
         Utils::render_component<TransformComponent>(
             "Transform", selected_entity, [&](auto component) {
                 static glm::vec3 euler_cache;
@@ -559,19 +565,14 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                                         scene->get_entity_from_uuid(uuid_new);
 
                                     if (entity_id_from_uuid != k_no_entity) {
-                                        Unique<ScriptField>* script_field =
+                                        ScriptField* script_field =
                                             component->script
                                                 ->get_exposed_field(field.name);
 
                                         if (script_field &&
-                                            (*script_field)->get_type() ==
+                                            script_field->get_type() ==
                                                 ScriptFieldType::Entity) {
-                                            ScriptFieldEntity*
-                                                concrete_script_field =
-                                                    (*script_field)
-                                                        ->as<
-                                                            ScriptFieldEntity>();
-                                            concrete_script_field->set_state(
+                                            script_field->set_value(
                                                 entity_id_from_uuid);
                                         }
                                     }
@@ -612,6 +613,12 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
             if (ImGui::BeginPopupModal("Add Component",
                                        &m_show_add_component_modal,
                                        ImGuiWindowFlags_AlwaysAutoResize)) {
+                if (!selected_entity
+                         .try_get_component<PersistentIdComponent>() &&
+                    ImGui::Button("Persistent Id")) {
+                    selected_entity.add_component<PersistentIdComponent>();
+                    m_show_add_component_modal = false;
+                }
                 if (!selected_entity.try_get_component<TransformComponent>() &&
                     ImGui::Button("Transform")) {
                     selected_entity.add_component<TransformComponent>();
