@@ -93,8 +93,8 @@ template <> struct convert<uuids::uuid> {
         if (!node.IsScalar()) {
             return false;
         }
-        auto uuid = uuids::uuid::from_string(node.as<std::string>())
-                        .value_or(uuids::uuid());
+        rhs = uuids::uuid::from_string(node.as<std::string>())
+                  .value_or(uuids::uuid());
         return true;
     }
 };
@@ -124,6 +124,10 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& value) {
 
 void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
                                                   Entity entity) {
+    out << YAML::Key << "entity_dependencies" << YAML::Value;
+    out << YAML::BeginSeq;
+
+    out << YAML::EndSeq;
     out << YAML::Key << "components" << YAML::Value;
     out << YAML::BeginMap;
     if (entity.has_component<PersistentIdComponent>()) {
@@ -597,23 +601,28 @@ void SceneSerializer::deserialize_from_string_with_parent(
                             continue;
                         }
 
-                        auto script_field = sc.script->get_exposed_field(
-                            name.as<std::string>());
+                        for (auto& field_data : sc.exposed_fields) {
+                            if (field_data.name == name.as<std::string>()) {
+                                if (!value.IsNull() && value.IsScalar()) {
+                                    auto script_field =
+                                        sc.script->get_exposed_field(
+                                            name.as<std::string>());
 
-                        if (!script_field) {
-                            HL_ERROR("Could not find script field: {}",
-                                     name.as<std::string>());
-                            continue;
-                        }
+                                    if (!script_field) {
+                                        HL_ERROR(
+                                            "Could not find script field: {}",
+                                            name.as<std::string>());
+                                        continue;
+                                    }
 
-                        if (!value.IsNull() && value.IsScalar()) {
-                            switch (script_field->get_type()) {
-                            case ScriptFieldType::Entity: {
-                                uuids::uuid uuid = value.as<uuids::uuid>();
-                                script_field->set_value(
-                                    m_scene->get_entity_from_uuid(uuid));
-                                break;
-                            }
+                                    switch (script_field->get_type()) {
+                                    case ScriptFieldType::Entity: {
+                                        field_data.value =
+                                            value.as<uuids::uuid>();
+                                        break;
+                                    }
+                                    }
+                                }
                             }
                         }
                     }

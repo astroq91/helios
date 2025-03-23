@@ -8,6 +8,7 @@
 #include "Helios/Renderer/Renderer.h"
 #include "Helios/Scene/Transform.h"
 #include "PxRigidDynamic.h"
+#include "stduuid/uuid.h"
 #include <variant>
 
 namespace Helios {
@@ -36,6 +37,7 @@ void Scene::scene_load_done() {
                     if (std::holds_alternative<uuids::uuid>(field.value)) {
                         const uuids::uuid& id =
                             std::get<uuids::uuid>(field.value);
+                        HL_INFO("{}", uuids::to_string(id));
                         if (m_entity_id_map.contains(id)) {
                             uint32_t entity_id = m_entity_id_map.at(id);
                             script_field->set_value(entity_id);
@@ -488,7 +490,7 @@ Scene::try_get_entity_children(Entity entity) const {
 void Scene::setup_signals() {
     m_registry.on_construct<PersistentIdComponent>()
         .connect<&Scene::on_persistent_id_component_added>(*this);
-    m_registry.on_construct<PersistentIdComponent>()
+    m_registry.on_destroy<PersistentIdComponent>()
         .connect<&Scene::on_persistent_id_component_destroyed>(*this);
     m_registry.on_destroy<RigidBodyComponent>()
         .connect<&Scene::on_rigid_body_destroyed>(*this);
