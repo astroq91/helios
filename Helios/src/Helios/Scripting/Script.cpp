@@ -17,10 +17,18 @@
 #include <fstream>
 #include <glm/glm.hpp>
 #include <sstream>
+#include <string_view>
 #include <utility>
 #include <variant>
 
 namespace Helios {
+
+constexpr std::array<std::string_view, 20> k_global_types_and_fields{
+    "table",      "os",        "math",         "Vec2",       "Vec3",
+    "Vec4",       "Quat",      "Name",         "Camera",     "DirectionalLight",
+    "PointLight", "RigidBody", "MeshRenderer", "Components", "Entity",
+    "RootEntity", "Entities",  "Transform",    "Input",      "UI",
+};
 
 Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
                Entity entity)
@@ -153,7 +161,8 @@ void Script::expose_functions() {
 void Script::expose_helios_user_types() {
     m_state.new_usertype<ScriptUserTypes::ScriptEntity>(
         "Entity", sol::constructors<ScriptUserTypes::ScriptEntity()>(),
-        "get_components", &ScriptUserTypes::ScriptEntity::get_components);
+        "get_components", &ScriptUserTypes::ScriptEntity::get_components,
+        "is_valid", &ScriptUserTypes::ScriptEntity::is_valid);
 
     m_state.new_usertype<ScriptUserTypes::ScriptEntities>(
         "Entities", "create_entity",
@@ -383,8 +392,13 @@ void Script::parse_exposed_fields(const std::string& src) {
     for (auto pair : globals) {
         std::string name = pair.first.as<std::string>();
 
-        if (name == "RootEntity" || name == "Entities" || name == "UI" ||
-            name == "Entity") {
+        bool ignore_global = false;
+        for (auto& str : k_global_types_and_fields) {
+            if (str == name) {
+                ignore_global = true;
+            }
+        }
+        if (ignore_global) {
             continue;
         }
 
@@ -421,7 +435,7 @@ void Script::parse_exposed_fields(const std::string& src) {
             break;
         }
         default:
-            break;
+            continue;
         }
 
         auto& field = m_exposed_fields[m_exposed_fields.size() - 1];

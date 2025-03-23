@@ -15,6 +15,8 @@ class ScriptEntity : public SerializableField {
         m_components = ScriptComponents(entity);
     }
 
+    bool is_valid() { return m_entity != k_no_entity; }
+
   private:
     Entity m_entity;
     ScriptComponents m_components;

@@ -4,7 +4,7 @@ require("lua.key_codes")
 ---@field x number The x component
 ---@field y number The y component
 ---@field new fun() Creates a default vec2
----@field new fun(x: number, y: number) Creates a vec2 with given values
+--@field new fun(x: number, y: number) Creates a vec2 with given values
 Vec2 = Vec2
 
 ---@class Vec3
@@ -94,6 +94,7 @@ Components = Components
 ---An entity object
 ---@field new fun():Entity Creates an empty Entity
 ---@field get_components fun(self: Entity):Components Gets the components object
+---@field is_valid fun(self: Entity):boolean Checks if the entity is valid
 Entity = Entity
 
 ---@class RootEntity : Entity

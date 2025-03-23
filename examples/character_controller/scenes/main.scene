@@ -1,5 +1,7 @@
 entities:
-  - components:
+  - entity_dependencies:
+      []
+    components:
       name_component:
         name: Ground
       transform_component:
@@ -26,7 +28,9 @@ entities:
         lock_angular_z: false
       box_collider_component:
         size: [5, 0.5, 5]
-  - components:
+  - entity_dependencies:
+      []
+    components:
       name_component:
         name: Light
       directional_light_component:
@@ -34,7 +38,9 @@ entities:
         ambient: [1, 1, 1]
         diffuse: [1, 1, 1]
         specular: [1, 1, 1]
-  - components:
+  - entity_dependencies:
+      []
+    components:
       name_component:
         name: Player
       transform_component:
@@ -57,8 +63,17 @@ entities:
         lock_angular_z: true
       box_collider_component:
         size: [0.5, 1.5, 0.5]
+      script_component:
+        path: scripts/controller.lua
+        exposed_fields:
+          - field: CameraEntity
+            value: 836e8aba-87ae-4fa8-bc56-61ff8dcdeb46
     children:
-      - components:
+      - entity_dependencies:
+          []
+        components:
+          persistent_id_component:
+            id: 836e8aba-87ae-4fa8-bc56-61ff8dcdeb46
           name_component:
             name: Camera
           transform_component:
