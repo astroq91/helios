@@ -6,8 +6,6 @@
 
 namespace Helios {
 
-constexpr uint32_t k_no_entity = UINT32_MAX;
-
 class Entity {
   public:
     Entity()

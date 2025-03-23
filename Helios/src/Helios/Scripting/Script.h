@@ -23,6 +23,15 @@ class Script : public Asset {
         return m_exposed_fields;
     }
 
+    Unique<ScriptField>* get_exposed_field(const std::string& name) {
+        for (int i = 0; i < m_exposed_fields.size(); i++) {
+            if (m_exposed_fields[i]->get_name() == name) {
+                return &m_exposed_fields[i];
+            }
+        }
+        return nullptr;
+    }
+
   private:
     void load_script(const std::string& src, ScriptLoadType load_type);
     void expose_basic_types();

@@ -353,7 +353,6 @@ void Script::set_exposed_fields_state() {
                 break;
             }
 
-            concrete_field->set_state(concrete_field->get_object()->get_id());
             concrete_field->get_object()->set_entity(
                 Entity(concrete_field->get_state(), m_scene));
             break;

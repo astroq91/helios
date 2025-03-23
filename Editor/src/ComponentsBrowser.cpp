@@ -10,12 +10,14 @@
 #include "Helios/Scene/Entity.h"
 #include "Helios/Scene/Scene.h"
 
+#include <variant>
 #include <yaml-cpp/yaml.h>
 
 #include "Helios/Core/Application.h"
 #include "Helios/Core/IOUtils.h"
 #include "Helios/Scripting/Script.h"
 #include "Helios/Scripting/ScriptUserTypes/Entity.h"
+#include "stduuid/uuid.h"
 
 enum class TextureType { Diffuse, Specular, Emission };
 
@@ -527,21 +529,53 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 ImGui::Separator();
 
                 if (ImGui::TreeNode("Exposed fields")) {
-                    std::vector<Unique<ScriptField>>& fields =
-                        component->script->get_exposed_fields();
+                    for (auto& field : component->exposed_fields) {
+                        ImGui::Text("%s", field.name.c_str());
 
-                    for (auto& field : fields) {
-                        ImGui::Text("%s", field->get_name().c_str());
-
-                        switch (field->get_type()) {
+                        switch (field.type) {
                         case ScriptFieldType::Entity: {
-                            auto concrete_field =
-                                field->as<ScriptFieldEntity>();
-                            uint32_t id = concrete_field->get_state();
+                            uuids::uuid uuid;
+                            if (std::holds_alternative<uuids::uuid>(
+                                    field.value)) {
+                                uuid = std::get<uuids::uuid>(field.value);
+                            }
 
-                            if (ImGui::InputScalar("ID", ImGuiDataType_U32,
-                                                   &id)) {
-                                concrete_field->set_state(id);
+                            std::string uuid_str = "";
+                            if (!uuid.is_nil()) {
+                                uuid_str = uuids::to_string(uuid);
+                            }
+
+                            char uuid_buf[128];
+                            std::strncpy(uuid_buf, uuid_str.c_str(), 128);
+
+                            if (ImGui::InputText("UUID", uuid_buf, 128)) {
+                                auto uuid_new = uuids::uuid::from_string(
+                                                    std::string(uuid_buf))
+                                                    .value_or(uuids::uuid());
+                                field.value = uuid_new;
+
+                                if (!uuid_new.is_nil()) {
+                                    uint32_t entity_id_from_uuid =
+                                        scene->get_entity_from_uuid(uuid_new);
+
+                                    if (entity_id_from_uuid != k_no_entity) {
+                                        Unique<ScriptField>* script_field =
+                                            component->script
+                                                ->get_exposed_field(field.name);
+
+                                        if (script_field &&
+                                            (*script_field)->get_type() ==
+                                                ScriptFieldType::Entity) {
+                                            ScriptFieldEntity*
+                                                concrete_script_field =
+                                                    (*script_field)
+                                                        ->as<
+                                                            ScriptFieldEntity>();
+                                            concrete_script_field->set_state(
+                                                entity_id_from_uuid);
+                                        }
+                                    }
+                                }
                             }
 
                             break;

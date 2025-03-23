@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <stduuid/uuid.h>
 
 #include "Helios/Physics/RigidBody.h"
 #include "Helios/Renderer/Light.h"
@@ -12,6 +13,16 @@
 namespace Helios {
 
 enum class MeshType { Cube };
+
+struct PersistentIdComponent {
+    PersistentIdComponent() = default;
+    PersistentIdComponent(const uuids::uuid& id) : m_id(id) {}
+
+    const uuids::uuid& get_id() const { return m_id; }
+
+  private:
+    uuids::uuid m_id;
+};
 
 struct TransformComponent {
     glm::vec3 position = {0.0f, 0.0f, 0.0f};
@@ -113,8 +124,15 @@ struct PointLightComponent {
     }
 };
 
+struct ExposedFieldEntry {
+    std::string name;
+    ScriptFieldType type;
+    std::variant<uuids::uuid, double, bool, std::string> value;
+};
+
 struct ScriptComponent {
     Unique<Script> script = nullptr;
+    std::vector<ExposedFieldEntry> exposed_fields;
 };
 
 struct RigidBodyComponent {

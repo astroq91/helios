@@ -1,7 +1,6 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include <stdexcept>
 #include <unordered_map>
 
 #include "Helios/Renderer/Renderer.h"
@@ -10,6 +9,8 @@
 #include "entt/entity/fwd.hpp"
 
 namespace Helios {
+constexpr uint32_t k_no_entity = UINT32_MAX;
+
 class Entity;
 class Script;
 
@@ -30,6 +31,8 @@ class Scene {
     Scene(SceneCamera* sceneCamera = nullptr);
 
     ~Scene();
+
+    void scene_load_done();
 
     /**
      * \brief Creates a new entity.
@@ -93,6 +96,13 @@ class Scene {
     const std::vector<uint32_t>* const
     try_get_entity_children(Entity entity) const;
 
+    uint32_t get_entity_from_uuid(const uuids::uuid& id) const {
+        if (m_entity_id_map.contains(id)) {
+            return m_entity_id_map.at(id);
+        }
+        return k_no_entity;
+    }
+
   private:
     // SYSTEMS //
 
@@ -111,7 +121,10 @@ class Scene {
                                    entt::entity entity);
     void on_parent_component_destroyed(entt::registry& registry,
                                        entt::entity entity);
-
+    void on_persistent_id_component_added(entt::registry& registry,
+                                          entt::entity entity);
+    void on_persistent_id_component_destroyed(entt::registry& registry,
+                                              entt::entity entity);
     void update_children();
 
   private:
@@ -126,8 +139,8 @@ class Scene {
 
     glm::ivec2 m_game_viewport_size;
 
-    std::unordered_map < uint32_t, std::vector<uint32_t>>
-        m_entity_children;
+    std::unordered_map<uint32_t, std::vector<uint32_t>> m_entity_children;
+    std::unordered_map<uuids::uuid, uint32_t> m_entity_id_map;
 
     friend class Entity;
 };

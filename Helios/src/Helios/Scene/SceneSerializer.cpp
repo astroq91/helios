@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <glm/glm.hpp>
+#include <variant>
 #include <yaml-cpp/yaml.h>
 
 #include "Entity.h"
@@ -9,6 +10,7 @@
 #include "Helios/Core/IOUtils.h"
 #include "Helios/ECSComponents/Components.h"
 #include "entt/entity/fwd.hpp"
+#include "stduuid/uuid.h"
 #include "yaml-cpp/emittermanip.h"
 #include "yaml-cpp/exceptions.h"
 
@@ -79,6 +81,26 @@ template <> struct convert<glm::quat> {
         return true;
     }
 };
+
+template <> struct convert<uuids::uuid> {
+    static Node encode(const uuids::uuid& rhs) {
+        Node node;
+        node.push_back(uuids::to_string(rhs));
+        return node;
+    }
+
+    static bool decode(const Node& node, uuids::uuid& rhs) {
+        if (!node.IsScalar()) {
+            return false;
+        }
+        auto uuid = uuids::uuid::from_string(node.as<std::string>());
+        if (uuid) {
+            rhs = uuid.value();
+            return true;
+        }
+        return false;
+    }
+};
 } // namespace YAML
 
 namespace Helios {
@@ -103,10 +125,25 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& value) {
     return out;
 }
 
+YAML::Emitter& operator<<(YAML::Emitter& out, const ScriptFieldType& value) {
+    switch (value) {
+    case ScriptFieldType::Entity: {
+        out << "entity";
+        break;
+    }
+    }
+    return out;
+}
+
 void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
                                                   Entity entity) {
     out << YAML::Key << "components" << YAML::Value;
     out << YAML::BeginMap;
+    if (entity.has_component<PersistentIdComponent>()) {
+        const auto& component = entity.get_component<PersistentIdComponent>();
+        out << YAML::Key << "persistent_id_component" << YAML::Value
+            << uuids::to_string(component.get_id());
+    }
     if (entity.has_component<NameComponent>()) {
         const auto& component = entity.get_component<NameComponent>();
         out << YAML::Key << "name_component" << YAML::Value << YAML::BeginMap;
@@ -259,6 +296,23 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
             out << YAML::Value << "";
         }
 
+        out << YAML::Key << "exposed_fields" << YAML::Value << YAML::BeginSeq;
+        for (auto& field : component.exposed_fields) {
+            out << YAML::Key << "field" << YAML::Value << field.name;
+            out << YAML::Key << "type" << YAML::Value << field.type;
+
+            switch (field.type) {
+            case ScriptFieldType::Entity: {
+                if (std::holds_alternative<uuids::uuid>(field.value)) {
+                    auto value = std::get<uuids::uuid>(field.value);
+                    out << YAML::Key << "value" << uuids::to_string(value);
+                }
+                break;
+            }
+            }
+        }
+        out << YAML::EndSeq;
+
         out << YAML::EndMap;
     }
 
@@ -330,6 +384,8 @@ void SceneSerializer::deserialize_from_string(const std::string& buffer) {
     } catch (YAML::Exception& e) {
         HL_ERROR("Failed to parse scene file: {}", e.what());
     }
+
+    m_scene->scene_load_done();
 }
 
 void SceneSerializer::deserialize_from_string_with_parent(
@@ -346,6 +402,20 @@ void SceneSerializer::deserialize_from_string_with_parent(
             }
 
             deserialized_entity = m_scene->create_entity(name);
+
+            auto persistent_id_component =
+                components["persistent_id_component"];
+            if (persistent_id_component) {
+                auto uuid = uuids::uuid::from_string(
+                    persistent_id_component["id"].as<std::string>(""));
+                if (uuid) {
+                    auto& pic =
+                        deserialized_entity
+                            .add_component<PersistentIdComponent>(uuid.value());
+                } else {
+                    HL_WARN("Invalid uuid for entity: {}", name);
+                }
+            }
 
             if (parent != k_no_entity) {
                 auto& pc =
@@ -520,6 +590,43 @@ void SceneSerializer::deserialize_from_string_with_parent(
                     sc.script =
                         std::make_unique<Script>(path, ScriptLoadType::File,
                                                  m_scene, deserialized_entity);
+                }
+
+                auto fields = script_component["exposed_fields"];
+                if (!fields.IsNull() && fields.IsSequence()) {
+                    for (auto field : fields) {
+                        auto name = field["field"];
+                        auto type = field["type"];
+                        auto value = field["value"];
+                        if (name.IsNull() || !name.IsScalar() ||
+                            type.IsNull() || !type.IsScalar()) {
+                            // Valid field name, and type, is needed
+                            HL_WARN("Invalid field type or name, when loading "
+                                    "scene");
+                            continue;
+                        }
+
+                        ExposedFieldEntry entry;
+                        entry.name = name.as<std::string>();
+
+                        if (type.as<std::string>() == "entity") {
+                            entry.type = ScriptFieldType::Entity;
+                        } else {
+                            HL_WARN("Invalid field type, when loading scene");
+                            continue;
+                        }
+
+                        if (!value.IsNull() && value.IsScalar()) {
+                            switch (entry.type) {
+                            case ScriptFieldType::Entity: {
+                                entry.value = value.as<uuids::uuid>();
+                                break;
+                            }
+                            }
+                        }
+
+                        sc.exposed_fields.emplace_back(std::move(entry));
+                    }
                 }
             }
         }
