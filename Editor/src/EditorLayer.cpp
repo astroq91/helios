@@ -443,6 +443,10 @@ void EditorLayer::on_imgui_render() {
                                                 ImVec2(10000, 10000));
             ImGui::Begin("Game");
             {
+                if (m_scene) {
+                    m_scene->set_game_viewport_focused(
+                        ImGui::IsWindowFocused());
+                }
                 m_game_viewport.size = ImGui::GetContentRegionAvail();
 
                 ImGui::Image(m_game_viewport.handles[app.get_current_frame()],

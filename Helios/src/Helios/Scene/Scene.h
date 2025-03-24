@@ -105,6 +105,11 @@ class Scene {
         return k_no_entity;
     }
 
+    bool is_game_viewport_focused() const { return m_game_viewport_focused; }
+    void set_game_viewport_focused(bool selected) {
+        m_game_viewport_focused = selected;
+    }
+
   private:
     // SYSTEMS //
 
@@ -144,6 +149,8 @@ class Scene {
 
     std::unordered_map<uint32_t, std::vector<uint32_t>> m_entity_children;
     std::unordered_map<uuids::uuid, uint32_t> m_entity_id_map;
+
+    bool m_game_viewport_focused = false;
 
     friend class Entity;
 };
