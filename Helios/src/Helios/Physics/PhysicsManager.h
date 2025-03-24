@@ -49,6 +49,7 @@ class PhysicsManager {
     void set_material_restitution(uint32_t entity, float value) {
         m_materials[entity]->setRestitution(value);
     }
+    void add_force(uint32_t entity, const glm::vec3& force);
 
   private:
     physx::PxPhysics* m_physics = nullptr;

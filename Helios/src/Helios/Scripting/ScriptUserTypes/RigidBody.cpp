@@ -1,4 +1,5 @@
 #include "RigidBody.h"
+#include "Helios/Core/Application.h"
 #include "Helios/ECSComponents/Components.h"
 
 namespace Helios::ScriptUserTypes {
@@ -33,6 +34,9 @@ void ScriptRigidBody::set_restitution(double value) {
     m_entity.update_rigid_body_restitution(value);
 }
 
-void ScriptRigidBody::add_force() {}
+void ScriptRigidBody::add_force(const glm::vec3& force) {
+    auto& pm = Application::get().get_physics_manager();
+    pm.add_force(m_entity, force);
+}
 
 } // namespace Helios::ScriptUserTypes

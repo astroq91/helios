@@ -127,6 +127,16 @@ void PhysicsManager::add_actor(uint32_t entity, const ActorInfo& info) {
     m_materials[entity] = material;
 }
 
+void PhysicsManager::add_force(uint32_t entity, const glm::vec3& force) {
+    PxActor* actor = m_actors.at(entity);
+    if (actor->getType() == PxActorType::eRIGID_DYNAMIC) {
+        PxRigidDynamic* dynamic = actor->is<PxRigidDynamic>();
+        dynamic->addForce({force.x, force.y, force.z});
+    } else {
+        HL_WARN("Trying to add a force to a non-dynamic actor!");
+    }
+}
+
 void PhysicsManager::remove_actor(uint32_t entity) {
     PxActor* actor = m_actors.at(entity);
     PxShape* shape = m_shapes.at(entity);

@@ -63,6 +63,7 @@ PointLight = PointLight
 ---@field static_friction number The static friction
 ---@field dynamic_friction number The dynamic friction
 ---@field restitution number The restitution
+---@field add_force fun(self: RigidBody, force: Vec3) Applies a force to the rigid body (if dynamic)
 RigidBody = RigidBody
 
 ---@class MeshRenderer

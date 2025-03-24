@@ -21,7 +21,7 @@ class ScriptRigidBody {
     double get_restitution() const;
     void set_restitution(double value);
 
-    void add_force();
+    void add_force(const glm::vec3& force);
 
     RigidBodyComponent* get_component() { return m_component; }
 
