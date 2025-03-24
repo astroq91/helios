@@ -10,6 +10,7 @@
 #include "Helios/Scripting/ScriptUserTypes/Entities.h"
 #include "Helios/Scripting/ScriptUserTypes/Entity.h"
 #include "Helios/Scripting/ScriptUserTypes/MeshRenderer.h"
+#include "Helios/Scripting/ScriptUserTypes/RigidBody.h"
 
 #include "Helios/Scripting/ScriptUserTypes/UI.h"
 #include "sol/property.hpp"
@@ -239,40 +240,39 @@ void Script::expose_component_user_types() {
         &PointLightComponent::ambient, "diffuse", &PointLightComponent::diffuse,
         "specular", &PointLightComponent::specular);
 
-    m_state.new_usertype<RigidBodyComponent>(
-        "RigidBody", "mass",
+    m_state.new_usertype<ScriptUserTypes::ScriptRigidBody>(
+        "RigidBody", "add_force", &ScriptUserTypes::ScriptRigidBody::add_force,
+        "mass",
         sol::property(
-            [&](RigidBodyComponent& component) { return component.mass; },
-            [&](RigidBodyComponent& component, float value) {
-                component.mass = value;
-                m_entity.update_rigid_body_mass(value);
+            [&](ScriptUserTypes::ScriptRigidBody& component) {
+                return component.get_mass();
+            },
+            [&](ScriptUserTypes::ScriptRigidBody& component, float value) {
+                component.set_mass(value);
             }),
         "static_friction",
         sol::property(
-            [&](RigidBodyComponent& component) {
-                return component.static_friction;
+            [&](ScriptUserTypes::ScriptRigidBody& component) {
+                return component.get_static_friction();
             },
-            [&](RigidBodyComponent& component, float value) {
-                component.static_friction = value;
-                m_entity.update_rigid_body_static_friction(value);
+            [&](ScriptUserTypes::ScriptRigidBody& component, float value) {
+                component.set_static_friction(value);
             }),
         "dynamic_friction",
         sol::property(
-            [&](RigidBodyComponent& component) {
-                return component.dynamic_friction;
+            [&](ScriptUserTypes::ScriptRigidBody& component) {
+                return component.get_dynamic_friction();
             },
-            [&](RigidBodyComponent& component, float value) {
-                component.dynamic_friction = value;
-                m_entity.update_rigid_body_dynamic_friction(value);
+            [&](ScriptUserTypes::ScriptRigidBody& component, float value) {
+                component.set_dynamic_friction(value);
             }),
         "restitution",
         sol::property(
-            [&](RigidBodyComponent& component) {
-                return component.restitution;
+            [&](ScriptUserTypes::ScriptRigidBody& component) {
+                return component.get_restitution();
             },
-            [&](RigidBodyComponent& component, float value) {
-                component.restitution = value;
-                m_entity.update_rigid_body_restitution(value);
+            [&](ScriptUserTypes::ScriptRigidBody& component, float value) {
+                component.set_restitution(value);
             }));
 
     m_state.new_usertype<ScriptUserTypes::ScriptMeshRenderer>(

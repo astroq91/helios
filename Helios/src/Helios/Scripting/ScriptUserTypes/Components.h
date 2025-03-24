@@ -1,5 +1,6 @@
 #pragma once
 #include "Helios/Scene/Entity.h"
+#include "Helios/Scripting/ScriptUserTypes/RigidBody.h"
 #include "MeshRenderer.h"
 namespace Helios {
 class TransformComponent;
@@ -7,7 +8,6 @@ class NameComponent;
 class CameraComponent;
 class DirectionalLightComponent;
 class PointLightComponent;
-class RigidBodyComponent;
 } // namespace Helios
 namespace Helios::ScriptUserTypes {
 
@@ -22,7 +22,7 @@ class ScriptComponents {
     CameraComponent* get_camera();
     DirectionalLightComponent* get_directional_light();
     PointLightComponent* get_point_light();
-    RigidBodyComponent* get_rigid_body();
+    ScriptRigidBody get_rigid_body();
     ScriptMeshRenderer get_mesh_renderer();
 
     /* Adders */
@@ -30,7 +30,7 @@ class ScriptComponents {
     CameraComponent* add_camera();
     DirectionalLightComponent* add_directional_light();
     PointLightComponent* add_point_light();
-    RigidBodyComponent* add_rigid_body();
+    ScriptRigidBody add_rigid_body();
     ScriptMeshRenderer add_mesh_renderer();
 
   private:
