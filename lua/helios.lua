@@ -114,8 +114,10 @@ Entities = Entities
 Transform = Transform
 
 ---@class Input
----@field is_key_pressed fun(KeyCode):boolean  True if the key is pressed
----@field is_key_released fun(KeyCode):boolean True if the key was released
+---@field is_key_pressed fun(self: Input, key: number):boolean  True if the key is pressed
+---@field is_key_released fun(self: Input, key: number):boolean True if the key was released
+---@field get_mouse_pos fun(self: Input):Vec2 Get the current mouse position
+---@field set_mouse_pos fun(self: Input, pos: Vec2) Sets the current mouse position
 Input = Input
 
 ---@class UI

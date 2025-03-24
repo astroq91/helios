@@ -102,6 +102,7 @@ target_link_libraries(Helios PUBLIC
 target_compile_definitions(Helios PUBLIC 
     "GLM_FORCE_QUAT_DATA_XYZW"
     "UUID_SYSTEM_GENERATOR"
+    "SOL_ALL_SAFETIES_ON"
     $<$<CONFIG:Debug>:_DEBUG>  
     $<$<CONFIG:Release>:_RELEASE>
     

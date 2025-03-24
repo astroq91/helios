@@ -3,12 +3,12 @@
 #include "Helios/Core/IOUtils.h"
 #include "Helios/Core/Log.h"
 #include "Helios/ECSComponents/Components.h"
-#include "Helios/Events/Input.h"
 #include "Helios/Scene/Entity.h"
 #include "Helios/Scene/Scene.h"
 
 #include "Helios/Scripting/ScriptUserTypes/Entities.h"
 #include "Helios/Scripting/ScriptUserTypes/Entity.h"
+#include "Helios/Scripting/ScriptUserTypes/Input.h"
 #include "Helios/Scripting/ScriptUserTypes/MeshRenderer.h"
 #include "Helios/Scripting/ScriptUserTypes/RigidBody.h"
 
@@ -24,11 +24,12 @@
 
 namespace Helios {
 
-constexpr std::array<std::string_view, 20> k_global_types_and_fields{
+constexpr std::array<std::string_view, 21> k_global_types_and_fields{
     "table",      "os",        "math",         "Vec2",       "Vec3",
     "Vec4",       "Quat",      "Name",         "Camera",     "DirectionalLight",
     "PointLight", "RigidBody", "MeshRenderer", "Components", "Entity",
     "RootEntity", "Entities",  "Transform",    "Input",      "UI",
+    "Input",
 };
 
 Script::Script(const std::string& src, ScriptLoadType load_type, Scene* scene,
@@ -99,9 +100,10 @@ void Script::on_start() {
     set_exposed_fields_state();
     auto func = m_state["on_start"];
     if (func.valid()) {
-        try {
-            func();
-        } catch (sol::error err) {
+        sol::protected_function safe_func = func;
+        sol::protected_function_result res = safe_func();
+        if (!res.valid()) {
+            sol::error err = res;
             HL_ERROR("[Scripting] Error invoking on_start, for script '{}': {} "
                      "(entity: '{}', "
                      "id: {})",
@@ -116,9 +118,10 @@ void Script::on_update(float ts) {
     set_exposed_fields_state();
     auto func = m_state["on_update"];
     if (func.valid()) {
-        try {
-            func(ts);
-        } catch (sol::error err) {
+        sol::protected_function safe_func = func;
+        sol::protected_function_result res = safe_func(ts);
+        if (!res.valid()) {
+            sol::error err = res;
             HL_ERROR(
                 "[Scripting] Error invoking on_update, for script '{}': {} "
                 "(entity: '{}', "
@@ -135,9 +138,10 @@ void Script::on_fixed_update() {
     set_exposed_fields_state();
     auto func = m_state["on_fixed_update"];
     if (func.valid()) {
-        try {
-            func();
-        } catch (sol::error err) {
+        sol::protected_function safe_func = func;
+        sol::protected_function_result res = safe_func();
+        if (!res.valid()) {
+            sol::error err = res;
             HL_ERROR("[Scripting] Error invoking on_fixed_update, for script "
                      "'{}': {} "
                      "(entity: '{}', "
@@ -206,9 +210,13 @@ void Script::expose_helios_user_types() {
         "add_mesh_renderer",
         &ScriptUserTypes::ScriptComponents::add_mesh_renderer);
 
-    m_state.new_usertype<Input>("Input", "is_key_pressed",
-                                &Input::is_key_pressed, "is_key_released",
-                                &Input::is_key_released);
+    m_state.new_usertype<ScriptUserTypes::ScriptInput>(
+        "Input", "is_key_pressed",
+        &ScriptUserTypes::ScriptInput::is_key_pressed, "is_key_released",
+        &ScriptUserTypes::ScriptInput::is_key_released, "get_mouse_pos",
+        &ScriptUserTypes::ScriptInput::get_mouse_pos, "set_mouse_pos",
+        &ScriptUserTypes::ScriptInput::set_mouse_pos);
+
     m_state.new_usertype<ScriptUserTypes::ScriptUI>(
         "UI", "render_text", &ScriptUserTypes::ScriptUI::render_text,
         "get_window_width", &ScriptUserTypes::ScriptUI::get_window_width,
@@ -338,6 +346,7 @@ void Script::set_globals() {
     m_state["RootEntity"] = ScriptUserTypes::ScriptEntity(m_entity);
     m_state["Entities"] = ScriptUserTypes::ScriptEntities(m_scene, &m_state);
     m_state["UI"] = ScriptUserTypes::ScriptUI(m_scene);
+    m_state["Input"] = ScriptUserTypes::ScriptInput(m_scene);
 }
 
 void Script::load_global_fields() {}
