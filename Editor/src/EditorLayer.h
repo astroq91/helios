@@ -61,6 +61,7 @@ class EditorLayer : public Helios::Layer {
     void on_detach() override;
 
     void on_update(float ts) override;
+    void on_fixed_update() override;
     void on_event(Helios::Event& e) override;
     void on_imgui_render() override;
 
@@ -86,6 +87,7 @@ class EditorLayer : public Helios::Layer {
     void draw_entity_list_entry(uint32_t entity,
                                 const Helios::NameComponent& name);
     void drag_drop_entity_list_entry(uint32_t entity, const std::string& name);
+    bool new_project(const std::filesystem::path& project_path);
 
   private:
     std::optional<Project> m_project;

@@ -8,4 +8,6 @@ function on_start()
   end
 end
 
-
+function on_fixed_update()
+  print("Fixed update!")
+end

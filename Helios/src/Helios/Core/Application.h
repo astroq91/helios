@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <chrono>
-#include <memory>
 #include <filesystem>
+#include <memory>
 
 #include "Helios/Assets/AssetManager.h"
 #include "Helios/ImGui/ImGuiLayer.h"
@@ -53,6 +53,8 @@ class Application {
         m_asset_base_path = base_path;
     }
 
+    void set_fixed_update_rate(float rate) { m_fixed_update_rate = rate; }
+
   private:
     VulkanManager m_vulkan_manager; // Destroy the vulkan context last
     AssetManager m_asset_manager;
@@ -75,6 +77,9 @@ class Application {
     std::chrono::time_point<std::chrono::system_clock> m_current_timestep;
 
     std::filesystem::path m_asset_base_path;
+
+    float m_fixed_update_rate = 1.0f / 50.0f;
+    float m_fixed_update_counter;
 };
 
 Application* create_application();

@@ -18,6 +18,7 @@ class Script : public Asset {
 
     void on_start();
     void on_update(float ts);
+    void on_fixed_update();
 
     std::vector<ScriptField>& get_exposed_fields() { return m_exposed_fields; }
 

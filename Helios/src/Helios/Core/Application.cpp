@@ -41,6 +41,7 @@ Application::~Application() {
 void Application::run() {
     m_current_timestep = std::chrono::system_clock::now();
     m_last_timestep = m_current_timestep;
+    m_fixed_update_counter = 0.0f;
 
     while (m_application_running) {
         m_current_timestep = std::chrono::system_clock::now();
@@ -48,12 +49,20 @@ void Application::run() {
         float timestep =
             std::chrono::duration<float>(m_current_timestep - m_last_timestep)
                 .count();
+        m_fixed_update_counter += timestep;
 
         m_renderer.begin_frame();
 
         m_vulkan_manager.on_update();
 
         m_renderer.begin_recording();
+
+        while (m_fixed_update_counter > m_fixed_update_rate) {
+            for (Layer* layer : m_layer_stack) {
+                layer->on_fixed_update();
+            }
+            m_fixed_update_counter -= m_fixed_update_rate;
+        }
 
         for (Layer* layer : m_layer_stack) {
             layer->on_update(timestep);

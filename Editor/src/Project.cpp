@@ -7,7 +7,11 @@
 namespace fs = std::filesystem;
 
 Project::Project(const std::filesystem::path& project_path)
-    : m_project_path(project_path) {
+    : m_project_path(project_path), m_props({
+                                        .name = "Project",
+                                        .default_scene = "scenes/main.scene",
+                                        .fixed_update_rate = 1.0f / 50,
+                                    }) {
     fs::path proj_path = project_path;
 
     fs::path project_file_path = proj_path / "settings.proj";
@@ -33,7 +37,7 @@ void Project::set_default_scene(const std::string& path) {
     file << data;
     file.close();
 
-    m_default_scene = path;
+    m_props.default_scene = path;
 }
 
 void Project::new_project(std::filesystem::path project_path,
@@ -42,8 +46,7 @@ void Project::new_project(std::filesystem::path project_path,
 
     fs::create_directory(project_path / "scenes/");
 
-    auto scene_path = "scenes/main.scene";
-    std::ofstream default_scene(project_path / scene_path);
+    std::ofstream default_scene(project_path / m_props.default_scene.value());
 
     YAML::Emitter out;
 
@@ -51,8 +54,9 @@ void Project::new_project(std::filesystem::path project_path,
     out << YAML::Key << "project_name" << YAML::Value
         << project_path.filename().string();
     out << YAML::Key << "default_scene" << YAML::Value
-        << "scenes/main.scene";
-
+        << m_props.default_scene.value();
+    out << YAML::Key << "fixed_update_rate" << YAML::Value
+        << m_props.fixed_update_rate;
     out << YAML::EndMap;
 
     std::ofstream file;
@@ -60,9 +64,7 @@ void Project::new_project(std::filesystem::path project_path,
     file << out.c_str();
     file.close();
 
-    m_default_scene = scene_path;
-
-    m_name = project_path.filename().string();
+    m_props.name = project_path.filename().string();
 }
 
 void Project::load_project(std::filesystem::path project_file_path) {
@@ -74,13 +76,17 @@ void Project::load_project(std::filesystem::path project_file_path) {
         YAML::Node data = YAML::Load(str_stream.str());
 
         if (data["project_name"]) {
-            m_name = data["project_name"].as<std::string>();
+            m_props.name = data["project_name"].as<std::string>();
         }
         if (data["default_scene"]) {
             std::string default_scene = data["default_scene"].as<std::string>();
             if (!default_scene.empty()) {
-                m_default_scene = default_scene;
+                m_props.default_scene = default_scene;
             }
+        }
+        auto fixed_update_rate = data["fixed_update_rate"];
+        if (!fixed_update_rate.IsNull() && fixed_update_rate.IsScalar()) {
+            m_props.fixed_update_rate = fixed_update_rate.as<float>();
         }
     } else {
         m_valid = false;

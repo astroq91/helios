@@ -1,2 +1,3 @@
 project_name: character_controller
 default_scene: scenes/main.scene
+fixed_update_rate: 0.02

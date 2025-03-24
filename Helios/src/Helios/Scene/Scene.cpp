@@ -139,6 +139,14 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
     renderer.submit_command_buffer();
 }
 
+void Scene::on_fixed_update() {
+    if (!m_runtime) {
+        return;
+    }
+
+    update_scripts_fixed();
+}
+
 void Scene::update_rigid_body_mass(Entity entity, float value) {
     RigidBodyComponent* rb = entity.try_get_component<RigidBodyComponent>();
     if (m_runtime && rb && rb->type == RigidBodyType::Dynamic) {
@@ -412,6 +420,15 @@ void Scene::update_scripts(float ts) {
     for (auto [entity, script] : scripts_view.each()) {
         if (script.script != nullptr) {
             script.script->on_update(ts);
+        }
+    }
+}
+
+void Scene::update_scripts_fixed() {
+    auto scripts_view = m_registry.view<ScriptComponent>();
+    for (auto [entity, script] : scripts_view.each()) {
+        if (script.script != nullptr) {
+            script.script->on_fixed_update();
         }
     }
 }

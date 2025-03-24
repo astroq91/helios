@@ -130,6 +130,25 @@ void Script::on_update(float ts) {
     get_exposed_fields_state();
 }
 
+void Script::on_fixed_update() {
+    set_exposed_fields_state();
+    auto func = m_state["on_fixed_update"];
+    if (func.valid()) {
+        try {
+            func();
+        } catch (sol::error err) {
+            HL_ERROR("[Scripting] Error invoking on_fixed_update, for script "
+                     "'{}': {} "
+                     "(entity: '{}', "
+                     "id: {})",
+                     m_name, err.what(),
+                     m_entity.get_component<NameComponent>().name,
+                     static_cast<uint32_t>(m_entity));
+        }
+    }
+    get_exposed_fields_state();
+}
+
 void Script::expose_basic_types() {
     m_state.new_usertype<glm::vec2>(
         "Vec2", sol::constructors<glm::vec2(), glm::vec2(float, float)>(), "x",

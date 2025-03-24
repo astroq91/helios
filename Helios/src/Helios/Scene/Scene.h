@@ -52,6 +52,8 @@ class Scene {
     void on_update(float ts, const SceneViewportInfo& editor_spec,
                    const SceneViewportInfo& game_spec);
 
+    void on_fixed_update();
+
     void set_scene_camera(SceneCamera* camera) { m_scene_camera = camera; }
     void start_runtime();
 
@@ -111,6 +113,7 @@ class Scene {
     void render_lighting();
     void draw_meshes();
     void update_scripts(float ts);
+    void update_scripts_fixed();
     void setup_signals();
 
     void scripting_to_physics();

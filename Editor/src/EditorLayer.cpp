@@ -196,6 +196,12 @@ void EditorLayer::on_update(float ts) {
              renderer.get_current_command_buffer()->get_command_buffer()});
 }
 
+void EditorLayer::on_fixed_update() {
+    if (m_scene && m_scene->is_running()) {
+        m_scene->on_fixed_update();
+    }
+}
+
 void EditorLayer::on_event(Event& e) {
     EventDispatcher dispatcher(e);
     dispatcher.dispatch<KeyPressedEvent>([&](KeyPressedEvent& e) -> bool {
@@ -1193,22 +1199,8 @@ void EditorLayer::show_welcome_window() {
         if (!ret.path.empty()) {
             fs::path project_path = fs::path(ret.path);
             project_path += fs::path::preferred_separator;
-            m_project = Project(project_path);
-            if (m_project.value().is_valid()) {
-                Application::get().set_asset_base_path(
-                    m_project.value().get_project_path());
-
-                if (m_project.value().get_default_scene()) {
-                    std::string default_scene =
-                        m_project.value().get_default_scene().value();
-                    new_scene({.reset_window_title = false});
-                    SceneSerializer serializer(m_scene);
-                    serializer.deserialize_from_path(default_scene);
-                    m_loaded_scene_path = default_scene;
-                }
-
-                update_window_title(m_project.value().get_default_scene());
-                m_assets_browser.set_project(&m_project.value());
+            if (!new_project(project_path)) {
+                HL_ERROR("Could not load project");
             }
         }
     }
@@ -1259,25 +1251,10 @@ void EditorLayer::show_new_project_window() {
             try {
                 fs::path project_path = project_folder / project_name;
                 if (!fs::exists(project_path)) {
-                    m_project = Project(project_path);
-                    if (m_project.value().is_valid()) {
-                        Application::get().set_asset_base_path(
-                            m_project.value().get_project_path());
-                        m_assets_browser.set_project(&m_project.value());
-
-                        if (m_project.value().get_default_scene()) {
-                            new_scene({.reset_window_title = false});
-                            m_loaded_scene_path = fs::path(
-                                m_project.value().get_default_scene().value());
-
-                            SceneSerializer scene_serializer(m_scene);
-                            scene_serializer.deserialize_from_path(
-                                m_loaded_scene_path.value().string());
-                        }
-                        update_window_title(
-                            m_project.value().get_default_scene());
-
+                    if (new_project(project_path)) {
                         m_show_new_project_window = false;
+                    } else {
+                        HL_ERROR("Could not load project");
                     }
                 } else {
                     HL_ERROR("Directory {} already exists",
@@ -1296,7 +1273,7 @@ void EditorLayer::update_window_title(
     const std::optional<std::string>& scene_path) {
     if (m_project) {
         Application::get().get_window().set_title(
-            "Helios - " + m_project.value().get_name() + " [" +
+            "Helios - " + m_project.value().get_properties().name + " [" +
             scene_path.value_or("Untitled scene") + "]");
     } else {
         Application::get().get_window().set_title("Helios");
@@ -1445,4 +1422,30 @@ void EditorLayer::drag_drop_entity_list_entry(uint32_t entity,
         }
         ImGui::EndDragDropTarget();
     }
+}
+
+bool EditorLayer::new_project(const std::filesystem::path& project_path) {
+    m_project = Project(project_path);
+    if (m_project.value().is_valid()) {
+        Application::get().set_asset_base_path(
+            m_project.value().get_project_path());
+        m_assets_browser.set_project(&m_project.value());
+
+        if (m_project.value().get_properties().default_scene) {
+            new_scene({.reset_window_title = false});
+            m_loaded_scene_path = fs::path(
+                m_project.value().get_properties().default_scene.value());
+
+            SceneSerializer scene_serializer(m_scene);
+            scene_serializer.deserialize_from_path(
+                m_loaded_scene_path.value().string());
+        }
+        update_window_title(m_project.value().get_properties().default_scene);
+
+        Application::get().set_fixed_update_rate(
+            m_project->get_properties().fixed_update_rate);
+
+        return true;
+    }
+    return false;
 }
