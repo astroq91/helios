@@ -17,9 +17,9 @@ bool ScriptInput::is_key_released(KeyCode key) {
 
 glm::vec2 ScriptInput::get_mouse_pos() {
     if (!m_scene || !m_scene->is_game_viewport_focused()) {
-        return {0, 0};
+        return {-1, -1};
     }
-    return Input::get_mouse_pos();
+    return Input::get_mouse_pos() - m_scene->get_game_viewport_position();
 }
 void ScriptInput::set_mouse_pos(double x_pos, double y_pos) {
     if (!m_scene || !m_scene->is_game_viewport_focused()) {

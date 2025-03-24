@@ -110,6 +110,13 @@ class Scene {
         m_game_viewport_focused = selected;
     }
 
+    const glm::vec2& get_game_viewport_position() const {
+        return m_game_viewport_position;
+    }
+    void set_game_viewport_position(const glm::vec2& position) {
+        m_game_viewport_position = position;
+    }
+
   private:
     // SYSTEMS //
 
@@ -145,11 +152,11 @@ class Scene {
 
     bool m_destroyed = false;
 
-    glm::ivec2 m_game_viewport_size;
-
     std::unordered_map<uint32_t, std::vector<uint32_t>> m_entity_children;
     std::unordered_map<uuids::uuid, uint32_t> m_entity_id_map;
 
+    glm::ivec2 m_game_viewport_size;
+    glm::vec2 m_game_viewport_position;
     bool m_game_viewport_focused = false;
 
     friend class Entity;

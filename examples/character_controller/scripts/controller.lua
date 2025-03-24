@@ -7,5 +7,6 @@ function on_update()
     local force = Vec3.new(0, 0, -1)
     RootEntity:get_components():get_rigid_body():add_force(force)
   end
+  print(tostring(Input:get_mouse_pos().y) .. " : " .. tostring(Input:get_mouse_pos().x))
 
 end

@@ -443,14 +443,20 @@ void EditorLayer::on_imgui_render() {
                                                 ImVec2(10000, 10000));
             ImGui::Begin("Game");
             {
-                if (m_scene) {
-                    m_scene->set_game_viewport_focused(
-                        ImGui::IsWindowFocused());
-                }
+
                 m_game_viewport.size = ImGui::GetContentRegionAvail();
+
+                ImVec2 image_pos = ImGui::GetCursorScreenPos();
 
                 ImGui::Image(m_game_viewport.handles[app.get_current_frame()],
                              m_game_viewport.size);
+
+                if (m_scene) {
+                    m_scene->set_game_viewport_focused(
+                        ImGui::IsWindowFocused());
+                    m_scene->set_game_viewport_position(
+                        {image_pos.x, image_pos.y});
+                }
             }
             ImGui::End();
 
