@@ -47,6 +47,7 @@ struct BeginRenderingSpec {
 // Used to store the geometries used for a set of instances.
 struct MeshInstances {
     Ref<Mesh> mesh;
+    Ref<Pipeline> custom_pipeline;
     size_t offset;
     size_t instance_count;
 };
@@ -120,8 +121,8 @@ class Renderer {
     void
     submit_mesh_instances(const BeginRenderingSpec& begin_rendering_spec = {});
 
-    void
-    submit_ui_quad_instances(const BeginRenderingSpec& begin_rendering_spec = {});
+    void submit_ui_quad_instances(
+        const BeginRenderingSpec& begin_rendering_spec = {});
 
     /**
      * \brief Submit the current command buffer, and then wait for completion.
@@ -158,7 +159,7 @@ class Renderer {
     void deregister_texture(uint32_t textureIndex);
 
     void draw_ui_quad(const Transform& transform, const glm::vec4& color,
-                   const Ref<Texture>& texture = nullptr);
+                      const Ref<Texture>& texture = nullptr);
 
     /**
      * \brief Record cube instances.
@@ -167,17 +168,20 @@ class Renderer {
     void draw_cube(const std::vector<MeshRenderingInstance>& instances);
 
     void draw_mesh(const Ref<Mesh>& geometry,
-                   const std::vector<MeshRenderingInstance>& instances);
+                   const std::vector<MeshRenderingInstance>& instances,
+                   Ref<Pipeline> custom_pipeline = nullptr);
 
     void set_perspective_camera(const PerspectiveCamera& camera);
 
     void render_directional_light(const DirectionalLight& dir_light);
     void render_point_light(const PointLight& point_light);
 
-    void render_text(const std::string& text, const glm::vec2& position, float scale,
-                     const glm::vec4& tint_color);
+    void render_text(const std::string& text, const glm::vec2& position,
+                     float scale, const glm::vec4& tint_color);
 
-    void set_ui_projection_matrix(const glm::mat4& proj) { m_ui_projection = proj; }
+    void set_ui_projection_matrix(const glm::mat4& proj) {
+        m_ui_projection = proj;
+    }
 
     /**
      * \brief get a texture.
@@ -247,6 +251,19 @@ class Renderer {
 
     uint32_t get_min_instances_for_mt() const { return m_min_instances_for_mt; }
 
+    const Ref<Shader>& get_lighting_vertex_shader() const {
+        return m_lighting_vertex_shader;
+    };
+
+    const Ref<Shader>& get_lighting_fragment_shader() const {
+        return m_lighting_fragment_shader;
+    };
+
+    const PipelineCreateInfo&
+    get_default_lighting_pipeline_create_info() const {
+        return m_default_lighting_pipeline_create_info;
+    }
+
   private:
     void draw_meshes();
     void draw_quads();
@@ -302,6 +319,7 @@ class Renderer {
     Ref<Texture> m_gray_texture;
 
     Ref<Pipeline> m_lighting_pipeline;
+    PipelineCreateInfo m_default_lighting_pipeline_create_info;
     Ref<Shader> m_lighting_vertex_shader;
     Ref<Shader> m_lighting_fragment_shader;
 

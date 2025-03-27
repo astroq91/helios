@@ -142,6 +142,8 @@ class Scene {
                                               entt::entity entity);
     void update_children();
 
+    void create_custom_pipelines();
+
   private:
     entt::registry m_registry;
     SceneCamera* m_scene_camera;
@@ -154,6 +156,7 @@ class Scene {
 
     std::unordered_map<uint32_t, std::vector<uint32_t>> m_entity_children;
     std::unordered_map<uuids::uuid, uint32_t> m_entity_id_map;
+    std::unordered_map<Ref<Material>, Ref<Pipeline>> m_custom_pipelines;
 
     glm::ivec2 m_game_viewport_size;
     glm::vec2 m_game_viewport_position;

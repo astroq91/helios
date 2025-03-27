@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "DescriptorSetLayout.h"
+#include "Helios/Core/Core.h"
 #include "Shader.h"
 #include "VertexBufferDescription.h"
 
@@ -7,17 +8,22 @@ namespace Helios {
 
 struct PipelineCreateInfo {
     VkFormat color_attachment_format;
-    const std::vector<Ref<DescriptorSetLayout>>& descriptor_set_layouts;
-    const Ref<Shader>& vertex_shader;
-    const Ref<Shader>& fragment_shader;
-    const std::vector<VertexBufferDescription>& vertex_buffer_descriptions;
-    const std::vector<VkPushConstantRange> push_constants = {};
-    const std::vector<VkPipelineColorBlendAttachmentState>&
-        color_blend_attachments = {};
+    std::vector<Ref<DescriptorSetLayout>> descriptor_set_layouts;
+    Ref<Shader> vertex_shader;
+    Ref<Shader> fragment_shader;
+    std::vector<VertexBufferDescription> vertex_buffer_descriptions;
+    std::vector<VkPushConstantRange> push_constants = {};
+    std::vector<VkPipelineColorBlendAttachmentState> color_blend_attachments =
+        {};
 };
 
 class Pipeline {
   public:
+    static Ref<Pipeline> create(const PipelineCreateInfo& info) {
+        Ref<Pipeline> pl = make_ref<Pipeline>();
+        pl->init(info);
+        return pl;
+    }
     /**
      * \brief create a new Pipeline.
      * \param color_attachment_format The color attachment format.

@@ -1,9 +1,10 @@
 #pragma once
 #include "Helios/Assets/Asset.h"
 #include "Helios/Core/Core.h"
+#include "Helios/Renderer/Shader.h"
 #include "Texture.h"
-#include <glm/glm.hpp>
 #include <filesystem>
+#include <glm/glm.hpp>
 
 namespace Helios {
 class Material : public Asset {
@@ -24,6 +25,9 @@ class Material : public Asset {
     const Ref<Texture>& get_emission() const { return m_emission; }
     float get_shininess() const { return m_shininess; }
 
+    const Ref<Shader>& get_vertex_shader() const { return m_vertex_shader; }
+    const Ref<Shader>& get_fragment_shader() const { return m_fragment_shader; }
+
   private:
     void init(const std::filesystem::path& path);
 
@@ -31,6 +35,8 @@ class Material : public Asset {
     Ref<Texture> m_diffuse = nullptr;
     Ref<Texture> m_specular = nullptr;
     Ref<Texture> m_emission = nullptr;
+    Ref<Shader> m_vertex_shader = nullptr;
+    Ref<Shader> m_fragment_shader = nullptr;
     float m_shininess = 32.0f;
 };
 } // namespace Helios

@@ -3,7 +3,7 @@
 #include <volk/volk.h>
 
 #include <ft2build.h>
-#include FT_FREETYPE_H  
+#include FT_FREETYPE_H
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -21,8 +21,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <filesystem>
-#include <thread>
 #include <future>
+#include <thread>
 
 #include "ShaderLibrary.h"
 
@@ -61,8 +61,7 @@ std::vector<QuadVertex> ui_quad_vertices = {
 };
 
 std::vector<uint32_t> ui_quad_indices = {
-    0, 1, 3,
-    1, 2, 3,
+    0, 1, 3, 1, 2, 3,
 };
 
 std::vector<VertexAttribute> quad_vertex_attributes = {
@@ -77,7 +76,7 @@ std::vector<VertexAttribute> quad_instance_attributes = {
     {VertexAttributeFormat::FLOAT4, 5}, // Model Col3
 
     {VertexAttributeFormat::FLOAT4, 6}, // tint color
-    {VertexAttributeFormat::INT32, 7}, // texture index
+    {VertexAttributeFormat::INT32, 7},  // texture index
 };
 
 std::vector<VertexAttribute> mesh_rendering_vertex_attributes = {
@@ -124,7 +123,6 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     m_max_frames_in_flight = max_frames_in_flight;
     m_num_threads_for_instancing = k_mesh_instance_preparation_thread_count;
     m_min_instances_for_mt = k_min_instances_for_mt;
-
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -234,8 +232,8 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     for (size_t i = 0; i < m_max_frames_in_flight; i++) {
         m_directional_lights_uniform_buffers[i] = UniformBuffer::create_unique(
             sizeof(DirectionalLight) * k_max_directional_lights);
-        m_point_lights_uniform_buffers[i] =
-            UniformBuffer::create_unique(sizeof(PointLight) * k_max_point_lights);
+        m_point_lights_uniform_buffers[i] = UniformBuffer::create_unique(
+            sizeof(PointLight) * k_max_point_lights);
 
         m_lights_set[i] = DescriptorSet::create_unique(
             m_lights_uniform_pool, m_lights_set_layout,
@@ -272,8 +270,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     }
 
     // Cube //
-    m_cube_mesh =
-        Application::get().get_asset_manager().get_mesh("Cube");
+    m_cube_mesh = Application::get().get_asset_manager().get_mesh("Cube");
 
     // Lastly, set up the pipelines for our different default drawable objects.
     setup_camera_uniform();
@@ -419,11 +416,11 @@ void Renderer::submit_mesh_instances(
             m_instance_staging_buffer->get_vk_buffer(),
             m_mesh_rendering_instances_buffers[m_current_frame]
                 ->get_vk_buffer(),
-                sizeof(MeshRenderingShaderInstanceData) *
-                    m_mesh_rendering_shader_instances[m_current_frame].size(), m_vulkan_state->device, VK_NULL_HANDLE,
-            VK_NULL_HANDLE, VK_ACCESS_TRANSFER_WRITE_BIT,
-            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+            sizeof(MeshRenderingShaderInstanceData) *
+                m_mesh_rendering_shader_instances[m_current_frame].size(),
+            m_vulkan_state->device, VK_NULL_HANDLE, VK_NULL_HANDLE,
+            VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
             m_command_buffers[m_current_frame]->get_command_buffer());
     }
 
@@ -466,8 +463,7 @@ void Renderer::submit_ui_quad_instances(
 
         VulkanUtils::copy_buffer(
             m_instance_staging_buffer->get_vk_buffer(),
-            m_ui_quad_instances_buffers[m_current_frame]
-                ->get_vk_buffer(),
+            m_ui_quad_instances_buffers[m_current_frame]->get_vk_buffer(),
             sizeof(UIQuadShaderInstanceData) *
                 m_ui_quad_shader_instances[m_current_frame].size(),
             m_vulkan_state->device, VK_NULL_HANDLE, VK_NULL_HANDLE,
@@ -483,8 +479,6 @@ void Renderer::submit_ui_quad_instances(
     end_rendering();
 
     m_ui_quad_shader_instances[m_current_frame].clear();
-
-
 }
 
 void Renderer::submit_command_buffer() {
@@ -642,7 +636,6 @@ void Renderer::end_frame() {
         return;
     }
 
-
     VkSemaphore wait_semaphores[] = {
         m_image_available_semaphores[m_current_frame]};
     VkPipelineStageFlags wait_stages[] = {
@@ -723,7 +716,7 @@ int32_t Renderer::register_texture(const Texture& texture) {
 
 void Renderer::deregister_texture(uint32_t textureIndex) {
     // Prevent deregistering textures on program destruction
-    if (m_shutting_down){
+    if (m_shutting_down) {
         return;
     }
 
@@ -743,13 +736,13 @@ void Renderer::deregister_texture(uint32_t textureIndex) {
     }
 }
 
-void Renderer::draw_ui_quad(const Transform& transform,
-                         const glm::vec4& color,
-                         const Ref<Texture>& texture) {
+void Renderer::draw_ui_quad(const Transform& transform, const glm::vec4& color,
+                            const Ref<Texture>& texture) {
     m_ui_quad_shader_instances[m_current_frame].push_back({
         .model = transform.ToMat4(),
         .tint_color = color,
-        .texture_unit = texture ? texture->GetTextureIndex() : m_gray_texture->GetTextureIndex(),
+        .texture_unit = texture ? texture->GetTextureIndex()
+                                : m_gray_texture->GetTextureIndex(),
     });
 }
 
@@ -758,9 +751,9 @@ void Renderer::draw_cube(const std::vector<MeshRenderingInstance>& instances) {
 }
 
 std::vector<MeshRenderingShaderInstanceData>
-prepare_mesh_shader_instances_mt(
-    std::vector<MeshRenderingInstance> && instances, Ref<Texture> gray_texture,
-    Ref<Texture> black_texture) {
+prepare_mesh_shader_instances_mt(std::vector<MeshRenderingInstance>&& instances,
+                                 Ref<Texture> gray_texture,
+                                 Ref<Texture> black_texture) {
 
     std::vector<MeshRenderingShaderInstanceData> data;
     for (auto& instance : instances) {
@@ -797,30 +790,27 @@ prepare_mesh_shader_instances_mt(
     return data;
 }
 
-
 void Renderer::draw_mesh(const Ref<Mesh>& geometry,
-                         const std::vector<MeshRenderingInstance>& instances) {
-    m_mesh_rendering_instances[m_current_frame].push_back(
-        {.mesh = geometry,
-         .offset = sizeof(MeshRenderingShaderInstanceData) *
-                   m_mesh_rendering_shader_instances[m_current_frame].size(),
-         .instance_count = instances.size()});
-    
-    if (instances.size() >= m_min_instances_for_mt && m_num_threads_for_instancing > 1) {
+                         const std::vector<MeshRenderingInstance>& instances,
+                         Ref<Pipeline> custom_pipeline) {
+    m_mesh_rendering_instances[m_current_frame].push_back({
+        .mesh = geometry,
+        .custom_pipeline = custom_pipeline,
+        .offset = sizeof(MeshRenderingShaderInstanceData) *
+                  m_mesh_rendering_shader_instances[m_current_frame].size(),
+        .instance_count = instances.size(),
+    });
+
+    if (instances.size() >= m_min_instances_for_mt &&
+        m_num_threads_for_instancing > 1) {
         uint32_t instances_per_thread =
             instances.size() / m_num_threads_for_instancing;
-        uint32_t remainder =
-            instances.size() % m_num_threads_for_instancing;
-
-
+        uint32_t remainder = instances.size() % m_num_threads_for_instancing;
 
         uint32_t offset = 0;
         uint32_t instances_prepared = 0;
 
-
-
-        std::vector<std::future<
-                        std::vector<MeshRenderingShaderInstanceData>>>
+        std::vector<std::future<std::vector<MeshRenderingShaderInstanceData>>>
             futures(m_num_threads_for_instancing);
         std::vector<std::vector<MeshRenderingInstance>> instance_batches(
             m_num_threads_for_instancing);
@@ -832,13 +822,13 @@ void Renderer::draw_mesh(const Ref<Mesh>& geometry,
 
             auto start = instances.begin() + offset;
             auto end = start + num_instances_to_prepare;
-            instance_batches[i] = std::vector<MeshRenderingInstance>(start, end);
+            instance_batches[i] =
+                std::vector<MeshRenderingInstance>(start, end);
 
-
-            futures[i] = std::async(
-                std::launch::async, prepare_mesh_shader_instances_mt,
-                           std::move(instance_batches[i]),
-                m_gray_texture, m_black_texture);
+            futures[i] =
+                std::async(std::launch::async, prepare_mesh_shader_instances_mt,
+                           std::move(instance_batches[i]), m_gray_texture,
+                           m_black_texture);
 
             instances_prepared += num_instances_to_prepare;
             offset += num_instances_to_prepare;
@@ -885,7 +875,9 @@ void Renderer::draw_mesh(const Ref<Mesh>& geometry,
     }
 }
 
-void Renderer::set_perspective_camera(const PerspectiveCamera& camera) { m_perspective_camera = camera; }
+void Renderer::set_perspective_camera(const PerspectiveCamera& camera) {
+    m_perspective_camera = camera;
+}
 
 void Renderer::render_directional_light(const DirectionalLight& dir_light) {
     m_directional_lights[m_current_frame].push_back(dir_light);
@@ -912,15 +904,15 @@ void Renderer::render_text(const std::string& text, const glm::vec2& position,
         float w = static_cast<float>(ch.size.x) * scale;
         float h = static_cast<float>(ch.size.y) * scale;
 
-        Transform transform {
-            .position = {x_pos, y_pos,0.0f},
+        Transform transform{
+            .position = {x_pos, y_pos, 0.0f},
             .scale = {w, h, 1.0f},
         };
 
         draw_ui_quad(transform, tint_color, ch.texture);
 
         x_cursor += static_cast<float>(ch.advance >> 6) *
-            scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+                    scale; // bitshift by 6 to get value in pixels (2^6 = 64)
     }
 }
 
@@ -944,15 +936,20 @@ Ref<Texture> Renderer::get_texture(const std::string& key) {
 
 void Renderer::draw_meshes() {
     prepare_camera_uniform();
+    for (auto& geometry_instances :
+         m_mesh_rendering_instances[m_current_frame]) {
 
-    vkCmdBindPipeline(m_command_buffers[m_current_frame]->get_command_buffer(),
-                      VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      m_lighting_pipeline->get_vk_pipeline());
+        vkCmdBindPipeline(
+            m_command_buffers[m_current_frame]->get_command_buffer(),
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            geometry_instances.custom_pipeline
+                ? geometry_instances.custom_pipeline->get_vk_pipeline()
+                : m_lighting_pipeline->get_vk_pipeline());
 
-    for (auto& geometry_instances : m_mesh_rendering_instances[m_current_frame]) {
         VkBuffer buffers[2] = {
             geometry_instances.mesh->get_vertex_buffer()->get_vk_buffer(),
-            m_mesh_rendering_instances_buffers[m_current_frame]->get_vk_buffer()};
+            m_mesh_rendering_instances_buffers[m_current_frame]
+                ->get_vk_buffer()};
         VkDeviceSize offsets[2] = {0, geometry_instances.offset};
         vkCmdBindVertexBuffers(
             m_command_buffers[m_current_frame]->get_command_buffer(), 0, 2,
@@ -1003,15 +1000,15 @@ void Renderer::draw_quads() {
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
                       m_ui_quad_pipeline->get_vk_pipeline());
 
-    VkBuffer buffers[2] {
+    VkBuffer buffers[2]{
         m_ui_quad_mesh->get_vertex_buffer()->get_vk_buffer(),
         m_ui_quad_instances_buffers[m_current_frame]->get_vk_buffer(),
     };
     VkDeviceSize offsets[2] = {0, 0};
 
     vkCmdBindVertexBuffers(
-        m_command_buffers[m_current_frame]->get_command_buffer(), 0, 2,
-        buffers, offsets);
+        m_command_buffers[m_current_frame]->get_command_buffer(), 0, 2, buffers,
+        offsets);
 
     vkCmdBindIndexBuffer(
         m_command_buffers[m_current_frame]->get_command_buffer(),
@@ -1024,12 +1021,14 @@ void Renderer::draw_quads() {
 
     vkCmdBindDescriptorSets(
         m_command_buffers[m_current_frame]->get_command_buffer(),
-        VK_PIPELINE_BIND_POINT_GRAPHICS, m_ui_quad_pipeline->get_vk_layout(), 0, 2,
-        sets, 0, nullptr);
+        VK_PIPELINE_BIND_POINT_GRAPHICS, m_ui_quad_pipeline->get_vk_layout(), 0,
+        2, sets, 0, nullptr);
 
     vkCmdDrawIndexed(m_command_buffers[m_current_frame]->get_command_buffer(),
                      m_ui_quad_mesh->get_index_buffer()->get_index_count(),
-                     static_cast<uint32_t>(m_ui_quad_shader_instances[m_current_frame].size()), 0, 0, 0);
+                     static_cast<uint32_t>(
+                         m_ui_quad_shader_instances[m_current_frame].size()),
+                     0, 0, 0);
 }
 
 void Renderer::create_default_textures(const Ref<TextureLibrary>& texture_lib) {
@@ -1100,9 +1099,9 @@ void Renderer::load_default_shaders(const Ref<ShaderLibrary>& shader_lib) {
 
 void Renderer::setup_ui_quad_pipeline() {
     m_ui_quad_mesh = Mesh::create(
-        "UIQuad", ui_quad_vertices.data(), sizeof(QuadVertex) * ui_quad_vertices.size(),
-        ui_quad_indices.data(), sizeof(uint32_t) * ui_quad_indices.size(),
-        ui_quad_indices.size());
+        "UIQuad", ui_quad_vertices.data(),
+        sizeof(QuadVertex) * ui_quad_vertices.size(), ui_quad_indices.data(),
+        sizeof(uint32_t) * ui_quad_indices.size(), ui_quad_indices.size());
 
     m_ui_quad_vertex_shader = m_shaders->get_shader("ui_quad.vert");
     m_ui_quad_fragment_shader = m_shaders->get_shader("ui_quad.frag");
@@ -1126,56 +1125,60 @@ void Renderer::setup_ui_quad_pipeline() {
     for (uint32_t i = 0; i < m_max_frames_in_flight; i++) {
         m_ui_quad_instances_buffers[i] = VertexBuffer::create(
             nullptr, sizeof(UIQuadShaderInstanceData) * k_max_ui_quads);
-
     }
 
-    m_ui_quad_pipeline = Pipeline::create_unique({
-        .color_attachment_format= m_swapchain->get_vk_format(),
-        .descriptor_set_layouts= {m_texture_array_layout,
-                                  m_camera_uniform_set_layout},
-        .vertex_shader= m_ui_quad_vertex_shader,
-        .fragment_shader= m_ui_quad_fragment_shader,
-        .vertex_buffer_descriptions= {m_ui_quad_vertices_description, m_ui_quad_instance_vertices_description},
-        .color_blend_attachments= {VkPipelineColorBlendAttachmentState{
-            .blendEnable = VK_TRUE,
+    m_ui_quad_pipeline = Pipeline::create_unique(
+        {.color_attachment_format = m_swapchain->get_vk_format(),
+         .descriptor_set_layouts = {m_texture_array_layout,
+                                    m_camera_uniform_set_layout},
+         .vertex_shader = m_ui_quad_vertex_shader,
+         .fragment_shader = m_ui_quad_fragment_shader,
+         .vertex_buffer_descriptions =
+             {m_ui_quad_vertices_description,
+              m_ui_quad_instance_vertices_description},
+         .color_blend_attachments = {VkPipelineColorBlendAttachmentState{
+             .blendEnable = VK_TRUE,
              .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
              .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
              .colorBlendOp = VK_BLEND_OP_ADD,
              .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
              .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
              .alphaBlendOp = VK_BLEND_OP_ADD,
-            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+             .colorWriteMask =
+                 VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                 VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
 
-         }
-         }
-    });
+         }}});
 }
 
 void Renderer::setup_lighting_pipeline() {
-    m_instance_staging_buffer =
-        Buffer::create_unique(sizeof(MeshRenderingShaderInstanceData) * k_max_meshes,
-                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                              true);
+    m_instance_staging_buffer = Buffer::create_unique(
+        sizeof(MeshRenderingShaderInstanceData) * k_max_meshes,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        true);
 
     m_lighting_vertex_shader = m_shaders->get_shader("Lighting.vert");
     m_lighting_fragment_shader = m_shaders->get_shader("Lighting.frag");
 
-    m_lighting_pipeline = Pipeline::create_unique({
+    m_default_lighting_pipeline_create_info = PipelineCreateInfo{
         m_swapchain->get_vk_format(),
         {m_camera_uniform_set_layout, m_texture_array_layout,
          m_lights_set_layout},
         m_lighting_vertex_shader,
         m_lighting_fragment_shader,
-        {m_meshes_vertices_description, m_mesh_rendering_instance_vertices_description},
+        {m_meshes_vertices_description,
+         m_mesh_rendering_instance_vertices_description},
         {
             VkPushConstantRange{.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
                                 .offset = 0,
                                 .size = sizeof(LightsPushConstantCount)},
         },
-    });
+    };
+
+    m_lighting_pipeline =
+        Pipeline::create_unique(m_default_lighting_pipeline_create_info);
 }
 
 void Renderer::setup_camera_uniform() {
@@ -1253,7 +1256,8 @@ void Renderer::load_fonts() {
     font->set_pixel_size(0, 48);
     font->load_characters();
 
-    font = m_font_library.load_font(RESOURCES_PATH "fonts/JetBrainsMono-Regular.ttf");
+    font = m_font_library.load_font(RESOURCES_PATH
+                                    "fonts/JetBrainsMono-Regular.ttf");
     font->set_pixel_size(0, 48);
     font->load_characters();
 

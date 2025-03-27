@@ -394,24 +394,66 @@ void Scene::draw_meshes() {
         m_registry
             .view<const TransformComponent, const MeshRendererComponent>();
 
-    std::unordered_map<uuids::uuid, std::vector<MeshRenderingInstance>>
-        mesh_groups;
-    std::unordered_map<uuids::uuid, Ref<Mesh>> meshes;
+    std::map<uuids::uuid, std::vector<MeshRenderingInstance>> mesh_groups;
+    std::map<uuids::uuid, Ref<Mesh>> meshes;
+
+    std::vector<std::tuple<Ref<Mesh>, MeshRenderingInstance, Ref<Pipeline>>>
+        meshes_custom_shaders;
 
     for (auto [entity, transform, mesh] : meshes_view.each()) {
         if (mesh.mesh == nullptr) {
             continue;
         }
 
-        mesh_groups[mesh.mesh->get_uuid()].push_back(
-            {.transform = transform.to_transform(),
-             .material = mesh.material,
-             .tint_color = mesh.tint_color});
-        meshes[mesh.mesh->get_uuid()] = mesh.mesh;
+        // Custom shaders
+        if (mesh.material && (mesh.material->get_vertex_shader() ||
+                              mesh.material->get_fragment_shader())) {
+            Ref<Pipeline> pipeline = nullptr;
+            if (m_custom_pipelines.contains(mesh.material)) {
+                pipeline = m_custom_pipelines.at(mesh.material);
+                ;
+            } else {
+                PipelineCreateInfo info =
+                    renderer.get_default_lighting_pipeline_create_info();
+                info.vertex_shader = mesh.material->get_vertex_shader()
+                                         ? mesh.material->get_vertex_shader()
+                                         : info.vertex_shader;
+                info.fragment_shader =
+                    mesh.material->get_fragment_shader()
+                        ? mesh.material->get_fragment_shader()
+                        : info.fragment_shader;
+                pipeline = Pipeline::create(info);
+                m_custom_pipelines.insert(
+                    std::pair<Ref<Material>, Ref<Pipeline>>(mesh.material,
+                                                            pipeline));
+            }
+
+            meshes_custom_shaders.push_back(
+                std::tuple<Ref<Mesh>, MeshRenderingInstance, Ref<Pipeline>>(
+                    mesh.mesh,
+                    {
+                        .transform = transform.to_transform(),
+                        .material = mesh.material,
+                        .tint_color = mesh.tint_color,
+
+                    },
+                    pipeline));
+        } else {
+            mesh_groups[mesh.mesh->get_uuid()].push_back({
+                .transform = transform.to_transform(),
+                .material = mesh.material,
+                .tint_color = mesh.tint_color,
+            });
+            meshes[mesh.mesh->get_uuid()] = mesh.mesh;
+        }
     }
 
     for (auto& [id, mesh] : meshes) {
         renderer.draw_mesh(mesh, mesh_groups[id]);
+    }
+
+    for (auto& [mesh, info, pipeline] : meshes_custom_shaders) {
+        renderer.draw_mesh(mesh, {info}, pipeline);
     }
 }
 
