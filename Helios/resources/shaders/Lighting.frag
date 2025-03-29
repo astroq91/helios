@@ -44,11 +44,9 @@ layout(location = 4) in flat int inDiffuseIndex;
 layout(location = 5) in flat int inSpecularIndex;
 layout(location = 6) in flat int inEmissionIndex;
 layout(location = 7) in flat float inShininess;
+layout(location = 8) in vec4 tintColor;
 
-layout(location = 8) in vec3 viewPos;
-
-layout(location = 9) in vec4 tintColor;
-
+layout(location = 9) in vec3 viewPos;
 
 layout(set = 1, binding = 0) uniform sampler samp;
 layout (set = 1, binding = 1) uniform texture2D textures[32];

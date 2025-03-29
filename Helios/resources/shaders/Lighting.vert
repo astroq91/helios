@@ -31,10 +31,10 @@ layout(location = 4) out flat int diffuseIndex;
 layout(location = 5) out flat int specularIndex;
 layout(location = 6) out flat int emissionIndex;
 layout(location = 7) out flat float shininess;
+layout(location = 8) out vec4 tintColor;
 
-layout(location = 8) out vec3 viewPos;
+layout(location = 9) out vec3 viewPos;
 
-layout(location = 9) out vec4 tintColor;
 
 void main() 
 {

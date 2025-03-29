@@ -180,7 +180,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     // Update the first bindings with our sampler. The second binding (for our
     // images) is updated when new textures are registered.
     for (size_t i = 0; i < m_max_frames_in_flight; i++) {
-        m_texture_arrays[i] = DescriptorSet::create_unique(
+        m_texture_arrays[i] = DescriptorSet::create(
             m_sampler_descriptor_pool, m_texture_array_layout,
             {DescriptorSpec{
                 .binding = 0,
@@ -792,10 +792,10 @@ prepare_mesh_shader_instances_mt(std::vector<MeshRenderingInstance>&& instances,
 
 void Renderer::draw_mesh(const Ref<Mesh>& geometry,
                          const std::vector<MeshRenderingInstance>& instances,
-                         Ref<Pipeline> custom_pipeline) {
+                         const CustomMeshPipelineInfo& custom_pipeline_info) {
     m_mesh_rendering_instances[m_current_frame].push_back({
         .mesh = geometry,
-        .custom_pipeline = custom_pipeline,
+        .custom_pipeline_info = custom_pipeline_info,
         .offset = sizeof(MeshRenderingShaderInstanceData) *
                   m_mesh_rendering_shader_instances[m_current_frame].size(),
         .instance_count = instances.size(),
@@ -939,12 +939,75 @@ void Renderer::draw_meshes() {
     for (auto& geometry_instances :
          m_mesh_rendering_instances[m_current_frame]) {
 
-        vkCmdBindPipeline(
-            m_command_buffers[m_current_frame]->get_command_buffer(),
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            geometry_instances.custom_pipeline
-                ? geometry_instances.custom_pipeline->get_vk_pipeline()
-                : m_lighting_pipeline->get_vk_pipeline());
+        if (!geometry_instances.custom_pipeline_info.pipeline) {
+            // Use the normal pipeline
+            vkCmdBindPipeline(
+                m_command_buffers[m_current_frame]->get_command_buffer(),
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                m_lighting_pipeline->get_vk_pipeline());
+
+            VkDescriptorSet sets[] = {
+                m_camera_uniform_sets[m_current_frame]->get_vk_set(),
+                m_texture_arrays[m_current_frame]->get_vk_set(),
+                m_lights_set[m_current_frame]->get_vk_set(),
+            };
+
+            vkCmdBindDescriptorSets(
+                m_command_buffers[m_current_frame]->get_command_buffer(),
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                m_lighting_pipeline->get_vk_layout(), 0, 3, sets, 0, nullptr);
+
+            LightsPushConstantCount count{
+                .directional_light_count = static_cast<int32_t>(
+                    m_directional_lights[m_current_frame].size()),
+                .point_light_count = static_cast<int32_t>(
+                    m_point_lights[m_current_frame].size())};
+
+            vkCmdPushConstants(
+                m_command_buffers[m_current_frame]->get_command_buffer(),
+                m_lighting_pipeline->get_vk_layout(),
+                VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                sizeof(LightsPushConstantCount), &count);
+
+        } else {
+            vkCmdBindPipeline(
+                m_command_buffers[m_current_frame]->get_command_buffer(),
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                geometry_instances.custom_pipeline_info.pipeline
+                    ->get_vk_pipeline());
+
+            std::vector<VkDescriptorSet> descriptor_sets(
+                geometry_instances.custom_pipeline_info.descriptor_sets.size());
+            for (size_t i = 0;
+                 i <
+                 geometry_instances.custom_pipeline_info.descriptor_sets.size();
+                 i++) {
+                descriptor_sets[i] =
+                    geometry_instances.custom_pipeline_info.descriptor_sets[i]
+                        ->get_vk_set();
+            }
+
+            vkCmdBindDescriptorSets(
+                m_command_buffers[m_current_frame]->get_command_buffer(),
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                geometry_instances.custom_pipeline_info.pipeline
+                    ->get_vk_layout(),
+                0, descriptor_sets.size(), descriptor_sets.data(), 0, nullptr);
+
+            if (geometry_instances.custom_pipeline_info.push_constants.size >
+                0) {
+                vkCmdPushConstants(
+                    m_command_buffers[m_current_frame]->get_command_buffer(),
+                    geometry_instances.custom_pipeline_info.pipeline
+                        ->get_vk_layout(),
+                    geometry_instances.custom_pipeline_info.push_constants
+                        .stages,
+                    0,
+                    geometry_instances.custom_pipeline_info.push_constants.size,
+                    geometry_instances.custom_pipeline_info.push_constants.data
+                        .data());
+            }
+        }
 
         VkBuffer buffers[2] = {
             geometry_instances.mesh->get_vertex_buffer()->get_vk_buffer(),
@@ -959,28 +1022,6 @@ void Renderer::draw_meshes() {
             m_command_buffers[m_current_frame]->get_command_buffer(),
             geometry_instances.mesh->get_index_buffer()->get_vk_buffer(), 0,
             VK_INDEX_TYPE_UINT32);
-
-        VkDescriptorSet sets[] = {
-            m_camera_uniform_sets[m_current_frame]->get_vk_set(),
-            m_texture_arrays[m_current_frame]->get_vk_set(),
-            m_lights_set[m_current_frame]->get_vk_set(),
-        };
-
-        vkCmdBindDescriptorSets(
-            m_command_buffers[m_current_frame]->get_command_buffer(),
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            m_lighting_pipeline->get_vk_layout(), 0, 3, sets, 0, nullptr);
-
-        LightsPushConstantCount count{
-            .directional_light_count = static_cast<int32_t>(
-                m_directional_lights[m_current_frame].size()),
-            .point_light_count =
-                static_cast<int32_t>(m_point_lights[m_current_frame].size())};
-
-        vkCmdPushConstants(
-            m_command_buffers[m_current_frame]->get_command_buffer(),
-            m_lighting_pipeline->get_vk_layout(), VK_SHADER_STAGE_FRAGMENT_BIT,
-            0, sizeof(LightsPushConstantCount), &count);
 
         vkCmdDrawIndexed(
             m_command_buffers[m_current_frame]->get_command_buffer(),
@@ -1204,7 +1245,7 @@ void Renderer::setup_camera_uniform() {
     for (size_t i = 0; i < m_max_frames_in_flight; i++) {
         m_camera_uniform_buffers[i] =
             UniformBuffer::create_unique(sizeof(CameraUniformBuffer));
-        m_camera_uniform_sets[i] = DescriptorSet::create_unique(
+        m_camera_uniform_sets[i] = DescriptorSet::create(
             m_camera_uniform_pool, m_camera_uniform_set_layout,
             {
                 DescriptorSpec{.binding = 0,

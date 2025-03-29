@@ -44,10 +44,22 @@ struct BeginRenderingSpec {
     uint32_t height = 0;
 };
 
+struct PushConstantInfo {
+    size_t size = 0;
+    VkShaderStageFlags stages;
+    std::vector<uint8_t> data;
+};
+
+struct CustomMeshPipelineInfo {
+    Ref<Pipeline> pipeline = nullptr;
+    std::vector<Ref<DescriptorSet>> descriptor_sets = {};
+    PushConstantInfo push_constants = {};
+};
+
 // Used to store the geometries used for a set of instances.
 struct MeshInstances {
     Ref<Mesh> mesh;
-    Ref<Pipeline> custom_pipeline;
+    CustomMeshPipelineInfo custom_pipeline_info;
     size_t offset;
     size_t instance_count;
 };
@@ -169,7 +181,7 @@ class Renderer {
 
     void draw_mesh(const Ref<Mesh>& geometry,
                    const std::vector<MeshRenderingInstance>& instances,
-                   Ref<Pipeline> custom_pipeline = nullptr);
+                   const CustomMeshPipelineInfo& custom_pipeline = {});
 
     void set_perspective_camera(const PerspectiveCamera& camera);
 
@@ -259,9 +271,25 @@ class Renderer {
         return m_lighting_fragment_shader;
     };
 
-    const PipelineCreateInfo&
-    get_default_lighting_pipeline_create_info() const {
-        return m_default_lighting_pipeline_create_info;
+    const VertexBufferDescription&
+    get_mesh_rendering_instance_vertices_description() const {
+        return m_mesh_rendering_instance_vertices_description;
+    }
+
+    const Ref<DescriptorSetLayout>& get_texture_array_layout() const {
+        return m_texture_array_layout;
+    }
+
+    const Ref<DescriptorSetLayout>& get_camera_uniform_set_layout() const {
+        return m_camera_uniform_set_layout;
+    }
+
+    const Ref<DescriptorSet>& get_current_texture_array() const {
+        return m_texture_arrays[m_current_frame];
+    }
+
+    const Ref<DescriptorSet>& get_current_camera_uniform_set() const {
+        return m_camera_uniform_sets[m_current_frame];
     }
 
   private:
@@ -307,7 +335,7 @@ class Renderer {
     Ref<DescriptorPool> m_sampler_descriptor_pool;
     Unique<TextureSampler>
         m_texture_sampler; // We should be able to use a single sampler...
-    std::vector<Unique<DescriptorSet>>
+    std::vector<Ref<DescriptorSet>>
         m_texture_arrays; // One for each frame in flight
     std::vector<DescriptorSpec> m_texture_specs;
     Ref<DescriptorSetLayout> m_texture_array_layout;
@@ -351,7 +379,7 @@ class Renderer {
     VertexBufferDescription m_ui_quad_instance_vertices_description;
 
     Ref<DescriptorPool> m_camera_uniform_pool;
-    std::vector<Unique<DescriptorSet>> m_camera_uniform_sets;
+    std::vector<Ref<DescriptorSet>> m_camera_uniform_sets;
     Ref<DescriptorSetLayout> m_camera_uniform_set_layout;
     std::vector<Unique<UniformBuffer>>
         m_camera_uniform_buffers; // One for each frame in flight

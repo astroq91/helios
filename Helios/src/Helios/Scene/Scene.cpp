@@ -9,7 +9,13 @@
 #include "Helios/Scene/Transform.h"
 #include "PxRigidDynamic.h"
 #include "stduuid/uuid.h"
+#include "vulkan/vulkan_core.h"
+#include <cstring>
 #include <variant>
+
+struct ShaderPushConstantsData {
+    float data;
+};
 
 namespace Helios {
 
@@ -408,24 +414,36 @@ void Scene::draw_meshes() {
         // Custom shaders
         if (mesh.material && (mesh.material->get_vertex_shader() ||
                               mesh.material->get_fragment_shader())) {
-            Ref<Pipeline> pipeline = nullptr;
+            Ref<Pipeline> custom_pipeline = nullptr;
             if (m_custom_pipelines.contains(mesh.material)) {
-                pipeline = m_custom_pipelines.at(mesh.material);
-                ;
+                custom_pipeline = m_custom_pipelines.at(mesh.material);
             } else {
-                PipelineCreateInfo info =
-                    renderer.get_default_lighting_pipeline_create_info();
-                info.vertex_shader = mesh.material->get_vertex_shader()
-                                         ? mesh.material->get_vertex_shader()
-                                         : info.vertex_shader;
-                info.fragment_shader =
+                custom_pipeline = Pipeline::create({
+                    renderer.get_swapchain()->get_vk_format(),
+                    {
+                        renderer.get_camera_uniform_set_layout(),
+                        renderer.get_texture_array_layout(),
+                    },
+                    mesh.material->get_vertex_shader()
+                        ? mesh.material->get_vertex_shader()
+                        : renderer.get_lighting_vertex_shader(),
                     mesh.material->get_fragment_shader()
                         ? mesh.material->get_fragment_shader()
-                        : info.fragment_shader;
-                pipeline = Pipeline::create(info);
+                        : renderer.get_lighting_fragment_shader(),
+                    {renderer.get_meshes_vertices_description(),
+                     renderer
+                         .get_mesh_rendering_instance_vertices_description()},
+                    {
+                        VkPushConstantRange{
+                            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+                            .offset = 0,
+                            .size = sizeof(ShaderPushConstantsData)},
+                    },
+                });
+
                 m_custom_pipelines.insert(
                     std::pair<Ref<Material>, Ref<Pipeline>>(mesh.material,
-                                                            pipeline));
+                                                            custom_pipeline));
             }
 
             meshes_custom_shaders.push_back(
@@ -437,7 +455,7 @@ void Scene::draw_meshes() {
                         .tint_color = mesh.tint_color,
 
                     },
-                    pipeline));
+                    custom_pipeline));
         } else {
             mesh_groups[mesh.mesh->get_uuid()].push_back({
                 .transform = transform.to_transform(),
@@ -452,8 +470,26 @@ void Scene::draw_meshes() {
         renderer.draw_mesh(mesh, mesh_groups[id]);
     }
 
+    ShaderPushConstantsData push_constants{
+        .data = 10.0f,
+    };
+    std::vector<uint8_t> push_constants_data(sizeof(ShaderPushConstantsData));
+    std::memcpy(push_constants_data.data(), &push_constants,
+                sizeof(ShaderPushConstantsData));
+
     for (auto& [mesh, info, pipeline] : meshes_custom_shaders) {
-        renderer.draw_mesh(mesh, {info}, pipeline);
+        renderer.draw_mesh(mesh, {info},
+                           {.pipeline = pipeline,
+                            .descriptor_sets =
+                                {
+                                    renderer.get_current_camera_uniform_set(),
+                                    renderer.get_current_texture_array(),
+                                },
+                            .push_constants = {
+                                .size = sizeof(ShaderPushConstantsData),
+                                .stages = VK_SHADER_STAGE_FRAGMENT_BIT,
+                                .data = push_constants_data,
+                            }});
     }
 }
 
