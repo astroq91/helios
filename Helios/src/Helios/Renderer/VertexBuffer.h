@@ -14,9 +14,9 @@ namespace Helios
 		 * \param data The vertices.
 		 * \param size The size (in bytes) of the vertices.
 		 */
-		static Ref<VertexBuffer> create(void* data, size_t size)
+		static SharedPtr<VertexBuffer> create(void* data, size_t size)
 		{
-			Ref<VertexBuffer> vb = make_ref<VertexBuffer>();
+			SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>::create();
             vb->init(data, size);
 			return vb;
 		}
@@ -37,6 +37,6 @@ namespace Helios
 		void init(void* data, size_t size);
 
 	private:
-		Unique<Buffer> m_buffer;
+		std::unique_ptr<Buffer> m_buffer;
 	};
 }

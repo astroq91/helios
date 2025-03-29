@@ -26,14 +26,14 @@ namespace Helios {
 struct BeginRenderingAttachmentSpec {};
 
 struct BeginRenderingSpec {
-    Ref<Image> color_image = nullptr; // Optional
+    SharedPtr<Image> color_image = nullptr; // Optional
     VkImageLayout color_image_layout = VK_IMAGE_LAYOUT_GENERAL;
     VkAttachmentLoadOp color_load_op = VK_ATTACHMENT_LOAD_OP_LOAD;
     VkAttachmentStoreOp color_store_op = VK_ATTACHMENT_STORE_OP_STORE;
     glm::vec4 color_clear_value = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     // Only used if VK_ATTACHMENT_LOAD_OP_CLEAR is used.
 
-    Ref<Image> depth_image = nullptr; // Optional
+    SharedPtr<Image> depth_image = nullptr; // Optional
     VkAttachmentLoadOp depth_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR;
     VkAttachmentStoreOp depth_store_op = VK_ATTACHMENT_STORE_OP_STORE;
 
@@ -51,14 +51,14 @@ struct PushConstantInfo {
 };
 
 struct CustomMeshPipelineInfo {
-    Ref<Pipeline> pipeline = nullptr;
-    std::vector<Ref<DescriptorSet>> descriptor_sets = {};
+    SharedPtr<Pipeline> pipeline = nullptr;
+    std::vector<SharedPtr<DescriptorSet>> descriptor_sets = {};
     PushConstantInfo push_constants = {};
 };
 
 // Used to store the geometries used for a set of instances.
 struct MeshInstances {
-    Ref<Mesh> mesh;
+    SharedPtr<Mesh> mesh;
     CustomMeshPipelineInfo custom_pipeline_info;
     size_t offset;
     size_t instance_count;
@@ -67,7 +67,7 @@ struct MeshInstances {
 // Used to describe an instance's properties.
 struct MeshRenderingInstance {
     Transform transform;
-    Ref<Material> material;
+    SharedPtr<Material> material;
     glm::vec4 tint_color;
 };
 
@@ -171,7 +171,7 @@ class Renderer {
     void deregister_texture(uint32_t textureIndex);
 
     void draw_ui_quad(const Transform& transform, const glm::vec4& color,
-                      const Ref<Texture>& texture = nullptr);
+                      const SharedPtr<Texture>& texture = nullptr);
 
     /**
      * \brief Record cube instances.
@@ -179,7 +179,7 @@ class Renderer {
      */
     void draw_cube(const std::vector<MeshRenderingInstance>& instances);
 
-    void draw_mesh(const Ref<Mesh>& geometry,
+    void draw_mesh(const SharedPtr<Mesh>& geometry,
                    const std::vector<MeshRenderingInstance>& instances,
                    const CustomMeshPipelineInfo& custom_pipeline = {});
 
@@ -200,9 +200,9 @@ class Renderer {
      * \param key The texture identifier.
      * \return The texture object (nullptr if the texture does not exist).
      */
-    Ref<Texture> get_texture(const std::string& key);
+    SharedPtr<Texture> get_texture(const std::string& key);
 
-    const Ref<SwapChain>& get_swapchain() const { return m_swapchain; }
+    const SharedPtr<SwapChain>& get_swapchain() const { return m_swapchain; }
 
     bool swapchain_recreated_this_frame() const {
         return m_swapchain_recreated_this_frame;
@@ -221,7 +221,7 @@ class Renderer {
      * \brief get the command buffer for this frame.
      * \return The command buffer.
      */
-    const Ref<CommandBuffer>& get_current_command_buffer() const {
+    const SharedPtr<CommandBuffer>& get_current_command_buffer() const {
         return m_command_buffers[m_current_frame];
     }
 
@@ -235,7 +235,7 @@ class Renderer {
         return m_main_fences[m_current_frame];
     }
 
-    Ref<Mesh> get_cube_mesh() const { return m_cube_mesh; }
+    SharedPtr<Mesh> get_cube_mesh() const { return m_cube_mesh; }
 
     const VertexBufferDescription& get_meshes_vertices_description() const {
         return m_meshes_vertices_description;
@@ -263,11 +263,11 @@ class Renderer {
 
     uint32_t get_min_instances_for_mt() const { return m_min_instances_for_mt; }
 
-    const Ref<Shader>& get_lighting_vertex_shader() const {
+    const SharedPtr<Shader>& get_lighting_vertex_shader() const {
         return m_lighting_vertex_shader;
     };
 
-    const Ref<Shader>& get_lighting_fragment_shader() const {
+    const SharedPtr<Shader>& get_lighting_fragment_shader() const {
         return m_lighting_fragment_shader;
     };
 
@@ -276,19 +276,19 @@ class Renderer {
         return m_mesh_rendering_instance_vertices_description;
     }
 
-    const Ref<DescriptorSetLayout>& get_texture_array_layout() const {
+    const SharedPtr<DescriptorSetLayout>& get_texture_array_layout() const {
         return m_texture_array_layout;
     }
 
-    const Ref<DescriptorSetLayout>& get_camera_uniform_set_layout() const {
+    const SharedPtr<DescriptorSetLayout>& get_camera_uniform_set_layout() const {
         return m_camera_uniform_set_layout;
     }
 
-    const Ref<DescriptorSet>& get_current_texture_array() const {
+    const SharedPtr<DescriptorSet>& get_current_texture_array() const {
         return m_texture_arrays[m_current_frame];
     }
 
-    const Ref<DescriptorSet>& get_current_camera_uniform_set() const {
+    const SharedPtr<DescriptorSet>& get_current_camera_uniform_set() const {
         return m_camera_uniform_sets[m_current_frame];
     }
 
@@ -296,8 +296,8 @@ class Renderer {
     void draw_meshes();
     void draw_quads();
 
-    void create_default_textures(const Ref<TextureLibrary>& texture_lib);
-    void load_default_shaders(const Ref<ShaderLibrary>& shader_lib);
+    void create_default_textures(const SharedPtr<TextureLibrary>& texture_lib);
+    void load_default_shaders(const SharedPtr<ShaderLibrary>& shader_lib);
 
     void create_depth_image();
 
@@ -323,100 +323,100 @@ class Renderer {
 
     bool m_is_recording = false;
 
-    std::vector<Ref<CommandBuffer>> m_command_buffers;
+    std::vector<SharedPtr<CommandBuffer>> m_command_buffers;
     std::vector<VkSemaphore> m_image_available_semaphores;
     std::vector<VkSemaphore> m_render_available_semaphores;
     std::vector<VkFence> m_main_fences;
 
-    Ref<SwapChain> m_swapchain;
+    SharedPtr<SwapChain> m_swapchain;
     bool m_swapchain_recreated_this_frame = false;
     bool m_framebuffer_resized = false;
 
-    Ref<DescriptorPool> m_sampler_descriptor_pool;
-    Unique<TextureSampler>
+    SharedPtr<DescriptorPool> m_sampler_descriptor_pool;
+    std::unique_ptr<TextureSampler>
         m_texture_sampler; // We should be able to use a single sampler...
-    std::vector<Ref<DescriptorSet>>
+    std::vector<SharedPtr<DescriptorSet>>
         m_texture_arrays; // One for each frame in flight
     std::vector<DescriptorSpec> m_texture_specs;
-    Ref<DescriptorSetLayout> m_texture_array_layout;
+    SharedPtr<DescriptorSetLayout> m_texture_array_layout;
 
     uint32_t m_available_texture_index = 0;
 
-    Ref<Texture> m_white_texture;
-    Ref<Texture> m_black_texture;
-    Ref<Texture> m_gray_texture;
+    SharedPtr<Texture> m_white_texture;
+    SharedPtr<Texture> m_black_texture;
+    SharedPtr<Texture> m_gray_texture;
 
-    Ref<Pipeline> m_lighting_pipeline;
+    SharedPtr<Pipeline> m_lighting_pipeline;
     PipelineCreateInfo m_default_lighting_pipeline_create_info;
-    Ref<Shader> m_lighting_vertex_shader;
-    Ref<Shader> m_lighting_fragment_shader;
+    SharedPtr<Shader> m_lighting_vertex_shader;
+    SharedPtr<Shader> m_lighting_fragment_shader;
 
     VertexBufferDescription m_meshes_vertices_description;
 
-    Unique<Image> m_depth_image;
+    std::unique_ptr<Image> m_depth_image;
 
-    Ref<ShaderLibrary> m_shaders;
+    SharedPtr<ShaderLibrary> m_shaders;
 
     // Put the texture library below m_texture_specs, so the textures are
     // destroyed before m_texture_specs
-    Ref<TextureLibrary> m_textures;
+    SharedPtr<TextureLibrary> m_textures;
 
-    Unique<Buffer> m_instance_staging_buffer;
+    std::unique_ptr<Buffer> m_instance_staging_buffer;
 
     // Mesh Rendering Instances //
     std::vector<std::vector<MeshRenderingShaderInstanceData>>
         m_mesh_rendering_shader_instances; // One for each frame in flight
     std::vector<std::vector<MeshInstances>>
         m_mesh_rendering_instances; // One for each frame in flight
-    std::vector<Ref<VertexBuffer>>
+    std::vector<SharedPtr<VertexBuffer>>
         m_mesh_rendering_instances_buffers; // One for each frame in flight
     VertexBufferDescription m_mesh_rendering_instance_vertices_description;
 
     std::vector<std::vector<UIQuadShaderInstanceData>>
         m_ui_quad_shader_instances; // One for each frame in flight
-    std::vector<Ref<VertexBuffer>>
+    std::vector<SharedPtr<VertexBuffer>>
         m_ui_quad_instances_buffers; // One for each frame in flight
     VertexBufferDescription m_ui_quad_instance_vertices_description;
 
-    Ref<DescriptorPool> m_camera_uniform_pool;
-    std::vector<Ref<DescriptorSet>> m_camera_uniform_sets;
-    Ref<DescriptorSetLayout> m_camera_uniform_set_layout;
-    std::vector<Unique<UniformBuffer>>
+    SharedPtr<DescriptorPool> m_camera_uniform_pool;
+    std::vector<SharedPtr<DescriptorSet>> m_camera_uniform_sets;
+    SharedPtr<DescriptorSetLayout> m_camera_uniform_set_layout;
+    std::vector<std::unique_ptr<UniformBuffer>>
         m_camera_uniform_buffers; // One for each frame in flight
 
     //  Cube  //
-    Ref<Mesh> m_cube_mesh;
+    SharedPtr<Mesh> m_cube_mesh;
 
     // Quad //
-    Ref<Mesh> m_ui_quad_mesh;
+    SharedPtr<Mesh> m_ui_quad_mesh;
 
-    Unique<Pipeline> m_ui_quad_pipeline;
+    std::unique_ptr<Pipeline> m_ui_quad_pipeline;
     VertexBufferDescription m_ui_quad_vertices_description;
-    Ref<Shader> m_ui_quad_vertex_shader;
-    Ref<Shader> m_ui_quad_fragment_shader;
+    SharedPtr<Shader> m_ui_quad_vertex_shader;
+    SharedPtr<Shader> m_ui_quad_fragment_shader;
 
-    Ref<DescriptorPool> m_ui_quad_uniform_pool;
-    std::vector<Unique<DescriptorSet>> m_ui_quad_uniform_sets;
-    Ref<DescriptorSetLayout> m_ui_quad_uniform_set_layout;
-    std::vector<Unique<UniformBuffer>>
+    SharedPtr<DescriptorPool> m_ui_quad_uniform_pool;
+    std::vector<std::unique_ptr<DescriptorSet>> m_ui_quad_uniform_sets;
+    SharedPtr<DescriptorSetLayout> m_ui_quad_uniform_set_layout;
+    std::vector<std::unique_ptr<UniformBuffer>>
         m_ui_quad_uniform_buffers; // One for each frame in flight
 
     // -- //
     glm::mat4 m_view_projection_matrix;
     PerspectiveCamera m_perspective_camera;
 
-    Ref<DescriptorPool> m_lights_uniform_pool;
-    std::vector<Unique<DescriptorSet>>
+    SharedPtr<DescriptorPool> m_lights_uniform_pool;
+    std::vector<std::unique_ptr<DescriptorSet>>
         m_lights_set; // One for each frame in flight
-    Ref<DescriptorSetLayout> m_lights_set_layout;
+    SharedPtr<DescriptorSetLayout> m_lights_set_layout;
 
     std::vector<std::vector<DirectionalLight>>
         m_directional_lights; // One for each frame in flight
-    std::vector<Unique<UniformBuffer>> m_directional_lights_uniform_buffers;
+    std::vector<std::unique_ptr<UniformBuffer>> m_directional_lights_uniform_buffers;
 
     std::vector<std::vector<PointLight>>
         m_point_lights; // One for each frame in flight
-    std::vector<Unique<UniformBuffer>> m_point_lights_uniform_buffers;
+    std::vector<std::unique_ptr<UniformBuffer>> m_point_lights_uniform_buffers;
 
     uint32_t m_min_instances_for_mt;
     uint32_t m_num_threads_for_instancing;
@@ -427,7 +427,7 @@ class Renderer {
     bool m_shutting_down = false;
 
     FontLibrary m_font_library;
-    Ref<Font> m_selected_font = nullptr;
+    SharedPtr<Font> m_selected_font = nullptr;
 
     glm::mat4 m_ui_projection;
 };

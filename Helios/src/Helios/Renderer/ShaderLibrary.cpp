@@ -1,7 +1,7 @@
 ﻿#include "ShaderLibrary.h"
 
 namespace Helios {
-void ShaderLibrary::add_shader(const Ref<Shader> &shader) {
+void ShaderLibrary::add_shader(const SharedPtr<Shader> &shader) {
   if (!m_shaders.contains(shader->get_name())) {
     m_shaders[shader->get_name()] = shader;
   } else {
@@ -11,7 +11,7 @@ void ShaderLibrary::add_shader(const Ref<Shader> &shader) {
   }
 }
 
-Ref<Shader> ShaderLibrary::get_shader(const std::string &name) {
+SharedPtr<Shader> ShaderLibrary::get_shader(const std::string &name) {
   const auto it = m_shaders.find(name);
 
   if (it == m_shaders.end()) {

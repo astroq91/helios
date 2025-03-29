@@ -29,7 +29,7 @@ void Font::load_characters() {
             continue;
         }
 
-        Ref<Texture> texture = nullptr;
+        SharedPtr<Texture> texture = nullptr;
 
         if (m_face->glyph->bitmap.width > 0 && m_face->glyph->bitmap.rows > 0) {
             std::stringstream stream;

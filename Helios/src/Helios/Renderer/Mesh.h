@@ -13,28 +13,28 @@ namespace Helios
 	class Mesh : public Resource, public Asset
 	{
 	public:
-		static Ref<Mesh> create(const std::filesystem::path& path)
+		static SharedPtr<Mesh> create(const std::filesystem::path& path)
 		{
-			Ref<Mesh> obj = make_ref<Mesh>();
+			SharedPtr<Mesh> obj = SharedPtr<Mesh>::create();
             obj->init_uuid();
             obj->init_asset(path.string());
             obj->init(path);
 			return obj;
 		}
 
-		static Ref<Mesh> create(const std::string& name, void* vertices, size_t vertices_size, void* indices,
+		static SharedPtr<Mesh> create(const std::string& name, void* vertices, size_t vertices_size, void* indices,
                                 size_t indices_size,
                                 size_t indices_count)
 		{
-			Ref<Mesh> obj = make_ref<Mesh>();
+			SharedPtr<Mesh> obj = SharedPtr<Mesh>::create();
             obj->init_uuid();
             obj->init_asset(name);
             obj->init(vertices, vertices_size, indices, indices_size, indices_count);
 			return obj;
 		}
 
-		const Ref<VertexBuffer>& get_vertex_buffer() const { return m_vertex_buffer; }
-		const Ref<IndexBuffer>& get_index_buffer() const { return m_index_buffer; }
+		const SharedPtr<VertexBuffer>& get_vertex_buffer() const { return m_vertex_buffer; }
+		const SharedPtr<IndexBuffer>& get_index_buffer() const { return m_index_buffer; }
 
 		Mesh() = default;
 		~Mesh() = default;
@@ -50,7 +50,7 @@ namespace Helios
                   size_t indices_count);
 
 	private:
-		Ref<VertexBuffer> m_vertex_buffer;
-		Ref<IndexBuffer> m_index_buffer;
+		SharedPtr<VertexBuffer> m_vertex_buffer;
+		SharedPtr<IndexBuffer> m_index_buffer;
 	};
 }

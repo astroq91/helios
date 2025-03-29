@@ -636,9 +636,9 @@ void EditorLayer::on_imgui_render() {
 }
 
 void EditorLayer::setup_editor_grid() {
-    Ref<Shader> vertex_shader = Shader::create(
+    SharedPtr<Shader> vertex_shader = Shader::create(
         "editor_grid.vert", RESOURCES_PATH "shaders/bin/EditorGrid.vert");
-    Ref<Shader> fragment_shader = Shader::create(
+    SharedPtr<Shader> fragment_shader = Shader::create(
         "editor_grid.frag", RESOURCES_PATH "shaders/bin/EditorGrid.frag");
 
     m_grid_pipeline = Pipeline::create_unique({
@@ -695,7 +695,7 @@ void EditorLayer::populate_viewport_data(ViewportData& viewport) {
     viewport.depth_images.resize(app.get_max_frames_in_flight());
     viewport.handles.resize(app.get_max_frames_in_flight());
     for (uint32_t i = 0; i < app.get_max_frames_in_flight(); i++) {
-        viewport.images[i] = Image::create_unique(ImageSpec{
+        viewport.images[i] = Image::create(ImageSpec{
             .width = renderer.get_swapchain()->get_vk_extent().width,
             .height = renderer.get_swapchain()->get_vk_extent().height,
             .format = renderer.get_swapchain()->get_vk_format(),
@@ -886,7 +886,7 @@ void EditorLayer::update_entity_picking() {
                     renderer.get_current_command_buffer()->get_command_buffer(),
             });
 
-            Ref<Buffer> staging_buffer = Buffer::create(
+            SharedPtr<Buffer> staging_buffer = Buffer::create(
                 m_entity_picking_images[app.get_current_frame()]->get_vk_size(),
                 VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -950,7 +950,7 @@ void EditorLayer::resize_viewport(ViewportData& viewport) {
     auto& app = Application::get();
     auto& renderer = app.get_renderer();
 
-    viewport.images[app.get_current_frame()] = Image::create_unique(
+    viewport.images[app.get_current_frame()] = Image::create(
         ImageSpec{.width = static_cast<uint32_t>(viewport.size.x),
                   .height = static_cast<uint32_t>(viewport.size.y),
                   .format = renderer.get_swapchain()->get_vk_format(),
@@ -973,18 +973,17 @@ void EditorLayer::resize_viewport(ViewportData& viewport) {
          .command_buffer =
              renderer.get_current_command_buffer()->get_command_buffer()});
 
-    viewport.depth_images[app.get_current_frame()] =
-        Image::create_unique(ImageSpec{
-            .width = static_cast<uint32_t>(viewport.size.x),
-            .height = static_cast<uint32_t>(viewport.size.y),
-            .format = VulkanUtils::find_depth_format(Application::get()
-                                                         .get_vulkan_manager()
-                                                         ->get_context()
-                                                         .physical_device),
-            .aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
-                     VK_IMAGE_USAGE_SAMPLED_BIT,
-            .memory_property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT});
+    viewport.depth_images[app.get_current_frame()] = Image::create(ImageSpec{
+        .width = static_cast<uint32_t>(viewport.size.x),
+        .height = static_cast<uint32_t>(viewport.size.y),
+        .format = VulkanUtils::find_depth_format(Application::get()
+                                                     .get_vulkan_manager()
+                                                     ->get_context()
+                                                     .physical_device),
+        .aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT,
+        .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
+                 VK_IMAGE_USAGE_SAMPLED_BIT,
+        .memory_property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT});
 
     // Transition the depth image
     VulkanUtils::transition_image_layout(
@@ -1035,7 +1034,7 @@ void EditorLayer::create_or_recreate_picking_images() {
     m_entity_picking_depth_images.resize(max_frames_in_flight);
 
     for (size_t i = 0; i < max_frames_in_flight; i++) {
-        m_entity_picking_images[i] = Image::create_unique(ImageSpec{
+        m_entity_picking_images[i] = Image::create(ImageSpec{
             .width = renderer.get_swapchain()->get_vk_extent().width,
             .height = renderer.get_swapchain()->get_vk_extent().height,
             .format = VK_FORMAT_R8G8B8A8_UNORM,
@@ -1045,7 +1044,7 @@ void EditorLayer::create_or_recreate_picking_images() {
                      VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
             .memory_property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT});
 
-        m_entity_picking_depth_images[i] = Image::create_unique(ImageSpec{
+        m_entity_picking_depth_images[i] = Image::create(ImageSpec{
             .width = renderer.get_swapchain()->get_vk_extent().width,
             .height = renderer.get_swapchain()->get_vk_extent().height,
             .format = VulkanUtils::find_depth_format(Application::get()

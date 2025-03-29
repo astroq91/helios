@@ -43,8 +43,8 @@ void DescriptorSet::update_descriptor_set(
                          descriptor_writes.data(), 0, nullptr);
 }
 
-void DescriptorSet::init(const Ref<DescriptorPool> &pool,
-                         const Ref<DescriptorSetLayout> &set_layout,
+void DescriptorSet::init(const SharedPtr<DescriptorPool> &pool,
+                         const SharedPtr<DescriptorSetLayout> &set_layout,
                          const std::vector<DescriptorSpec> &descriptor_specs) {
   const VulkanContext &context =
           Application::get().get_vulkan_manager()->get_context();

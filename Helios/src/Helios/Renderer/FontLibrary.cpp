@@ -7,9 +7,9 @@ void FontLibrary::init() {
     }
 }
 
-Ref<Font> FontLibrary::load_font(const std::filesystem::path& path) {
-    m_fonts.insert(std::pair<std::string, Ref<Font>>(
-        path.string(), make_ref<Font>(path, m_library)));
+SharedPtr<Font> FontLibrary::load_font(const std::filesystem::path& path) {
+    m_fonts.insert(std::pair<std::string, SharedPtr<Font>>(
+        path.string(), SharedPtr<Font>::create(path, m_library)));
     return m_fonts.at(path.string());
 }
 } // namespace Helios

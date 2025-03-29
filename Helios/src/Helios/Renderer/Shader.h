@@ -18,9 +18,9 @@ class Shader : public Asset {
      * \param name The name of the shader.
      * \param path The filepath to the shader.
      */
-    static Ref<Shader> create(const std::string& name,
+    static SharedPtr<Shader> create(const std::string& name,
                               const std::filesystem::path& path) {
-        Ref<Shader> sh = make_ref<Shader>();
+        SharedPtr<Shader> sh = SharedPtr<Shader>::create();
         sh->init_asset(name);
         sh->init(path);
         return sh;

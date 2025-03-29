@@ -7,20 +7,20 @@
 namespace Helios {
 class Buffer : public Resource {
   public:
-    static Ref<Buffer> create(VkDeviceSize size, VkBufferUsageFlags usage,
+    static SharedPtr<Buffer> create(VkDeviceSize size, VkBufferUsageFlags usage,
                               VkMemoryPropertyFlags properties,
                               bool map_memory = false) {
-        Ref<Buffer> b = make_ref<Buffer>();
+        SharedPtr<Buffer> b = SharedPtr<Buffer>::create();
         b->init_uuid();
         b->init(size, usage, properties, map_memory);
         return b;
     }
 
-    static Unique<Buffer> create_unique(VkDeviceSize size,
+    static std::unique_ptr<Buffer> create_unique(VkDeviceSize size,
                                         VkBufferUsageFlags usage,
                                         VkMemoryPropertyFlags properties,
                                         bool map_memory = false) {
-        Unique<Buffer> b = make_unique<Buffer>();
+        std::unique_ptr<Buffer> b = std::make_unique<Buffer>();
         b->init_uuid();
         b->init(size, usage, properties, map_memory);
         return b;

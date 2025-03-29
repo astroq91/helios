@@ -9,18 +9,18 @@ namespace Helios
 	class DescriptorPool
 	{
 	public:
-		static Ref<DescriptorPool> create(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes,
+		static SharedPtr<DescriptorPool> create(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes,
                                           VkDescriptorPoolCreateFlags flags = 0)
 		{
-			Ref<DescriptorPool> obj = make_ref<DescriptorPool>();
+			SharedPtr<DescriptorPool> obj = SharedPtr<DescriptorPool>::create();
             obj->init(max_sets, pool_sizes, flags);
 			return obj;
 		}
 
-		static Unique<DescriptorPool> CreateUnique(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes,
+		static std::unique_ptr<DescriptorPool> CreateUnique(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes,
                                                    VkDescriptorPoolCreateFlags flags = 0)
 		{
-			Unique<DescriptorPool> obj = make_unique<DescriptorPool>();
+			std::unique_ptr<DescriptorPool> obj = std::make_unique<DescriptorPool>();
             obj->init(max_sets, pool_sizes, flags);
 			return obj;
 		}

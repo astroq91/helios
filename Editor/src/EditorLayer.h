@@ -27,16 +27,16 @@ struct EntityPickingShaderData {
 
 // Used to keep track of a matching entity's mesh, from EntityPickingShaderData.
 struct EntityPickingData {
-    Helios::Ref<Helios::Mesh> mesh;
+    Helios::SharedPtr<Helios::Mesh> mesh;
 };
 
 struct ViewportData {
-    std::vector<Helios::Ref<Helios::Image>>
+    std::vector<Helios::SharedPtr<Helios::Image>>
         images; // One for each frame in flight
-    std::vector<Helios::Ref<Helios::Image>>
+    std::vector<Helios::SharedPtr<Helios::Image>>
         depth_images;                     // One for each frame in flight
     std::vector<VkDescriptorSet> handles; // One for each frame in flight
-    Helios::Unique<Helios::TextureSampler> sampler;
+    std::unique_ptr<Helios::TextureSampler> sampler;
 
     ImVec2 size;
     ImVec2 mouse_pos;
@@ -109,26 +109,26 @@ class EditorLayer : public Helios::Layer {
     Helios::AssetsBrowser m_assets_browser;
 
     // Scene camera //
-    std::vector<Helios::Ref<Helios::Buffer>> m_scene_camera_uniform_buffers;
-    Helios::Ref<Helios::DescriptorSetLayout> m_scene_camera_set_layout;
-    std::vector<Helios::Unique<Helios::DescriptorSet>>
+    std::vector<Helios::SharedPtr<Helios::Buffer>> m_scene_camera_uniform_buffers;
+    Helios::SharedPtr<Helios::DescriptorSetLayout> m_scene_camera_set_layout;
+    std::vector<std::unique_ptr<Helios::DescriptorSet>>
         m_scene_camera_descriptor_sets;
-    Helios::Ref<Helios::DescriptorPool> m_scene_camera_set_pool;
+    Helios::SharedPtr<Helios::DescriptorPool> m_scene_camera_set_pool;
 
     // Entity picking //
-    Helios::Unique<Helios::Pipeline> m_entity_picking_pipeline;
-    std::vector<Helios::Ref<Helios::VertexBuffer>> m_entity_picking_buffers;
+    std::unique_ptr<Helios::Pipeline> m_entity_picking_pipeline;
+    std::vector<Helios::SharedPtr<Helios::VertexBuffer>> m_entity_picking_buffers;
     // Maybe use multi-buffering for these as well?
     std::vector<EntityPickingShaderData> m_entity_picking_shader_data;
-    std::vector<Helios::Ref<Helios::Image>>
+    std::vector<Helios::SharedPtr<Helios::Image>>
         m_entity_picking_images; // One for each frame in flight
-    std::vector<Helios::Ref<Helios::Image>>
+    std::vector<Helios::SharedPtr<Helios::Image>>
         m_entity_picking_depth_images; // One for each frame in flight
-    Helios::Ref<Helios::Buffer> m_entity_picking_staging_buffer;
+    Helios::SharedPtr<Helios::Buffer> m_entity_picking_staging_buffer;
     bool m_use_mouse_picking = false;
 
     // Editor grid //
-    Helios::Unique<Helios::Pipeline> m_grid_pipeline;
+    std::unique_ptr<Helios::Pipeline> m_grid_pipeline;
 
     ImGuizmo::OPERATION m_gizmo_operation = ImGuizmo::OPERATION::TRANSLATE;
     ImGuizmo::MODE m_gizmo_mode = ImGuizmo::MODE::LOCAL;

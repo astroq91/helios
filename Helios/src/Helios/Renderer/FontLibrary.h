@@ -11,10 +11,10 @@ class FontLibrary {
   public:
     void init();
 
-    Ref<Font> load_font(const std::filesystem::path& path);
+    SharedPtr<Font> load_font(const std::filesystem::path& path);
 
   private:
     FT_Library m_library = nullptr;
-    std::map<std::string, Ref<Font>> m_fonts;
+    std::map<std::string, SharedPtr<Font>> m_fonts;
 };
 } // namespace Helios

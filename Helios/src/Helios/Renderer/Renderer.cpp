@@ -134,7 +134,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     }
 
     // Load and create the default shaders. TODO: Move them outside core Helios?
-    m_shaders = make_ref<ShaderLibrary>();
+    m_shaders = SharedPtr<ShaderLibrary>::create();
     load_default_shaders(m_shaders);
 
     // create the swap chain and the default render pass.
@@ -194,7 +194,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     // Needed by the default texture creation
     m_texture_specs.resize(k_max_textures);
 
-    m_textures = make_ref<TextureLibrary>();
+    m_textures = SharedPtr<TextureLibrary>::create();
     create_default_textures(m_textures);
     m_white_texture = m_textures->get_texture("WhiteTexture");
     m_black_texture = m_textures->get_texture("BlackTexture");
@@ -208,7 +208,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     m_directional_lights.resize(m_max_frames_in_flight);
     m_point_lights.resize(m_max_frames_in_flight);
 
-    m_lights_uniform_pool = DescriptorPool::CreateUnique(
+    m_lights_uniform_pool = DescriptorPool::create(
         m_max_frames_in_flight,
         {VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                               .descriptorCount = 1 * m_max_frames_in_flight},
@@ -737,7 +737,7 @@ void Renderer::deregister_texture(uint32_t textureIndex) {
 }
 
 void Renderer::draw_ui_quad(const Transform& transform, const glm::vec4& color,
-                            const Ref<Texture>& texture) {
+                            const SharedPtr<Texture>& texture) {
     m_ui_quad_shader_instances[m_current_frame].push_back({
         .model = transform.ToMat4(),
         .tint_color = color,
@@ -752,8 +752,8 @@ void Renderer::draw_cube(const std::vector<MeshRenderingInstance>& instances) {
 
 std::vector<MeshRenderingShaderInstanceData>
 prepare_mesh_shader_instances_mt(std::vector<MeshRenderingInstance>&& instances,
-                                 Ref<Texture> gray_texture,
-                                 Ref<Texture> black_texture) {
+                                 SharedPtr<Texture> gray_texture,
+                                 SharedPtr<Texture> black_texture) {
 
     std::vector<MeshRenderingShaderInstanceData> data;
     for (auto& instance : instances) {
@@ -790,7 +790,7 @@ prepare_mesh_shader_instances_mt(std::vector<MeshRenderingInstance>&& instances,
     return data;
 }
 
-void Renderer::draw_mesh(const Ref<Mesh>& geometry,
+void Renderer::draw_mesh(const SharedPtr<Mesh>& geometry,
                          const std::vector<MeshRenderingInstance>& instances,
                          const CustomMeshPipelineInfo& custom_pipeline_info) {
     m_mesh_rendering_instances[m_current_frame].push_back({
@@ -916,7 +916,7 @@ void Renderer::render_text(const std::string& text, const glm::vec2& position,
     }
 }
 
-Ref<Texture> Renderer::get_texture(const std::string& key) {
+SharedPtr<Texture> Renderer::get_texture(const std::string& key) {
     if (key.empty()) {
         HL_ERROR("Empty key when in Renderer::CreateOrGetTexture(). Returning "
                  "nullptr.");
@@ -1072,7 +1072,7 @@ void Renderer::draw_quads() {
                      0, 0, 0);
 }
 
-void Renderer::create_default_textures(const Ref<TextureLibrary>& texture_lib) {
+void Renderer::create_default_textures(const SharedPtr<TextureLibrary>& texture_lib) {
     unsigned char data[4];
     for (int i = 0; i < 1 * 1 * 4; i++) {
         data[i] = 255;
@@ -1113,7 +1113,7 @@ void Renderer::create_default_textures(const Ref<TextureLibrary>& texture_lib) {
     texture_lib->add_texture(texture);
 }
 
-void Renderer::load_default_shaders(const Ref<ShaderLibrary>& shader_lib) {
+void Renderer::load_default_shaders(const SharedPtr<ShaderLibrary>& shader_lib) {
     std::filesystem::directory_iterator iter;
 
     // Check if the directory exists
@@ -1131,7 +1131,7 @@ void Renderer::load_default_shaders(const Ref<ShaderLibrary>& shader_lib) {
              entry.path().extension() == ".vert") ||
             (entry.path().has_extension() &&
              entry.path().extension() == ".frag")) {
-            Ref<Shader> shader = Shader::create(
+            SharedPtr<Shader> shader = Shader::create(
                 entry.path().filename().string(), entry.path().string());
             shader_lib->add_shader(shader);
         }
@@ -1219,7 +1219,7 @@ void Renderer::setup_lighting_pipeline() {
     };
 
     m_lighting_pipeline =
-        Pipeline::create_unique(m_default_lighting_pipeline_create_info);
+        Pipeline::create(m_default_lighting_pipeline_create_info);
 }
 
 void Renderer::setup_camera_uniform() {

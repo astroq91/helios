@@ -9,7 +9,7 @@ template <typename T> class AssetLibrary {
     static_assert(std::is_base_of_v<Asset, T>, "T must be a subclass of Asset");
 
   public:
-    void add_asset(const Ref<T>& asset) {
+    void add_asset(const SharedPtr<T>& asset) {
         if (!m_assets.contains(asset->get_name())) {
             m_assets[asset->get_name()] = asset;
         } else {
@@ -19,7 +19,7 @@ template <typename T> class AssetLibrary {
         }
     }
 
-    Ref<T> get_asset(const std::string& name) {
+    SharedPtr<T> get_asset(const std::string& name) {
         const auto it = m_assets.find(name);
 
         if (it == m_assets.end()) {
@@ -34,6 +34,7 @@ template <typename T> class AssetLibrary {
     void clear() { m_assets.clear(); }
 
   private:
-    std::unordered_map<std::string, Ref<T>> m_assets;
+    std::unordered_map<std::string, SharedPtr<T>> m_assets;
 };
+
 } // namespace Helios

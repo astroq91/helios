@@ -401,9 +401,9 @@ void Scene::draw_meshes() {
             .view<const TransformComponent, const MeshRendererComponent>();
 
     std::map<uuids::uuid, std::vector<MeshRenderingInstance>> mesh_groups;
-    std::map<uuids::uuid, Ref<Mesh>> meshes;
+    std::map<uuids::uuid, SharedPtr<Mesh>> meshes;
 
-    std::vector<std::tuple<Ref<Mesh>, MeshRenderingInstance, Ref<Pipeline>>>
+    std::vector<std::tuple<SharedPtr<Mesh>, MeshRenderingInstance, SharedPtr<Pipeline>>>
         meshes_custom_shaders;
 
     for (auto [entity, transform, mesh] : meshes_view.each()) {
@@ -414,7 +414,7 @@ void Scene::draw_meshes() {
         // Custom shaders
         if (mesh.material && (mesh.material->get_vertex_shader() ||
                               mesh.material->get_fragment_shader())) {
-            Ref<Pipeline> custom_pipeline = nullptr;
+            SharedPtr<Pipeline> custom_pipeline = nullptr;
             if (m_custom_pipelines.contains(mesh.material)) {
                 custom_pipeline = m_custom_pipelines.at(mesh.material);
             } else {
@@ -442,12 +442,12 @@ void Scene::draw_meshes() {
                 });
 
                 m_custom_pipelines.insert(
-                    std::pair<Ref<Material>, Ref<Pipeline>>(mesh.material,
+                    std::pair<SharedPtr<Material>, SharedPtr<Pipeline>>(mesh.material,
                                                             custom_pipeline));
             }
 
             meshes_custom_shaders.push_back(
-                std::tuple<Ref<Mesh>, MeshRenderingInstance, Ref<Pipeline>>(
+                std::tuple<SharedPtr<Mesh>, MeshRenderingInstance, SharedPtr<Pipeline>>(
                     mesh.mesh,
                     {
                         .transform = transform.to_transform(),

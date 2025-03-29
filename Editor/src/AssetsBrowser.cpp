@@ -70,7 +70,7 @@ void AssetsBrowser::init() {
 
 void AssetsBrowser::init_icon(const fs::path& path,
                               VkCommandBuffer command_buffer,
-                              Ref<Texture>& texture, VkDescriptorSet& handle) {
+                              SharedPtr<Texture>& texture, VkDescriptorSet& handle) {
     texture = Texture::create(path);
 
     VulkanUtils::transition_image_layout({

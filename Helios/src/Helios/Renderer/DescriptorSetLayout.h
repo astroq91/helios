@@ -17,16 +17,16 @@ namespace Helios
 	class DescriptorSetLayout
 	{
 	public:
-		static Unique<DescriptorSetLayout> create_unique(const std::vector<DescriptorSetLayoutBinding>& layout_bindings)
+		static std::unique_ptr<DescriptorSetLayout> create_unique(const std::vector<DescriptorSetLayoutBinding>& layout_bindings)
 		{
-			Unique<DescriptorSetLayout> obj = make_unique<DescriptorSetLayout>();
+			std::unique_ptr<DescriptorSetLayout> obj = std::make_unique<DescriptorSetLayout>();
             obj->init(layout_bindings);
 			return obj;
 		}
 
-		static Ref<DescriptorSetLayout> create(const std::vector<DescriptorSetLayoutBinding>& layout_bindings)
+		static SharedPtr<DescriptorSetLayout> create(const std::vector<DescriptorSetLayoutBinding>& layout_bindings)
 		{
-			Ref<DescriptorSetLayout> obj = make_ref<DescriptorSetLayout>();
+			SharedPtr<DescriptorSetLayout> obj = SharedPtr<DescriptorSetLayout>::create();
             obj->init(layout_bindings);
 			return obj;
 		}

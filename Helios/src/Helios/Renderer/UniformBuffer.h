@@ -6,21 +6,21 @@ namespace Helios
 	class UniformBuffer
 	{
 	public:
-		static Ref<UniformBuffer> create(size_t size)
+		static SharedPtr<UniformBuffer> create(size_t size)
 		{
-			Ref<UniformBuffer> obj = make_ref<UniformBuffer>();
+			SharedPtr<UniformBuffer> obj = SharedPtr<UniformBuffer>::create();
             obj->init(size);
 			return obj;
 		}
 
-		static Unique<UniformBuffer> create_unique(size_t size)
+		static std::unique_ptr<UniformBuffer> create_unique(size_t size)
 		{
-			Unique<UniformBuffer> obj = make_unique<UniformBuffer>();
+			std::unique_ptr<UniformBuffer> obj = std::make_unique<UniformBuffer>();
             obj->init(size);
 			return obj;
 		}
 
-		const Ref<Buffer>& get_buffer() { return m_buffer; }
+		const SharedPtr<Buffer>& get_buffer() { return m_buffer; }
 
 		void* get_mapped_data() const { return m_mapped_data; }
 
@@ -36,7 +36,7 @@ namespace Helios
 		void init(size_t size);
 
 	private:
-		Ref<Buffer> m_buffer;
+		SharedPtr<Buffer> m_buffer;
 		void* m_mapped_data;
 	};
 }

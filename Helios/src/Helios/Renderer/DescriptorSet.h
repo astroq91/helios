@@ -16,7 +16,7 @@ struct DescriptorSpec {
     uint32_t binding;
     VkDescriptorType type;
     DescriptorClass descriptor_class;
-    Ref<Buffer> buffer;
+    SharedPtr<Buffer> buffer;
     VkImageView image_view;
     VkSampler sampler;
     uint32_t descriptor_count = 1;
@@ -25,19 +25,19 @@ struct DescriptorSpec {
 
 class DescriptorSet {
   public:
-    static Ref<DescriptorSet>
-    create(const Ref<DescriptorPool>& pool,
-           const Ref<DescriptorSetLayout>& set_layouts,
+    static SharedPtr<DescriptorSet>
+    create(const SharedPtr<DescriptorPool>& pool,
+           const SharedPtr<DescriptorSetLayout>& set_layouts,
            const std::vector<DescriptorSpec>& descriptor_specs = {}) {
-        Ref<DescriptorSet> ds = make_ref<DescriptorSet>();
+        SharedPtr<DescriptorSet> ds = SharedPtr<DescriptorSet>::create();
         ds->init(pool, set_layouts, descriptor_specs);
         return ds;
     }
-    static Unique<DescriptorSet>
-    create_unique(const Ref<DescriptorPool>& pool,
-                  const Ref<DescriptorSetLayout>& set_layouts,
+    static std::unique_ptr<DescriptorSet>
+    create_unique(const SharedPtr<DescriptorPool>& pool,
+                  const SharedPtr<DescriptorSetLayout>& set_layouts,
                   const std::vector<DescriptorSpec>& descriptor_specs = {}) {
-        Unique<DescriptorSet> ds = make_unique<DescriptorSet>();
+        std::unique_ptr<DescriptorSet> ds = std::make_unique<DescriptorSet>();
         ds->init(pool, set_layouts, descriptor_specs);
         return ds;
     }
@@ -60,8 +60,8 @@ class DescriptorSet {
     DescriptorSet& operator=(DescriptorSet&&) = delete;
 
   private:
-    void init(const Ref<DescriptorPool>& pool,
-              const Ref<DescriptorSetLayout>& set_layout,
+    void init(const SharedPtr<DescriptorPool>& pool,
+              const SharedPtr<DescriptorSetLayout>& set_layout,
               const std::vector<DescriptorSpec>& descriptor_specs);
 
   private:

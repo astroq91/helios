@@ -31,11 +31,11 @@ class SandboxLayer : public Helios::Layer {
   private:
     Helios::Scene m_scene;
 
-    Helios::Ref<Helios::Texture> m_texture;
-    Helios::Ref<Helios::Texture> m_texture_2;
+    Helios::SharedPtr<Helios::Texture> m_texture;
+    Helios::SharedPtr<Helios::Texture> m_texture_2;
 
-    Helios::Ref<Helios::Mesh> m_viking_mesh;
-    Helios::Ref<Helios::Texture> m_viking_texture;
+    Helios::SharedPtr<Helios::Mesh> m_viking_mesh;
+    Helios::SharedPtr<Helios::Texture> m_viking_texture;
 
     Helios::Transform m_mesh_transform;
 
@@ -46,7 +46,7 @@ class SandboxLayer : public Helios::Layer {
 
     FT_Library m_ft_library;
     FT_Face m_face_arial;
-    Helios::Ref<Helios::Texture> m_text_texture;
+    Helios::SharedPtr<Helios::Texture> m_text_texture;
 
   int m_frame_count = 0;
   float m_fps_time_count = 0;

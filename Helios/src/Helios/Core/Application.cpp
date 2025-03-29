@@ -3,6 +3,7 @@
 #include "../Renderer/Renderer.h"
 #include "Application.h"
 #include "Helios/Events/WindowEvents.h"
+#include "SharedPtr.h"
 
 #include <PxPhysicsAPI.h>
 using namespace physx;
@@ -30,6 +31,9 @@ Application::Application(const ApplicationInfo& info)
 
     m_imgui_layer = new ImGuiLayer();
     push_overlay(m_imgui_layer);
+
+    SharedPtr<int> a;
+    a = SharedPtr<int>::create(1);
 }
 
 Application::~Application() {

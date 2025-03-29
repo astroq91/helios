@@ -15,10 +15,10 @@ class Entity;
 class Script;
 
 struct SceneViewportInfo {
-    Ref<Image> color_image = nullptr;
+    SharedPtr<Image> color_image = nullptr;
     VkImageLayout color_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
     glm::vec4 color_clear_value = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    Ref<Image> depth_image = nullptr;
+    SharedPtr<Image> depth_image = nullptr;
     uint32_t width = 0;
     uint32_t height = 0;
 };
@@ -157,7 +157,7 @@ class Scene {
     std::unordered_map<uint32_t, std::vector<uint32_t>> m_entity_children;
     std::unordered_map<uuids::uuid, uint32_t> m_entity_id_map;
 
-    std::unordered_map<Ref<Material>, Ref<Pipeline>> m_custom_pipelines;
+    std::unordered_map<SharedPtr<Material>, SharedPtr<Pipeline>> m_custom_pipelines;
 
     glm::ivec2 m_game_viewport_size;
     glm::vec2 m_game_viewport_position;

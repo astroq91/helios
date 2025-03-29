@@ -8,7 +8,7 @@
 
 namespace Helios {
     struct Character {
-        Ref<Texture> texture;
+        SharedPtr<Texture> texture;
         glm::ivec2 size;
         glm::ivec2 bearing;
         uint32_t advance;

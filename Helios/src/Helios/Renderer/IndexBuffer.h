@@ -8,9 +8,9 @@ namespace Helios
 	class IndexBuffer
 	{
 	public:
-		static Ref<IndexBuffer> create(void* data, size_t size, size_t count)
+		static SharedPtr<IndexBuffer> create(void* data, size_t size, size_t count)
 		{
-			Ref<IndexBuffer> ib = make_ref<IndexBuffer>();
+			SharedPtr<IndexBuffer> ib = SharedPtr<IndexBuffer>::create();
             ib->init(data, size, count);
 			return ib;
 		}
@@ -21,9 +21,9 @@ namespace Helios
 		 * \param size The size (in bytes) of the indices.
 		 * \param count The index count.
 		 */
-		static Unique<IndexBuffer> create_unique(void* data, size_t size, size_t count)
+		static std::unique_ptr<IndexBuffer> create_unique(void* data, size_t size, size_t count)
 		{
-			Unique<IndexBuffer> ib = make_unique<IndexBuffer>();
+			std::unique_ptr<IndexBuffer> ib = std::make_unique<IndexBuffer>();
             ib->init(data, size, count);
 			return ib;
 		}
@@ -45,7 +45,7 @@ namespace Helios
 		void init(void* data, size_t size, size_t count);
 
 	private:
-		Unique<Buffer> m_buffer;
+		std::unique_ptr<Buffer> m_buffer;
 		size_t m_index_count;
 	};
 }

@@ -22,6 +22,6 @@ namespace Helios
 	private:
 		bool m_block_events = true;
 
-		Unique<DescriptorPool> m_descriptor_pool;
+		std::unique_ptr<DescriptorPool> m_descriptor_pool;
 	};
 }

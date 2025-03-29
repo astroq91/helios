@@ -35,7 +35,7 @@ class AssetsBrowser {
 
   private:
     void init_icon(const std::filesystem::path& path,
-                   VkCommandBuffer command_buffer, Ref<Texture>& texture,
+                   VkCommandBuffer command_buffer, SharedPtr<Texture>& texture,
                    VkDescriptorSet& handle);
     void traverse_directory(FileNode& node, 
         std::optional<std::filesystem::path> set_current_directory = std::nullopt);
@@ -50,14 +50,14 @@ class AssetsBrowser {
   private:
     Project* m_project = nullptr;
 
-    Ref<TextureSampler> m_icon_sampler;
+    SharedPtr<TextureSampler> m_icon_sampler;
 
-    Ref<Texture> m_file_icon_texture;
-    Ref<Texture> m_directory_icon_texture;
-    Ref<Texture> m_scene_icon_texture;
-    Ref<Texture> m_script_icon_texture;
-    Ref<Texture> m_material_icon_texture;
-    Ref<Texture> m_project_icon_texture;
+    SharedPtr<Texture> m_file_icon_texture;
+    SharedPtr<Texture> m_directory_icon_texture;
+    SharedPtr<Texture> m_scene_icon_texture;
+    SharedPtr<Texture> m_script_icon_texture;
+    SharedPtr<Texture> m_material_icon_texture;
+    SharedPtr<Texture> m_project_icon_texture;
 
     VkDescriptorSet m_file_icon_handle;
     VkDescriptorSet m_directory_icon_handle;

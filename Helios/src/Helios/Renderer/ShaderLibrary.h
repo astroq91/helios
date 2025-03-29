@@ -6,11 +6,11 @@
 namespace Helios {
 class ShaderLibrary {
 public:
-  void add_shader(const Ref<Shader> &shader);
+  void add_shader(const SharedPtr<Shader> &shader);
 
-  Ref<Shader> get_shader(const std::string &name);
+  SharedPtr<Shader> get_shader(const std::string &name);
 
 private:
-  std::map<std::string, Ref<Shader>> m_shaders;
+  std::map<std::string, SharedPtr<Shader>> m_shaders;
 };
 } // namespace Helios

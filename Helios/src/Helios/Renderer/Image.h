@@ -21,16 +21,16 @@ namespace Helios
 	class Image
 	{
 	public:
-		static Ref<Image> create(const ImageSpec& spec)
+		static SharedPtr<Image> create(const ImageSpec& spec)
 		{
-			Ref<Image> obj = make_ref<Image>();
+			SharedPtr<Image> obj = SharedPtr<Image>::create();
             obj->init(spec);
 			return obj;
 		}
 
-		static Unique<Image> create_unique(const ImageSpec& spec)
+		static std::unique_ptr<Image> create_unique(const ImageSpec& spec)
 		{
-			Unique<Image> obj = make_unique<Image>();
+			std::unique_ptr<Image> obj = std::make_unique<Image>();
             obj->init(spec);
 			return obj;
 		}

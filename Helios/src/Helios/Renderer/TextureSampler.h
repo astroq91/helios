@@ -9,16 +9,16 @@ namespace Helios
 	class TextureSampler
 	{
 	public:
-		static Ref<TextureSampler> create()
+		static SharedPtr<TextureSampler> create()
 		{
-			Ref<TextureSampler> obj = make_ref<TextureSampler>();
+			SharedPtr<TextureSampler> obj = SharedPtr<TextureSampler>::create();
             obj->init();
 			return obj;
 		}
 
-		static Unique<TextureSampler> create_unique()
+		static std::unique_ptr<TextureSampler> create_unique()
 		{
-			Unique<TextureSampler> obj = make_unique<TextureSampler>();
+			std::unique_ptr<TextureSampler> obj = std::make_unique<TextureSampler>();
             obj->init();
 			return obj;
 		}

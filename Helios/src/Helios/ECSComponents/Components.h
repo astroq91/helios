@@ -76,8 +76,8 @@ struct CameraComponent {
 };
 
 struct MeshRendererComponent {
-    Ref<Mesh> mesh = nullptr;
-    Ref<Material> material = nullptr;
+    SharedPtr<Mesh> mesh = nullptr;
+    SharedPtr<Material> material = nullptr;
     glm::vec4 tint_color = glm::vec4(1);
 };
 
@@ -131,7 +131,7 @@ struct ExposedFieldEntry {
 };
 
 struct ScriptComponent {
-    Unique<Script> script = nullptr;
+    std::unique_ptr<Script> script = nullptr;
     std::vector<ExposedFieldEntry> exposed_fields;
 };
 

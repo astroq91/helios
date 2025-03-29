@@ -11,11 +11,11 @@ namespace Helios
 	class TextureLibrary
 	{
 	public:
-		void add_texture(const Ref<Texture>& texture);
+		void add_texture(const SharedPtr<Texture>& texture);
 
-		Ref<Texture> get_texture(const std::string& name);
+		SharedPtr<Texture> get_texture(const std::string& name);
 
 	private:
-		std::map<std::string, Ref<Texture>> m_textures;
+		std::map<std::string, SharedPtr<Texture>> m_textures;
 	};
 }

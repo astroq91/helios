@@ -9,7 +9,7 @@ void VertexBuffer::insert_memory(void *data, size_t size, uint32_t offset) {
           Application::get().get_vulkan_manager()->get_context();
   const Renderer &renderer = Application::get().get_renderer();
 
-  Unique<Buffer> staging_buffer =
+  std::unique_ptr<Buffer> staging_buffer =
           Buffer::create_unique(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);

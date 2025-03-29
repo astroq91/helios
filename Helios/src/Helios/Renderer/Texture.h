@@ -19,11 +19,11 @@ namespace Helios
 		 * \param path The path.
 		 * \return The texture
 		 */
-          static Ref<Texture>
+          static SharedPtr<Texture>
           create(const std::filesystem::path& path,
                  VkFormat format = VK_FORMAT_R8G8B8A8_SRGB)
 		{
-			Ref<Texture> obj = make_ref<Texture>();
+			SharedPtr<Texture> obj = SharedPtr<Texture>::create();
             obj->init_asset(path.string());
                         obj->init(path, format);
 			return obj;
@@ -38,18 +38,18 @@ namespace Helios
 		 * \param size The size (in bytes) of the image.
 		 * \return The texture
 		 */
-                static Ref<Texture>
+                static SharedPtr<Texture>
                 create(const std::string& name, void* data, uint32_t width,
                        uint32_t height, size_t size,
                        VkFormat format = VK_FORMAT_R8G8B8A8_SRGB)
 		{
-			Ref<Texture> obj = make_ref<Texture>();
+			SharedPtr<Texture> obj = SharedPtr<Texture>::create();
             obj->init_asset(name);
             obj->init(data, width, height, size, format);
 			return obj;
 		}
 
-		const Ref<Image>& get_image() const { return m_image; }
+		const SharedPtr<Image>& get_image() const { return m_image; }
 
 		int32_t GetTextureIndex() const { return m_texture_index; }
 
@@ -69,6 +69,6 @@ namespace Helios
 	private:
 		int32_t m_texture_index;
 
-		Ref<Image> m_image;
+		SharedPtr<Image> m_image;
 	};
 }

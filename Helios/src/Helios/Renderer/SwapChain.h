@@ -9,9 +9,9 @@ namespace Helios
 	struct SwapChain
 	{
 	public:
-		static Ref<SwapChain> create(bool vsync = true)
+		static SharedPtr<SwapChain> create(bool vsync = true)
 		{
-			Ref<SwapChain> sc = make_ref<SwapChain>();
+			SharedPtr<SwapChain> sc = SharedPtr<SwapChain>::create();
             sc->init(vsync);
 			return sc;
 		}
@@ -19,9 +19,9 @@ namespace Helios
 		/**
 		 * \brief create a new SwapChain.
 		 */
-		static Unique<SwapChain> create_unique(bool vsync = true)
+		static std::unique_ptr<SwapChain> create_unique(bool vsync = true)
 		{
-			Unique<SwapChain> sc = make_unique<SwapChain>();
+			std::unique_ptr<SwapChain> sc = std::make_unique<SwapChain>();
             sc->init(vsync);
 			return sc;
 		}

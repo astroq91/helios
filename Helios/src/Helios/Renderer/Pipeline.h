@@ -8,9 +8,9 @@ namespace Helios {
 
 struct PipelineCreateInfo {
     VkFormat color_attachment_format;
-    std::vector<Ref<DescriptorSetLayout>> descriptor_set_layouts;
-    Ref<Shader> vertex_shader;
-    Ref<Shader> fragment_shader;
+    std::vector<SharedPtr<DescriptorSetLayout>> descriptor_set_layouts;
+    SharedPtr<Shader> vertex_shader;
+    SharedPtr<Shader> fragment_shader;
     std::vector<VertexBufferDescription> vertex_buffer_descriptions;
     std::vector<VkPushConstantRange> push_constants = {};
     std::vector<VkPipelineColorBlendAttachmentState> color_blend_attachments =
@@ -19,8 +19,8 @@ struct PipelineCreateInfo {
 
 class Pipeline {
   public:
-    static Ref<Pipeline> create(const PipelineCreateInfo& info) {
-        Ref<Pipeline> pl = make_ref<Pipeline>();
+    static SharedPtr<Pipeline> create(const PipelineCreateInfo& info) {
+        SharedPtr<Pipeline> pl = SharedPtr<Pipeline>::create();
         pl->init(info);
         return pl;
     }
@@ -35,8 +35,8 @@ class Pipeline {
      * for vertex attributes.
      * \param push_constants Optional push constants.
      */
-    static Unique<Pipeline> create_unique(const PipelineCreateInfo& info) {
-        Unique<Pipeline> pl = make_unique<Pipeline>();
+    static std::unique_ptr<Pipeline> create_unique(const PipelineCreateInfo& info) {
+        std::unique_ptr<Pipeline> pl = std::make_unique<Pipeline>();
         pl->init(info);
         return pl;
     }

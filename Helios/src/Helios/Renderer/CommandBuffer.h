@@ -8,16 +8,16 @@ namespace Helios
 	class CommandBuffer
 	{
 	public:
-		static Ref<CommandBuffer> create()
+		static SharedPtr<CommandBuffer> create()
 		{
-			Ref<CommandBuffer> cb = make_ref<CommandBuffer>();
+			SharedPtr<CommandBuffer> cb = SharedPtr<CommandBuffer>::create();
             cb->init();
 			return cb;
 		}
 
-		static Unique<CommandBuffer> create_unique()
+		static std::unique_ptr<CommandBuffer> create_unique()
 		{
-			Unique<CommandBuffer> cb = make_unique<CommandBuffer>();
+			std::unique_ptr<CommandBuffer> cb = std::make_unique<CommandBuffer>();
             cb->init();
 			return cb;
 		}

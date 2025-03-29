@@ -2,7 +2,7 @@
 #include "Texture.h"
 
 namespace Helios {
-void TextureLibrary::add_texture(const Ref<Texture> &texture) {
+void TextureLibrary::add_texture(const SharedPtr<Texture> &texture) {
   if (!m_textures.contains(texture->get_name())) {
       m_textures[texture->get_name()] = texture;
   } else {
@@ -12,7 +12,7 @@ void TextureLibrary::add_texture(const Ref<Texture> &texture) {
   }
 }
 
-Ref<Texture> TextureLibrary::get_texture(const std::string &name) {
+SharedPtr<Texture> TextureLibrary::get_texture(const std::string &name) {
   const auto it = m_textures.find(name);
 
   if (it == m_textures.end()) {

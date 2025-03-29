@@ -35,7 +35,7 @@ void Texture::init(const std::filesystem::path& path, VkFormat format) {
         HL_ERROR("Failed to load texture image: {0}", path.string());
     }
 
-    Unique<Buffer> staging_buffer =
+    std::unique_ptr<Buffer> staging_buffer =
         Buffer::create_unique(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -95,7 +95,7 @@ void Texture::init(void* data, uint32_t width, uint32_t height, size_t size, VkF
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
 
-    Unique<Buffer> staging_buffer =
+    std::unique_ptr<Buffer> staging_buffer =
         Buffer::create_unique(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
