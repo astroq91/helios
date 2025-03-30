@@ -369,6 +369,16 @@ void EditorLayer::on_imgui_render() {
                                 m_loaded_scene_path.value().string());
                         }
                     }
+                    if (ImGui::MenuItem("Reload scene")) {
+                        if (m_loaded_scene_path) {
+                            Application::get()
+                                .get_asset_manager()
+                                .clear_assets();
+                            load_scene(IOUtils::resolve_path(
+                                m_project.value().get_project_path(),
+                                m_loaded_scene_path.value()));
+                        }
+                    }
                     ImGui::EndMenu();
                 }
                 if (ImGui::BeginMenu("Project")) {

@@ -1,24 +1,20 @@
 entities:
-  - name_component:
-      name: Camera
-    transform_component:
-      position: [0, 0, 100]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    camera_component:
-      fov_y: 80
-      near: 0.100000001
-      far: 1000
-    script_component:
-      path: ""
-  - name_component:
-      name: Light
-    directional_light_component:
-      direction: [1, 1, 1]
-      ambient: [1, 1, 1]
-      diffuse: [1, 1, 1]
-      specular: [1, 1, 1]
-  - name_component:
-      name: Init manager
-    script_component:
-      path: scripts/init.lua
+  - entity_dependencies:
+      []
+    components:
+      name_component:
+        name: New Entity
+      script_component:
+        path: scripts/init.lua
+        exposed_fields:
+          []
+  - entity_dependencies:
+      []
+    components:
+      name_component:
+        name: New Entity
+      directional_light_component:
+        direction: [1, 1, 1]
+        ambient: [1, 1, 1]
+        diffuse: [1, 1, 1]
+        specular: [1, 1, 1]

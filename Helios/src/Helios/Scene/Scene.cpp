@@ -15,8 +15,8 @@
 #include <variant>
 
 struct ShaderPushConstantsData {
-    float time;
-    glm::vec2 resolution;
+    alignas(4) float time;
+    alignas(8) glm::vec2 resolution;
 };
 
 namespace Helios {
@@ -215,7 +215,6 @@ void Scene::on_entity_position_updated(Entity entity) {
     if (local_transform_relative_to_world) {
         transform->local_position = transform->position;
     }
-
 }
 void Scene::on_entity_rotation_updated(Entity entity) {
 
@@ -231,7 +230,8 @@ void Scene::on_entity_rotation_updated(Entity entity) {
             if (parent_transform) {
 
                 transform->local_rotation =
-                    glm::inverse(parent_transform->rotation) * transform->rotation;
+                    glm::inverse(parent_transform->rotation) *
+                    transform->rotation;
             } else {
                 local_transform_relative_to_world = true;
             }
@@ -243,7 +243,6 @@ void Scene::on_entity_rotation_updated(Entity entity) {
     if (local_transform_relative_to_world) {
         transform->local_rotation = transform->rotation;
     }
-
 }
 void Scene::on_entity_scale_updated(Entity entity) {
 
@@ -271,7 +270,6 @@ void Scene::on_entity_scale_updated(Entity entity) {
     if (local_transform_relative_to_world) {
         transform->local_scale = transform->scale;
     }
-
 }
 
 void Scene::on_entity_local_position_updated(Entity entity) {
