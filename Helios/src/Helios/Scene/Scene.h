@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <entt/entt.hpp>
 #include <unordered_map>
 
@@ -157,11 +158,14 @@ class Scene {
     std::unordered_map<uint32_t, std::vector<uint32_t>> m_entity_children;
     std::unordered_map<uuids::uuid, uint32_t> m_entity_id_map;
 
-    std::unordered_map<SharedPtr<Material>, SharedPtr<Pipeline>> m_custom_pipelines;
+    std::unordered_map<SharedPtr<Material>, SharedPtr<Pipeline>>
+        m_custom_pipelines;
 
     glm::ivec2 m_game_viewport_size;
     glm::vec2 m_game_viewport_position;
     bool m_game_viewport_focused = false;
+
+    std::chrono::time_point<std::chrono::system_clock> m_start_time;
 
     friend class Entity;
 };

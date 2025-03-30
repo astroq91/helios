@@ -1,18 +1,22 @@
 entities:
-  - components:
+  - entity_dependencies:
+      []
+    components:
       persistent_id_component:
         id: 153d71b7-232e-4a43-a249-2170f14c372e
       name_component:
         name: Cube
       transform_component:
-        position: [0, 0, -1.50226378]
+        position: [-3.47122741, 3.53165221, -0.152146712]
         rotation: [-0.00163559383, 0.187420696, 0.00857188553, 0.982240975]
         scale: [1, 1, 1]
       mesh_renderer_component:
         mesh: Cube
-        material: ~
+        material: materials/cube_mat.mat
         tint_color: [1, 1, 1, 1]
-  - components:
+  - entity_dependencies:
+      []
+    components:
       name_component:
         name: Room 1
       transform_component:
@@ -26,9 +30,12 @@ entities:
       script_component:
         path: scripts/script.lua
         exposed_fields:
-
+          - field: CubeEntity
+            value: 00000000-0000-0000-0000-000000000000
     children:
-      - components:
+      - entity_dependencies:
+          []
+        components:
           name_component:
             name: Room 2
           transform_component:
@@ -39,7 +46,14 @@ entities:
             mesh: models/viking_room.obj
             material: materials/viking_room.mat
             tint_color: [1, 1, 1, 1]
-  - components:
+          script_component:
+            path: scripts/script copy.lua
+            exposed_fields:
+              - field: CubeEntity
+                value: 00000000-0000-0000-0000-000000000000
+  - entity_dependencies:
+      []
+    components:
       name_component:
         name: Light
       directional_light_component:
@@ -47,7 +61,9 @@ entities:
         ambient: [1, 1, 1]
         diffuse: [1, 1, 1]
         specular: [1, 1, 1]
-  - components:
+  - entity_dependencies:
+      []
+    components:
       name_component:
         name: Camera
       transform_component:

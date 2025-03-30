@@ -23,13 +23,6 @@ struct PointLight {
 	vec3 Specular;
 };
 
-struct Material {
-	int diffuseTextureUnit;
-	int specularTextureUnit;
-	int emissionTextureUnit;
-	float shininess;
-};
-
 #define MAX_DIR_LIGHTS 32
 #define MAX_POINT_LIGHTS 32
 #define MAX_TEXTURES 32

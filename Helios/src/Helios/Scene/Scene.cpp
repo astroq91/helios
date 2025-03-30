@@ -10,11 +10,13 @@
 #include "PxRigidDynamic.h"
 #include "stduuid/uuid.h"
 #include "vulkan/vulkan_core.h"
+#include <chrono>
 #include <cstring>
 #include <variant>
 
 struct ShaderPushConstantsData {
-    float data;
+    float time;
+    glm::vec2 resolution;
 };
 
 namespace Helios {
@@ -25,6 +27,7 @@ Scene::Scene(SceneCamera* sceneCamera) : m_scene_camera(sceneCamera) {
     pm.new_scene();
 
     setup_signals();
+    m_start_time = std::chrono::high_resolution_clock::now();
 }
 
 Scene::~Scene() { m_destroyed = true; }
@@ -187,6 +190,7 @@ void Scene::on_entity_transform_updated(Entity entity) {
 }
 
 void Scene::on_entity_position_updated(Entity entity) {
+
     bool local_transform_relative_to_world = false;
     auto transform = entity.try_get_component<TransformComponent>();
     if (transform) {
@@ -211,8 +215,10 @@ void Scene::on_entity_position_updated(Entity entity) {
     if (local_transform_relative_to_world) {
         transform->local_position = transform->position;
     }
+
 }
 void Scene::on_entity_rotation_updated(Entity entity) {
+
     bool local_transform_relative_to_world = false;
     auto transform = entity.try_get_component<TransformComponent>();
     if (transform) {
@@ -225,7 +231,7 @@ void Scene::on_entity_rotation_updated(Entity entity) {
             if (parent_transform) {
 
                 transform->local_rotation =
-                    transform->rotation - parent_transform->rotation;
+                    glm::inverse(parent_transform->rotation) * transform->rotation;
             } else {
                 local_transform_relative_to_world = true;
             }
@@ -237,8 +243,10 @@ void Scene::on_entity_rotation_updated(Entity entity) {
     if (local_transform_relative_to_world) {
         transform->local_rotation = transform->rotation;
     }
+
 }
 void Scene::on_entity_scale_updated(Entity entity) {
+
     bool local_transform_relative_to_world = false;
     auto transform = entity.try_get_component<TransformComponent>();
     if (transform) {
@@ -251,7 +259,7 @@ void Scene::on_entity_scale_updated(Entity entity) {
             if (parent_transform) {
 
                 transform->local_scale =
-                    transform->scale - parent_transform->scale;
+                    transform->scale / parent_transform->scale;
             } else {
                 local_transform_relative_to_world = true;
             }
@@ -263,9 +271,11 @@ void Scene::on_entity_scale_updated(Entity entity) {
     if (local_transform_relative_to_world) {
         transform->local_scale = transform->scale;
     }
+
 }
 
 void Scene::on_entity_local_position_updated(Entity entity) {
+
     bool local_transform_relative_to_world = false;
     auto transform = entity.try_get_component<TransformComponent>();
     if (transform) {
@@ -304,7 +314,7 @@ void Scene::on_entity_local_rotation_updated(Entity entity) {
             if (parent_transform) {
 
                 transform->rotation =
-                    parent_transform->rotation + transform->local_rotation;
+                    parent_transform->rotation * transform->local_rotation;
             } else {
                 local_transform_relative_to_world = true;
             }
@@ -330,7 +340,7 @@ void Scene::on_entity_local_scale_updated(Entity entity) {
             if (parent_transform) {
 
                 transform->scale =
-                    parent_transform->scale + transform->local_scale;
+                    parent_transform->scale * transform->local_scale;
             } else {
                 local_transform_relative_to_world = true;
             }
@@ -403,7 +413,8 @@ void Scene::draw_meshes() {
     std::map<uuids::uuid, std::vector<MeshRenderingInstance>> mesh_groups;
     std::map<uuids::uuid, SharedPtr<Mesh>> meshes;
 
-    std::vector<std::tuple<SharedPtr<Mesh>, MeshRenderingInstance, SharedPtr<Pipeline>>>
+    std::vector<
+        std::tuple<SharedPtr<Mesh>, MeshRenderingInstance, SharedPtr<Pipeline>>>
         meshes_custom_shaders;
 
     for (auto [entity, transform, mesh] : meshes_view.each()) {
@@ -442,12 +453,13 @@ void Scene::draw_meshes() {
                 });
 
                 m_custom_pipelines.insert(
-                    std::pair<SharedPtr<Material>, SharedPtr<Pipeline>>(mesh.material,
-                                                            custom_pipeline));
+                    std::pair<SharedPtr<Material>, SharedPtr<Pipeline>>(
+                        mesh.material, custom_pipeline));
             }
 
             meshes_custom_shaders.push_back(
-                std::tuple<SharedPtr<Mesh>, MeshRenderingInstance, SharedPtr<Pipeline>>(
+                std::tuple<SharedPtr<Mesh>, MeshRenderingInstance,
+                           SharedPtr<Pipeline>>(
                     mesh.mesh,
                     {
                         .transform = transform.to_transform(),
@@ -470,9 +482,17 @@ void Scene::draw_meshes() {
         renderer.draw_mesh(mesh, mesh_groups[id]);
     }
 
+    const auto& window = Application::get().get_window();
+    Application::get().get_window().get_width();
+
     ShaderPushConstantsData push_constants{
-        .data = 10.0f,
+        .time = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - m_start_time)
+                    .count() /
+                1000.f,
+        .resolution = {window.get_width(), window.get_height()},
     };
+
     std::vector<uint8_t> push_constants_data(sizeof(ShaderPushConstantsData));
     std::memcpy(push_constants_data.data(), &push_constants,
                 sizeof(ShaderPushConstantsData));
@@ -676,8 +696,8 @@ void Scene::update_children() {
             transform.position =
                 parent_transform.position + transform.local_position;
             transform.rotation =
-                parent_transform.rotation + transform.local_rotation;
-            transform.scale = parent_transform.scale + transform.local_scale;
+                parent_transform.rotation * transform.local_rotation;
+            transform.scale = parent_transform.scale * transform.local_scale;
         }
     }
 }
