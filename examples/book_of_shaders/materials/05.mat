@@ -1,0 +1,2 @@
+shaders:
+  fragment_shader: "shaders/05.frag.out"

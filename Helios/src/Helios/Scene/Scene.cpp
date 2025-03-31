@@ -17,6 +17,7 @@
 struct ShaderPushConstantsData {
     alignas(4) float time;
     alignas(8) glm::vec2 resolution;
+    alignas(8) glm::vec2 mouse;
 };
 
 namespace Helios {
@@ -489,6 +490,7 @@ void Scene::draw_meshes() {
                     .count() /
                 1000.f,
         .resolution = {window.get_width(), window.get_height()},
+        .mouse = Input::get_mouse_pos(),
     };
 
     std::vector<uint8_t> push_constants_data(sizeof(ShaderPushConstantsData));

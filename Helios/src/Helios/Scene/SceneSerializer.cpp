@@ -124,10 +124,6 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& value) {
 
 void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
                                                   Entity entity) {
-    out << YAML::Key << "entity_dependencies" << YAML::Value;
-    out << YAML::BeginSeq;
-
-    out << YAML::EndSeq;
     out << YAML::Key << "components" << YAML::Value;
     out << YAML::BeginMap;
     if (entity.has_component<PersistentIdComponent>()) {

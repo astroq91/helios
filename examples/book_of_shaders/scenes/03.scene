@@ -1,7 +1,5 @@
 entities:
-  - entity_dependencies:
-      []
-    components:
+  - components:
       name_component:
         name: Screen
       transform_component:

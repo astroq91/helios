@@ -17,6 +17,7 @@
 #include "Helios/ECSComponents/Components.h"
 #include "Helios/Events/MouseEvents.h"
 #include "Helios/Scene/Entity.h"
+#include "Helios/Scene/Scene.h"
 #include "Helios/Scene/SceneSerializer.h"
 #include "ImGradient.h"
 #include "ImGuizmo.h"
@@ -1332,11 +1333,13 @@ void EditorLayer::stop_runtime() {
         update_window_title(m_loaded_scene_path.value().string());
     }
 
+    // The previous scene pointer is now invalid
+    m_selected_entity = m_scene->get_entity(m_selected_entity);
     if (m_selected_entity != k_no_entity) {
-        // The previous scene pointer is now invalid
-        m_selected_entity = m_scene->get_entity(m_selected_entity);
         m_selected_entity_transform =
             m_selected_entity.try_get_component<TransformComponent>();
+    } else {
+        m_selected_entity_transform = nullptr;
     }
 }
 
