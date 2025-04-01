@@ -5,11 +5,19 @@
 #include "Helios/Renderer/Texture.h"
 #include "Helios/Renderer/TextureSampler.h"
 #include "Project.h"
-#include <volk/volk.h>
 #include <glm/glm.hpp>
+#include <volk/volk.h>
 
 namespace Helios {
-enum class FileType { Script, Material, Mesh, Scene, Project, Directory, Other };
+enum class FileType {
+    Script,
+    Material,
+    Mesh,
+    Scene,
+    Project,
+    Directory,
+    Other
+};
 
 struct FileNode {
     FileType type;
@@ -18,7 +26,8 @@ struct FileNode {
     std::vector<FileNode> files;
 
     bool draggable() const {
-        return type == FileType::Script || type == FileType::Material || type == FileType::Mesh;
+        return type == FileType::Script || type == FileType::Material ||
+               type == FileType::Mesh;
     }
 };
 
@@ -29,23 +38,26 @@ class AssetsBrowser {
     void on_update();
 
     void set_project(Project* project);
-    void set_on_scene_selected_callback(const std::function<void(const std::filesystem::path&)>& callback) {
+    void set_on_scene_selected_callback(
+        const std::function<void(const std::filesystem::path&)>& callback) {
         m_scene_selected_callback = callback;
-     }
+    }
 
   private:
     void init_icon(const std::filesystem::path& path,
                    VkCommandBuffer command_buffer, SharedPtr<Texture>& texture,
                    VkDescriptorSet& handle);
-    void traverse_directory(FileNode& node, 
-        std::optional<std::filesystem::path> set_current_directory = std::nullopt);
+    void traverse_directory(FileNode& node,
+                            std::optional<std::filesystem::path>
+                                set_current_directory = std::nullopt);
     void recreate_directory_tree();
     void draw_icons(FileNode* directory);
     void draw_directory_tree(FileNode* root_directory, float width);
     void draw_subdirectory(FileNode* directory);
     void draw_divider();
 
-    void handle_icon_click(const FileNode* file) const;
+    void handle_icon_double_click(const FileNode* file) const;
+    void handle_icon_right_click(const FileNode* file) const;
 
   private:
     Project* m_project = nullptr;
@@ -67,8 +79,7 @@ class AssetsBrowser {
     VkDescriptorSet m_project_icon_handle;
 
     std::function<void(const std::filesystem::path&)>
-        m_scene_selected_callback =
-        nullptr;
+        m_scene_selected_callback = nullptr;
 
     FileNode m_root_node;
     FileNode* m_current_directory = nullptr;
@@ -77,5 +88,6 @@ class AssetsBrowser {
     float m_directory_tree_width = 0;
     bool m_open_selected_directory = false;
 
+    FileNode* m_copy_file_buffer = nullptr;
 };
 } // namespace Helios

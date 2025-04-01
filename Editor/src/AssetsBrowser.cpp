@@ -70,7 +70,8 @@ void AssetsBrowser::init() {
 
 void AssetsBrowser::init_icon(const fs::path& path,
                               VkCommandBuffer command_buffer,
-                              SharedPtr<Texture>& texture, VkDescriptorSet& handle) {
+                              SharedPtr<Texture>& texture,
+                              VkDescriptorSet& handle) {
     texture = Texture::create(path);
 
     VulkanUtils::transition_image_layout({
@@ -161,6 +162,7 @@ void AssetsBrowser::recreate_directory_tree() {
     }
 
     m_current_directory = nullptr;
+    m_copy_file_buffer = nullptr;
     m_root_node.files.clear();
     traverse_directory(m_root_node, current_path);
     m_traverse_count = 0;
@@ -185,6 +187,26 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
         }
 
         if (ImGui::BeginPopup("Assets actions")) {
+            ImGui::BeginDisabled(m_copy_file_buffer == nullptr);
+            if (ImGui::MenuItem("Paste")) {
+                const int k_max_new_name_checks = 1000;
+
+                for (int i = 0; i < k_max_new_name_checks; i++) {
+                    std::string new_name =
+                        m_copy_file_buffer->path.stem().string() + " - " +
+                        std::to_string(i) +
+                        m_copy_file_buffer->path.extension().string();
+                    fs::path new_path = directory->path / new_name;
+                    if (!fs::exists(new_path)) {
+                        fs::copy(m_copy_file_buffer->path, new_path,
+                                 std::filesystem::copy_options::recursive);
+                        recreate_directory_tree();
+                        break;
+                    }
+                }
+            }
+            ImGui::EndDisabled();
+            ImGui::Separator();
             if (ImGui::MenuItem("Open in file browser")) {
 #ifdef _WINDOWS
                 ShellExecuteA(nullptr, "open",
@@ -207,6 +229,7 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
             ImGui::GetContentRegionAvail().x; // Available width in the window
         float xCursor = 0.0f; // Tracks current X position on the row
 
+        std::vector<FileNode*> files_to_delete;
         for (auto& file : directory->files) {
 
             if (xCursor + k_icon_size.x > windowWidth) {
@@ -230,7 +253,6 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
                 ImGui::ImageButton(file.icon, k_icon_size, ImVec2{0, 1},
                                    ImVec2{1, 0});
                 ImGui::PopStyleColor(3); // Restore previous colors
-                ImGui::PopID();
 
                 if (file.draggable() &&
                     k_file_types_payload_identifiers.contains(file.type)) {
@@ -243,12 +265,27 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
                     }
                 }
 
+                if (ImGui::IsItemHovered() &&
+                    ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+                    ImGui::OpenPopup("File action");
+                }
+
+                if (ImGui::BeginPopup("File action")) {
+                    if (ImGui::MenuItem("Copy")) {
+                        m_copy_file_buffer = &file;
+                    }
+                    if (ImGui::MenuItem("Delete")) {
+                        files_to_delete.push_back(&file);
+                    }
+                    ImGui::EndPopup();
+                }
+
                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                     if (file.type == FileType::Directory) {
                         m_current_directory = &file;
                         m_open_selected_directory = true;
                     }
-                    handle_icon_click(&file);
+                    handle_icon_double_click(&file);
                 }
 
                 ImGui::PushTextWrapPos(
@@ -258,13 +295,21 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
                     "%s",
                     file.path.filename().string().c_str()); // Display text
                 ImGui::PopTextWrapPos(); // Reset text wrap position after text
+
+                ImGui::PopID();
             }
             ImGui::EndGroup();
 
             xCursor += k_icon_size.x + k_icon_padding; // Update X position
         }
-    }
 
+        if (!files_to_delete.empty()) {
+            for (auto file : files_to_delete) {
+                fs::remove_all(file->path);
+            }
+            recreate_directory_tree();
+        }
+    }
     ImGui::EndChild();
 }
 
@@ -347,7 +392,7 @@ void AssetsBrowser::draw_divider() {
     }
 }
 
-void AssetsBrowser::handle_icon_click(const FileNode* file) const {
+void AssetsBrowser::handle_icon_double_click(const FileNode* file) const {
     switch (file->type) {
     case FileType::Scene: {
         if (m_scene_selected_callback) {
