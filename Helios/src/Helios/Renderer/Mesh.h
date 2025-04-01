@@ -42,11 +42,6 @@ class Mesh : public Resource, public Asset {
     Mesh() = default;
     ~Mesh() = default;
 
-    Mesh(const Mesh&) = delete;
-    Mesh& operator=(const Mesh&) = delete;
-    Mesh(Mesh&&) = delete;
-    Mesh& operator=(Mesh&&) = delete;
-
   private:
     bool init(const std::filesystem::path& file);
     bool init(void* vertices, size_t vertices_size, void* indices,
