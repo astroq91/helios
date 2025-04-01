@@ -419,10 +419,17 @@ void AssetsBrowser::handle_icon_double_click(const FileNode* file) const {
         }
         break;
     }
-    case FileType::Script: {
+    case FileType::Script:
+    case FileType::Material:
+    case FileType::Project:
+    case FileType::Other: {
 #ifdef _WINDOWS
         ShellExecuteA(nullptr, "open", file->path.string().c_str(), nullptr,
                       nullptr, SW_SHOWNORMAL);
+#endif
+#ifdef _LINUX
+        std::string cmd = "xdg-open " + file->path.string();
+        std::system(cmd.c_str());
 #endif
         break;
     }
