@@ -5,8 +5,8 @@ entities:
       transform_component:
         position: [-0.0121486187, 3.70266008, -2]
         rotation: [0, 0, 0, 1]
-        scale: [11.2270155, 6.22885275, 1]
+        scale: [7, 7, 1]
       mesh_renderer_component:
         mesh: Cube
-        material: materials/03.mat
+        material: materials/patterns.mat
         tint_color: [1, 1, 1, 1]
