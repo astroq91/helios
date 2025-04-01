@@ -19,10 +19,12 @@ class Shader : public Asset {
      * \param path The filepath to the shader.
      */
     static SharedPtr<Shader> create(const std::string& name,
-                              const std::filesystem::path& path) {
+                                    const std::filesystem::path& path) {
         SharedPtr<Shader> sh = SharedPtr<Shader>::create();
         sh->init_asset(name);
-        sh->init(path);
+        if (!sh->init(path)) {
+            return nullptr;
+        }
         return sh;
     }
 
@@ -37,7 +39,7 @@ class Shader : public Asset {
     Shader& operator=(Shader&&) = delete;
 
   private:
-    void init(const std::filesystem::path& path);
+    bool init(const std::filesystem::path& path);
 
   private:
     VkShaderModule m_module;

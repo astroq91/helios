@@ -17,7 +17,7 @@ Shader::~Shader() {
     }
 }
 
-void Shader::init(const std::filesystem::path& path) {
+bool Shader::init(const std::filesystem::path& path) {
     m_is_initialized = true;
 
     const VulkanContext& context =
@@ -29,6 +29,7 @@ void Shader::init(const std::filesystem::path& path) {
 
     if (file.fail()) {
         HL_ERROR("Could not open file: {0}", path.string());
+        return false;
     }
 
     // Vertex //
@@ -48,6 +49,8 @@ void Shader::init(const std::filesystem::path& path) {
     if (vkCreateShaderModule(context.device, &createInfo, nullptr, &m_module) !=
         VK_SUCCESS) {
         HL_ERROR("Failed to create shader module!");
+        return false;
     }
+    return true;
 }
 } // namespace Helios

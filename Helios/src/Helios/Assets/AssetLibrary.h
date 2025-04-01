@@ -10,11 +10,11 @@ template <typename T> class AssetLibrary {
 
   public:
     void add_asset(const SharedPtr<T>& asset) {
-        if (!m_assets.contains(asset->get_name())) {
+        if (asset && !m_assets.contains(asset->get_name())) {
             m_assets[asset->get_name()] = asset;
         } else {
             HL_ERROR("Tried to add asset ({0}) with name: {1}, but that asset "
-                     "already exists.",
+                     "already exists (or it's nullptr).",
                      typeid(T).name(), asset->get_name());
         }
     }

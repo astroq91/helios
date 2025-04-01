@@ -499,8 +499,10 @@ void SceneSerializer::deserialize_from_string_with_parent(
                         if (mesh == nullptr) {
                             mc.mesh =
                                 Mesh::create(std::filesystem::path(mesh_name));
-                            Application::get().get_asset_manager().add_mesh(
-                                mc.mesh);
+                            if (mc.mesh) {
+                                Application::get().get_asset_manager().add_mesh(
+                                    mc.mesh);
+                            }
                         } else {
                             mc.mesh = mesh;
                         }
@@ -517,8 +519,11 @@ void SceneSerializer::deserialize_from_string_with_parent(
                         if (mat == nullptr) {
                             mc.material = Material::create(
                                 std::filesystem::path(material_path));
-                            Application::get().get_asset_manager().add_material(
-                                mc.material);
+                            if (mc.material) {
+                                Application::get()
+                                    .get_asset_manager()
+                                    .add_material(mc.material);
+                            }
                         } else {
                             mc.material = mat;
                         }

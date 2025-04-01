@@ -8,7 +8,7 @@
 #include "MeshVertex.h"
 
 namespace Helios {
-void Mesh::init(const std::filesystem::path& path) {
+bool Mesh::init(const std::filesystem::path& path) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
 
@@ -25,7 +25,7 @@ void Mesh::init(const std::filesystem::path& path) {
                               .c_str())) {
         HL_ERROR("Failed to load model: {0}\nTinyObj info: {1}", path.string(),
                  warn + err);
-        return;
+        return false;
     }
 
     std::vector<MeshVertex> vertices;
@@ -66,11 +66,14 @@ void Mesh::init(const std::filesystem::path& path) {
 
     init(vertices.data(), sizeof(MeshVertex) * vertices.size(), indices.data(),
          sizeof(uint32_t) * indices.size(), indices.size());
+    return true;
 }
 
-void Mesh::init(void* vertices, size_t vertices_size, void* indices,
+bool Mesh::init(void* vertices, size_t vertices_size, void* indices,
                 size_t indices_size, size_t indices_count) {
     m_vertex_buffer = VertexBuffer::create(vertices, vertices_size);
     m_index_buffer = IndexBuffer::create(indices, indices_size, indices_count);
+    // TODO: Error checks
+    return true;
 }
 } // namespace Helios

@@ -16,7 +16,9 @@ class Material : public Asset {
     static SharedPtr<Material> create(const std::filesystem::path& path) {
         auto material = SharedPtr<Material>::create();
         material->init_asset(path.string());
-        material->init(path);
+        if (!material->init(path)) {
+            return nullptr;
+        }
         return material;
     }
 
@@ -25,11 +27,15 @@ class Material : public Asset {
     const SharedPtr<Texture>& get_emission() const { return m_emission; }
     float get_shininess() const { return m_shininess; }
 
-    const SharedPtr<Shader>& get_vertex_shader() const { return m_vertex_shader; }
-    const SharedPtr<Shader>& get_fragment_shader() const { return m_fragment_shader; }
+    const SharedPtr<Shader>& get_vertex_shader() const {
+        return m_vertex_shader;
+    }
+    const SharedPtr<Shader>& get_fragment_shader() const {
+        return m_fragment_shader;
+    }
 
   private:
-    void init(const std::filesystem::path& path);
+    bool init(const std::filesystem::path& path);
 
   private:
     SharedPtr<Texture> m_diffuse = nullptr;

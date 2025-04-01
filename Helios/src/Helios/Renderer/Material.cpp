@@ -6,14 +6,14 @@
 #include <yaml-cpp/yaml.h>
 
 namespace Helios {
-void Material::init(const std::filesystem::path& path) {
+bool Material::init(const std::filesystem::path& path) {
     std::ifstream stream(
         IOUtils::resolve_path(Application::get().get_asset_base_path(), path)
             .string());
 
     if (stream.fail()) {
         HL_ERROR("Failed to load material {0}", path.string());
-        return;
+        return false;
     }
 
     std::stringstream str_stream;
@@ -108,8 +108,10 @@ void Material::init(const std::filesystem::path& path) {
                     if (shader == nullptr) {
                         m_vertex_shader =
                             Shader::create(relative_path, relative_path);
-                        Application::get().get_asset_manager().add_shader(
-                            m_vertex_shader);
+                        if (m_vertex_shader) {
+                            Application::get().get_asset_manager().add_shader(
+                                m_vertex_shader);
+                        }
                     } else {
                         m_vertex_shader = shader;
                     }
@@ -126,8 +128,10 @@ void Material::init(const std::filesystem::path& path) {
                     if (shader == nullptr) {
                         m_fragment_shader =
                             Shader::create(relative_path, relative_path);
-                        Application::get().get_asset_manager().add_shader(
-                            m_fragment_shader);
+                        if (m_fragment_shader) {
+                            Application::get().get_asset_manager().add_shader(
+                                m_fragment_shader);
+                        }
                     } else {
                         m_fragment_shader = shader;
                     }
@@ -137,6 +141,8 @@ void Material::init(const std::filesystem::path& path) {
 
     } catch (YAML::Exception& e) {
         HL_ERROR("Failed to parse material file: {}", e.what());
+        return false;
     }
+    return true;
 }
 } // namespace Helios
