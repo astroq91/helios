@@ -172,6 +172,31 @@ void AssetsBrowser::recreate_directory_tree() {
     }
 }
 
+std::optional<fs::path> construct_new_path(const fs::path& src,
+                                           const fs::path& dst) {
+    std::optional<fs::path> ret;
+    std::string new_name = src.stem().string() + src.extension().string();
+    fs::path new_path = dst / new_name;
+    if (fs::exists(new_path)) {
+        // Create a new name if the filename is already taken
+
+        const int k_max_new_name_checks = 1000;
+        for (int i = 0; i < k_max_new_name_checks; i++) {
+            std::string new_name = src.stem().string() + " - " +
+                                   std::to_string(i) + src.extension().string();
+            fs::path new_path = dst / new_name;
+            if (!fs::exists(new_path)) {
+                ret = new_path;
+                break;
+            }
+        }
+    } else {
+        // If it doesnt extist, just use the same filename
+        ret = new_path;
+    }
+    return ret;
+}
+
 void AssetsBrowser::draw_icons(FileNode* directory) {
 
     if (!directory || directory->type != FileType::Directory) {
@@ -189,20 +214,14 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
         if (ImGui::BeginPopup("Assets actions")) {
             ImGui::BeginDisabled(m_copy_file_buffer == nullptr);
             if (ImGui::MenuItem("Paste")) {
-                const int k_max_new_name_checks = 1000;
 
-                for (int i = 0; i < k_max_new_name_checks; i++) {
-                    std::string new_name =
-                        m_copy_file_buffer->path.stem().string() + " - " +
-                        std::to_string(i) +
-                        m_copy_file_buffer->path.extension().string();
-                    fs::path new_path = directory->path / new_name;
-                    if (!fs::exists(new_path)) {
-                        fs::copy(m_copy_file_buffer->path, new_path,
-                                 std::filesystem::copy_options::recursive);
-                        recreate_directory_tree();
-                        break;
-                    }
+                // Try to find a new name
+                auto new_path = construct_new_path(m_copy_file_buffer->path,
+                                                   directory->path);
+                if (new_path) {
+                    fs::copy(m_copy_file_buffer->path, new_path.value(),
+                             std::filesystem::copy_options::recursive);
+                    recreate_directory_tree();
                 }
             }
             ImGui::EndDisabled();
