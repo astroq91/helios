@@ -1,7 +1,9 @@
 #include "Project.h"
+#include "Helios/Core/Log.h"
 #include "yaml-cpp/node/parse.h"
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <yaml-cpp/yaml.h>
 
 namespace fs = std::filesystem;
@@ -80,8 +82,12 @@ void Project::load_project(std::filesystem::path project_file_path) {
         }
         if (data["default_scene"]) {
             std::string default_scene = data["default_scene"].as<std::string>();
-            if (!default_scene.empty()) {
+            auto scene_path = m_project_path / default_scene;
+            if (!default_scene.empty() && std::filesystem::exists(scene_path)) {
                 m_props.default_scene = default_scene;
+            } else {
+                HL_ERROR("Could not load default scene: {}", default_scene);
+                m_props.default_scene = std::nullopt;
             }
         }
         auto fixed_update_rate = data["fixed_update_rate"];

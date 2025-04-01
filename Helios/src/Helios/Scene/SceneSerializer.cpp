@@ -1,5 +1,6 @@
 ﻿#include "SceneSerializer.h"
 
+#include <filesystem>
 #include <fstream>
 #include <glm/glm.hpp>
 #include <variant>
@@ -339,8 +340,14 @@ void SceneSerializer::serialize_to_path(const std::filesystem::path& path) {
 }
 
 void SceneSerializer::deserialize_from_path(const std::filesystem::path& path) {
-    std::ifstream stream(
-        IOUtils::resolve_path(Application::get().get_asset_base_path(), path));
+    auto abs_path =
+        IOUtils::resolve_path(Application::get().get_asset_base_path(), path);
+    if (!std::filesystem::exists(abs_path)) {
+        HL_ERROR("Could not deserialize scene: {}, because it does not exist.",
+                 path.string());
+        return;
+    }
+    std::ifstream stream(abs_path);
     std::stringstream str_stream;
     str_stream << stream.rdbuf();
 
