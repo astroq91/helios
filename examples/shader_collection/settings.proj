@@ -1,0 +1,3 @@
+project_name: shader_collection
+default_scene: scenes/fbm_warped.scene
+fixed_update_rate: 0.0199999996

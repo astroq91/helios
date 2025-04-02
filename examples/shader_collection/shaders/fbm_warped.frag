@@ -1,3 +1,4 @@
+
 #version 450
 #extension GL_EXT_nonuniform_qualifier : require
 
@@ -50,15 +51,15 @@ float noise(in vec2 st) {
 }
 
 float fbm(in vec2 st) {
-  const int k_octaves = 6;
+  const int k_octaves = 7;
   const float k_gain = 0.4;
   const float k_lacunarity = 3.0;
 
   float value = 0.0;
   float amplitude = 0.8;
-  float frequency = 1.2 * sin(p_stats.time * 0.128);
+  float frequency = 1.15;
   for (int i = 0; i < k_octaves; i++) {
-    value += amplitude * noise(st * frequency);
+    value += amplitude * noise(st * frequency) * smoothstep(0.0, 1.0, abs(sin(p_stats.time * 0.25)));
     frequency *= k_lacunarity;
     amplitude *= k_gain;
   }
@@ -72,7 +73,14 @@ float fbm_warped(in vec2 p, out vec2 q, out vec2 r) {
 
   r.xy = vec2(fbm(p + 3.0*q + vec2(2.3, 8.3)), 
                 fbm(p + 3.0*q + vec2(5.3, 1.4)));
-  return fbm(p + 2.4 * r);
+
+  vec2 s = vec2(fbm(p + 3.0*r + vec2(8.1, 7.1)), 
+                fbm(p + 1.0*r + vec2(1.3, 10.2)));
+
+  vec2 t = vec2(fbm(p + 2.0*s + vec2(1.3, 1.1)), 
+                fbm(p + 8.0*s + vec2(3.3, 1.2)));
+
+  return fbm(p + 2.1 * t);
 }
 
 void main()
@@ -87,7 +95,9 @@ void main()
   vec2 r;
   float f = fbm_warped(st, q, r);
   color = mix(color, vec3(0.8, 0.45, 0.22), f);
-  color = mix(color, vec3(0.11, 0.30, 0.90), 0.8*smoothstep(1.3, 1.4, abs(q.y)+abs(q.x)));
+  color = mix(color, vec3(0.11, 0.30, 0.90), 0.85*step(1.3, abs(q.y)+abs(q.x)));
 
   outColor = vec4(color, 1.0);
 } 
+
+

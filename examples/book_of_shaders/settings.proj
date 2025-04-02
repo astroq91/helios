@@ -1,3 +1,0 @@
-project_name: book_of_shaders
-default_scene: scenes/cellular.scene
-fixed_update_rate: 0.0199999996
