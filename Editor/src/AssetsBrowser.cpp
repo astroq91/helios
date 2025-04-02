@@ -197,7 +197,7 @@ std::optional<fs::path> construct_new_path(const fs::path& src,
     return ret;
 }
 
-void AssetsBrowser::draw_icons(FileNode* directory) {
+void AssetsBrowser::draw_file_box(FileNode* directory) {
 
     if (!directory || directory->type != FileType::Directory) {
         return;
@@ -244,92 +244,98 @@ void AssetsBrowser::draw_icons(FileNode* directory) {
             ImGui::EndPopup();
         }
 
-        float windowWidth =
-            ImGui::GetContentRegionAvail().x; // Available width in the window
-        float xCursor = 0.0f; // Tracks current X position on the row
-
-        std::vector<FileNode*> files_to_delete;
-        for (auto& file : directory->files) {
-
-            if (xCursor + k_icon_size.x > windowWidth) {
-                ImGui::NewLine(); // Move to the next row
-                xCursor = 0.0f;   // Reset row position
-            }
-
-            ImGui::SameLine(0, k_icon_padding);
-
-            ImGui::BeginGroup();
-            {
-                ImGui::PushID(file.path.string().c_str());
-                ImGui::PushStyleColor(ImGuiCol_Button,
-                                      ImVec4(0, 0, 0, 0)); // No button color
-                ImGui::PushStyleColor(
-                    ImGuiCol_ButtonHovered,
-                    ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No hover color
-                ImGui::PushStyleColor(
-                    ImGuiCol_ButtonActive,
-                    ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No active color
-                ImGui::ImageButton(file.icon, k_icon_size, ImVec2{0, 1},
-                                   ImVec2{1, 0});
-                ImGui::PopStyleColor(3); // Restore previous colors
-
-                if (file.draggable() &&
-                    k_file_types_payload_identifiers.contains(file.type)) {
-                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                        ImGui::SetDragDropPayload(
-                            k_file_types_payload_identifiers.at(file.type),
-                            &file.path, sizeof(fs::path));
-                        ImGui::Image(file.icon, k_drag_drop_icon_size);
-                        ImGui::EndDragDropSource();
-                    }
-                }
-
-                if (ImGui::IsItemHovered() &&
-                    ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-                    ImGui::OpenPopup("File action");
-                }
-
-                if (ImGui::BeginPopup("File action")) {
-                    if (ImGui::MenuItem("Copy")) {
-                        m_copy_file_buffer = &file;
-                    }
-                    if (ImGui::MenuItem("Delete")) {
-                        files_to_delete.push_back(&file);
-                    }
-                    ImGui::EndPopup();
-                }
-
-                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
-                    if (file.type == FileType::Directory) {
-                        m_current_directory = &file;
-                        m_open_selected_directory = true;
-                    }
-                    handle_icon_double_click(&file);
-                }
-
-                ImGui::PushTextWrapPos(
-                    ImGui::GetCursorPos().x +
-                    k_icon_size.x); // Set the wrap position for text
-                ImGui::TextWrapped(
-                    "%s",
-                    file.path.filename().string().c_str()); // Display text
-                ImGui::PopTextWrapPos(); // Reset text wrap position after text
-
-                ImGui::PopID();
-            }
-            ImGui::EndGroup();
-
-            xCursor += k_icon_size.x + k_icon_padding; // Update X position
-        }
-
-        if (!files_to_delete.empty()) {
-            for (auto file : files_to_delete) {
-                fs::remove_all(file->path);
-            }
-            recreate_directory_tree();
-        }
+        // Draw the icons
+        draw_file_icons(directory);
     }
     ImGui::EndChild();
+}
+
+void AssetsBrowser::draw_file_icons(FileNode* directory) {
+
+    float windowWidth =
+        ImGui::GetContentRegionAvail().x; // Available width in the window
+    float xCursor = 0.0f; // Tracks current X position on the row
+
+    std::vector<FileNode*> files_to_delete;
+    for (auto& file : directory->files) {
+
+        if (xCursor + k_icon_size.x > windowWidth) {
+            ImGui::NewLine(); // Move to the next row
+            xCursor = 0.0f;   // Reset row position
+        }
+
+        ImGui::SameLine(0, k_icon_padding);
+
+        ImGui::BeginGroup();
+        {
+            ImGui::PushID(file.path.string().c_str());
+            ImGui::PushStyleColor(ImGuiCol_Button,
+                                  ImVec4(0, 0, 0, 0)); // No button color
+            ImGui::PushStyleColor(
+                ImGuiCol_ButtonHovered,
+                ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No hover color
+            ImGui::PushStyleColor(
+                ImGuiCol_ButtonActive,
+                ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // No active color
+            ImGui::ImageButton(file.icon, k_icon_size, ImVec2{0, 1},
+                               ImVec2{1, 0});
+            ImGui::PopStyleColor(3); // Restore previous colors
+
+            if (file.draggable() &&
+                k_file_types_payload_identifiers.contains(file.type)) {
+                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                    ImGui::SetDragDropPayload(
+                        k_file_types_payload_identifiers.at(file.type),
+                        &file.path, sizeof(fs::path));
+                    ImGui::Image(file.icon, k_drag_drop_icon_size);
+                    ImGui::EndDragDropSource();
+                }
+            }
+
+            if (ImGui::IsItemHovered() &&
+                ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+                ImGui::OpenPopup("File action");
+            }
+
+            if (ImGui::BeginPopup("File action")) {
+                if (ImGui::MenuItem("Copy")) {
+                    m_copy_file_buffer = &file;
+                }
+                if (ImGui::MenuItem("Delete")) {
+                    files_to_delete.push_back(&file);
+                }
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+                if (file.type == FileType::Directory) {
+                    m_current_directory = &file;
+                    m_open_selected_directory = true;
+                }
+                handle_icon_double_click(&file);
+            }
+
+            ImGui::PushTextWrapPos(
+                ImGui::GetCursorPos().x +
+                k_icon_size.x); // Set the wrap position for text
+            ImGui::TextWrapped(
+                "%s",
+                file.path.filename().string().c_str()); // Display text
+            ImGui::PopTextWrapPos(); // Reset text wrap position after text
+
+            ImGui::PopID();
+        }
+        ImGui::EndGroup();
+
+        xCursor += k_icon_size.x + k_icon_padding; // Update X position
+    }
+
+    if (!files_to_delete.empty()) {
+        for (auto file : files_to_delete) {
+            fs::remove_all(file->path);
+        }
+        recreate_directory_tree();
+    }
 }
 
 void AssetsBrowser::draw_directory_tree(FileNode* root_directory, float width) {
@@ -449,7 +455,7 @@ void AssetsBrowser::on_update() {
             ImGui::SameLine();
             draw_divider();
             ImGui::SameLine();
-            draw_icons(m_current_directory);
+            draw_file_box(m_current_directory);
         }
     }
     ImGui::End();

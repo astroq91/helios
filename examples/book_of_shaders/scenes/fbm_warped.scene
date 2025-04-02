@@ -1,0 +1,12 @@
+entities:
+  - components:
+      name_component:
+        name: Screen
+      transform_component:
+        position: [0, 3.70266008, -2]
+        rotation: [0, 0, 0, 1]
+        scale: [12.5, 8, 0.00100000005]
+      mesh_renderer_component:
+        mesh: Cube
+        material: materials/fbm_warped.mat
+        tint_color: [1, 1, 1, 1]

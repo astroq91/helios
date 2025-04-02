@@ -51,7 +51,8 @@ class AssetsBrowser {
                             std::optional<std::filesystem::path>
                                 set_current_directory = std::nullopt);
     void recreate_directory_tree();
-    void draw_icons(FileNode* directory);
+    void draw_file_box(FileNode* directory);
+    void draw_file_icons(FileNode* directory);
     void draw_directory_tree(FileNode* root_directory, float width);
     void draw_subdirectory(FileNode* directory);
     void draw_divider();
