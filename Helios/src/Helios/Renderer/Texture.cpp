@@ -218,6 +218,7 @@ void Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
              .dst_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
              .src_stage_mask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
              .dst_stage_mask = VK_PIPELINE_STAGE_TRANSFER_BIT,
+             .index = static_cast<uint32_t>(i),
              .command_buffer = command_buffer});
         VulkanUtils::copy_buffer_to_image(
             command_buffer, staging_buffer->get_vk_buffer(),
@@ -231,6 +232,7 @@ void Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
              .dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
              .src_stage_mask = VK_PIPELINE_STAGE_TRANSFER_BIT,
              .dst_stage_mask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+             .index = static_cast<uint32_t>(i),
              .command_buffer = command_buffer});
 
         VulkanUtils::end_single_time_commands(command_buffer, context.device,

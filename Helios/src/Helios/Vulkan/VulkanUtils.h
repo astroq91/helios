@@ -46,6 +46,7 @@ struct TransitionImageLayoutSpec {
     VkPipelineStageFlags dst_stage_mask;
 
     VkDependencyFlags dependency_flags;
+    uint32_t index = 0;
 
     VkCommandBuffer command_buffer;
 };

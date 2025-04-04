@@ -603,7 +603,7 @@ void VulkanUtils::transition_image_layout(
     barrier.image = spec.image;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
-    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.baseArrayLayer = spec.index;
     barrier.subresourceRange.layerCount = 1;
 
     if (spec.new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {

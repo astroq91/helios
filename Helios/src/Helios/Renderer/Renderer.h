@@ -334,6 +334,7 @@ class Renderer {
     bool m_swapchain_recreated_this_frame = false;
     bool m_framebuffer_resized = false;
 
+    // This pool is used for the normal textures, and the skybox
     SharedPtr<DescriptorPool> m_sampler_descriptor_pool;
     std::unique_ptr<TextureSampler>
         m_texture_sampler; // We should be able to use a single sampler...
@@ -343,10 +344,11 @@ class Renderer {
     SharedPtr<DescriptorSetLayout> m_texture_array_layout;
 
     std::unique_ptr<TextureSampler>
-        m_texture_cube_sampler; // We should be able to use a single sampler...
+        m_skybox_texture_sampler; // We should be able to use a single
+                                  // sampler...
     std::vector<SharedPtr<DescriptorSet>>
-        m_texture_cube_sets; // One for each frame in flight
-    SharedPtr<DescriptorSetLayout> m_texture_cube_layout;
+        m_skybox_texture_sets; // One for each frame in flight
+    SharedPtr<DescriptorSetLayout> m_skybox_texture_layout;
 
     SharedPtr<Pipeline> m_skybox_pipeline;
     SharedPtr<Shader> m_skybox_vertex_shader;

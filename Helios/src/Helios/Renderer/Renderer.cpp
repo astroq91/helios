@@ -186,19 +186,19 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     // Textures //
 
     m_sampler_descriptor_pool = DescriptorPool::create(
-        m_max_frames_in_flight,
+        m_max_frames_in_flight * 2,
         {VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_SAMPLER,
                               .descriptorCount = 1 * m_max_frames_in_flight},
          VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
                               .descriptorCount = static_cast<uint32_t>(
                                   k_max_textures * m_max_frames_in_flight)},
          VkDescriptorPoolSize{
-             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+             .type =
+                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, // For the skybox
              .descriptorCount = 1 * m_max_frames_in_flight,
          }});
 
     m_texture_sampler = TextureSampler::create_unique();
-    m_texture_cube_sampler = TextureSampler::create_unique();
 
     m_texture_array_layout =
         DescriptorSetLayout::create({DescriptorSetLayoutBinding{
@@ -213,13 +213,6 @@ void Renderer::init(uint32_t max_frames_in_flight) {
                                          VK_SHADER_STAGE_FRAGMENT_BIT,
                                          k_max_textures,
                                      }});
-    m_texture_cube_layout =
-        DescriptorSetLayout::create({DescriptorSetLayoutBinding{
-            0,
-            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            VK_SHADER_STAGE_FRAGMENT_BIT,
-            1,
-        }});
 
     m_texture_arrays.resize(m_max_frames_in_flight);
     // Update the first bindings with our sampler. The second binding (for our
@@ -1274,6 +1267,37 @@ void Renderer::setup_skybox_pipeline() {
     m_skybox_vertex_shader = m_shaders->get_shader("skybox.vert");
     m_skybox_fragment_shader = m_shaders->get_shader("skybox.frag");
 
+    m_skybox_texture_sampler = TextureSampler::create_unique();
+    m_skybox_texture_layout =
+        DescriptorSetLayout::create({DescriptorSetLayoutBinding{
+            0,
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            VK_SHADER_STAGE_FRAGMENT_BIT,
+            1,
+        }});
+
+    auto test = Texture::create(CubeMapInfo{
+        .right = RESOURCES_PATH "skybox/right.jpg",
+        .left = RESOURCES_PATH "skybox/left.jpg",
+        .top = RESOURCES_PATH "skybox/top.jpg",
+        .bottom = RESOURCES_PATH "skybox/bottom.jpg",
+        .back = RESOURCES_PATH "skybox/back.jpg",
+        .front = RESOURCES_PATH "skybox/front.jpg",
+    });
+
+    m_skybox_texture_sets.resize(m_max_frames_in_flight);
+    for (size_t i = 0; i < m_skybox_texture_sets.size(); i++) {
+        m_skybox_texture_sets[i] = DescriptorSet::create(
+            m_sampler_descriptor_pool, m_skybox_texture_layout,
+            {DescriptorSpec{
+                .binding = 0,
+                .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .descriptor_class = DescriptorClass::Image,
+                .image_view = test->get_image()->get_vk_image_view(),
+                .sampler = m_skybox_texture_sampler->get_vk_sampler(),
+            }});
+    }
+
     m_skybox_vertex_buffer_description = VertexBufferDescription(
         VertexInputRate::Vertex, 0, skybox_vertex_attributes);
 
@@ -1282,14 +1306,14 @@ void Renderer::setup_skybox_pipeline() {
         sizeof(SkyboxVertex) * skybox_vertices.size(), skybox_indices.data(),
         sizeof(uint32_t) * skybox_indices.size(), skybox_indices.size());
 
-    m_skybox_pipeline =
-        Pipeline::create({m_swapchain->get_vk_format(),
-                          {m_texture_cube_layout, m_camera_uniform_set_layout},
-                          m_skybox_vertex_shader,
-                          m_skybox_fragment_shader,
-                          {
-                              m_skybox_vertex_buffer_description,
-                          }});
+    m_skybox_pipeline = Pipeline::create(
+        {m_swapchain->get_vk_format(),
+         {m_skybox_texture_layout, m_camera_uniform_set_layout},
+         m_skybox_vertex_shader,
+         m_skybox_fragment_shader,
+         {
+             m_skybox_vertex_buffer_description,
+         }});
 }
 
 void Renderer::setup_camera_uniform() {
