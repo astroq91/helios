@@ -13,7 +13,6 @@ Font::Font(const std::filesystem::path& path, FT_Library library) {
     if (FT_New_Face(library, path.string().c_str(), 0, &m_face)) {
         HL_ERROR("Failed to create font face from {}.", path.string());
     }
-
 }
 
 void Font::set_pixel_size(uint32_t width, uint32_t height) {
@@ -42,12 +41,15 @@ void Font::load_characters() {
                 VK_FORMAT_R8_UNORM);
         }
 
-        m_characters.insert(std::pair<char, Character>(c, Character{
-            .texture = texture,
-            .size = {m_face->glyph->bitmap.width, m_face->glyph->bitmap.rows},
-            .bearing = {m_face->glyph->bitmap_left, m_face->glyph->bitmap_top},
-            .advance = static_cast<uint32_t>(m_face->glyph->advance.x),
-        }));
+        m_characters.insert(std::pair<char, Character>(
+            c, Character{
+                   .texture = texture,
+                   .size = {m_face->glyph->bitmap.width,
+                            m_face->glyph->bitmap.rows},
+                   .bearing = {m_face->glyph->bitmap_left,
+                               m_face->glyph->bitmap_top},
+                   .advance = static_cast<uint32_t>(m_face->glyph->advance.x),
+               }));
     }
 }
-}
+} // namespace Helios

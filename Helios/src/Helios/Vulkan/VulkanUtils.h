@@ -131,7 +131,8 @@ class VulkanUtils {
     static VkSurfaceFormatKHR choose_swap_surface_format(
         const std::vector<VkSurfaceFormatKHR>& available_formats);
     static VkPresentModeKHR choose_swap_present_mode(
-        const std::vector<VkPresentModeKHR>& available_present_modes, VkPresentModeKHR preferred_mode);
+        const std::vector<VkPresentModeKHR>& available_present_modes,
+        VkPresentModeKHR preferred_mode);
     static VkExtent2D
     choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities);
     static SwapchainSupportDetails
@@ -147,7 +148,8 @@ class VulkanUtils {
 
     static void copy_buffer_to_image(VkCommandBuffer command_buffer,
                                      VkBuffer buffer, VkImage image,
-                                     uint32_t width, uint32_t height);
+                                     uint32_t width, uint32_t height,
+                                     uint32_t index = 0);
     static void copy_image_to_buffer(VkCommandBuffer command_buffer,
                                      VkImage image, uint32_t width,
                                      uint32_t height,

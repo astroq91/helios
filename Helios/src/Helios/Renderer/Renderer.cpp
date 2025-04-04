@@ -52,6 +52,10 @@ struct QuadVertex {
     alignas(8) glm::vec2 tex_coord;
 };
 
+struct SkyboxVertex {
+    alignas(16) glm::vec3 position;
+};
+
 namespace Helios {
 std::vector<QuadVertex> ui_quad_vertices = {
     {{0.0f, 0.0f}, {0.0f, 1.0f}},
@@ -98,6 +102,35 @@ std::vector<VertexAttribute> mesh_rendering_instance_attributes = {
 
     {VertexAttributeFormat::FLOAT4, 11} // tint_color
 };
+
+std::vector<VertexAttribute> skybox_vertex_attributes = {
+    {VertexAttributeFormat::FLOAT3, 0}, // position
+};
+
+std::vector<SkyboxVertex> skybox_vertices = {
+    {{-1.0f, -1.0f, 1.0f}},  // 0
+    {{1.0f, -1.0f, 1.0f}},   // 1
+    {{1.0f, 1.0f, 1.0f}},    // 2
+    {{-1.0f, 1.0f, 1.0f}},   // 3
+    {{-1.0f, -1.0f, -1.0f}}, // 4
+    {{1.0f, -1.0f, -1.0f}},  // 5
+    {{1.0f, 1.0f, -1.0f}},   // 6
+    {{-1.0f, 1.0f, -1.0f}},  // 7
+};
+
+std::vector<uint32_t> skybox_indices = {
+    // Front face
+    0, 1, 2, 2, 3, 0,
+    // Back face
+    4, 5, 6, 6, 7, 4,
+    // Left face
+    4, 0, 3, 3, 7, 4,
+    // Right face
+    1, 5, 6, 6, 2, 1,
+    // Top face
+    3, 2, 6, 6, 7, 3,
+    // Bottom face
+    4, 5, 1, 1, 0, 4};
 
 struct CameraUniformBuffer {
     alignas(16) glm::mat4 perspective_view_proj;
@@ -158,9 +191,14 @@ void Renderer::init(uint32_t max_frames_in_flight) {
                               .descriptorCount = 1 * m_max_frames_in_flight},
          VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
                               .descriptorCount = static_cast<uint32_t>(
-                                  k_max_textures * m_max_frames_in_flight)}});
+                                  k_max_textures * m_max_frames_in_flight)},
+         VkDescriptorPoolSize{
+             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+             .descriptorCount = 1 * m_max_frames_in_flight,
+         }});
 
     m_texture_sampler = TextureSampler::create_unique();
+    m_texture_cube_sampler = TextureSampler::create_unique();
 
     m_texture_array_layout =
         DescriptorSetLayout::create({DescriptorSetLayoutBinding{
@@ -175,6 +213,13 @@ void Renderer::init(uint32_t max_frames_in_flight) {
                                          VK_SHADER_STAGE_FRAGMENT_BIT,
                                          k_max_textures,
                                      }});
+    m_texture_cube_layout =
+        DescriptorSetLayout::create({DescriptorSetLayoutBinding{
+            0,
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            VK_SHADER_STAGE_FRAGMENT_BIT,
+            1,
+        }});
 
     m_texture_arrays.resize(m_max_frames_in_flight);
     // Update the first bindings with our sampler. The second binding (for our
@@ -275,6 +320,7 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     // Lastly, set up the pipelines for our different default drawable objects.
     setup_camera_uniform();
     setup_lighting_pipeline();
+    setup_skybox_pipeline();
     setup_ui_quad_pipeline();
     create_ui_camera();
 
@@ -1072,7 +1118,8 @@ void Renderer::draw_quads() {
                      0, 0, 0);
 }
 
-void Renderer::create_default_textures(const SharedPtr<TextureLibrary>& texture_lib) {
+void Renderer::create_default_textures(
+    const SharedPtr<TextureLibrary>& texture_lib) {
     unsigned char data[4];
     for (int i = 0; i < 1 * 1 * 4; i++) {
         data[i] = 255;
@@ -1113,7 +1160,8 @@ void Renderer::create_default_textures(const SharedPtr<TextureLibrary>& texture_
     texture_lib->add_texture(texture);
 }
 
-void Renderer::load_default_shaders(const SharedPtr<ShaderLibrary>& shader_lib) {
+void Renderer::load_default_shaders(
+    const SharedPtr<ShaderLibrary>& shader_lib) {
     std::filesystem::directory_iterator iter;
 
     // Check if the directory exists
@@ -1220,6 +1268,28 @@ void Renderer::setup_lighting_pipeline() {
 
     m_lighting_pipeline =
         Pipeline::create(m_default_lighting_pipeline_create_info);
+}
+
+void Renderer::setup_skybox_pipeline() {
+    m_skybox_vertex_shader = m_shaders->get_shader("skybox.vert");
+    m_skybox_fragment_shader = m_shaders->get_shader("skybox.frag");
+
+    m_skybox_vertex_buffer_description = VertexBufferDescription(
+        VertexInputRate::Vertex, 0, skybox_vertex_attributes);
+
+    m_skybox_mesh = Mesh::create(
+        "Skybox", skybox_vertices.data(),
+        sizeof(SkyboxVertex) * skybox_vertices.size(), skybox_indices.data(),
+        sizeof(uint32_t) * skybox_indices.size(), skybox_indices.size());
+
+    m_skybox_pipeline =
+        Pipeline::create({m_swapchain->get_vk_format(),
+                          {m_texture_cube_layout, m_camera_uniform_set_layout},
+                          m_skybox_vertex_shader,
+                          m_skybox_fragment_shader,
+                          {
+                              m_skybox_vertex_buffer_description,
+                          }});
 }
 
 void Renderer::setup_camera_uniform() {

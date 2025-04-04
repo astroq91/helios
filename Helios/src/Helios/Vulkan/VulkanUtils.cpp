@@ -272,10 +272,10 @@ VkSurfaceFormatKHR VulkanUtils::choose_swap_surface_format(
 }
 
 VkPresentModeKHR VulkanUtils::choose_swap_present_mode(
-    const std::vector<VkPresentModeKHR>& available_present_modes, VkPresentModeKHR preferred_mode) {
+    const std::vector<VkPresentModeKHR>& available_present_modes,
+    VkPresentModeKHR preferred_mode) {
     for (const auto& available_present_mode : available_present_modes) {
-        if (available_present_mode == preferred_mode)
-        {
+        if (available_present_mode == preferred_mode) {
             return available_present_mode;
         }
     }
@@ -544,7 +544,8 @@ void VulkanUtils::create_fences(VkDevice device, size_t count,
 
 void VulkanUtils::copy_buffer_to_image(VkCommandBuffer command_buffer,
                                        VkBuffer buffer, VkImage image,
-                                       uint32_t width, uint32_t height) {
+                                       uint32_t width, uint32_t height,
+                                       uint32_t index) {
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -553,7 +554,7 @@ void VulkanUtils::copy_buffer_to_image(VkCommandBuffer command_buffer,
     region.imageSubresource = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .mipLevel = 0,
-        .baseArrayLayer = 0,
+        .baseArrayLayer = index,
         .layerCount = 1,
     };
 

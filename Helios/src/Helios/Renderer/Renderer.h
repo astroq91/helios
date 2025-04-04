@@ -280,7 +280,8 @@ class Renderer {
         return m_texture_array_layout;
     }
 
-    const SharedPtr<DescriptorSetLayout>& get_camera_uniform_set_layout() const {
+    const SharedPtr<DescriptorSetLayout>&
+    get_camera_uniform_set_layout() const {
         return m_camera_uniform_set_layout;
     }
 
@@ -303,6 +304,7 @@ class Renderer {
 
     void setup_ui_quad_pipeline();
     void setup_lighting_pipeline();
+    void setup_skybox_pipeline();
     void setup_camera_uniform();
 
     void recreate_swapchain();
@@ -339,6 +341,18 @@ class Renderer {
         m_texture_arrays; // One for each frame in flight
     std::vector<DescriptorSpec> m_texture_specs;
     SharedPtr<DescriptorSetLayout> m_texture_array_layout;
+
+    std::unique_ptr<TextureSampler>
+        m_texture_cube_sampler; // We should be able to use a single sampler...
+    std::vector<SharedPtr<DescriptorSet>>
+        m_texture_cube_sets; // One for each frame in flight
+    SharedPtr<DescriptorSetLayout> m_texture_cube_layout;
+
+    SharedPtr<Pipeline> m_skybox_pipeline;
+    SharedPtr<Shader> m_skybox_vertex_shader;
+    SharedPtr<Shader> m_skybox_fragment_shader;
+    VertexBufferDescription m_skybox_vertex_buffer_description;
+    SharedPtr<Mesh> m_skybox_mesh;
 
     uint32_t m_available_texture_index = 0;
 
@@ -412,7 +426,8 @@ class Renderer {
 
     std::vector<std::vector<DirectionalLight>>
         m_directional_lights; // One for each frame in flight
-    std::vector<std::unique_ptr<UniformBuffer>> m_directional_lights_uniform_buffers;
+    std::vector<std::unique_ptr<UniformBuffer>>
+        m_directional_lights_uniform_buffers;
 
     std::vector<std::vector<PointLight>>
         m_point_lights; // One for each frame in flight
