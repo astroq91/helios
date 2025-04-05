@@ -136,6 +136,8 @@ class Renderer {
     void submit_ui_quad_instances(
         const BeginRenderingSpec& begin_rendering_spec = {});
 
+    void render_skybox(const BeginRenderingSpec& begin_rendering_spec = {});
+
     /**
      * \brief Submit the current command buffer, and then wait for completion.
      * After that, it will start recording again.
@@ -293,6 +295,8 @@ class Renderer {
         return m_camera_uniform_sets[m_current_frame];
     }
 
+    void update_camera_uniform();
+
   private:
     void draw_meshes();
     void draw_quads();
@@ -308,8 +312,6 @@ class Renderer {
     void setup_camera_uniform();
 
     void recreate_swapchain();
-
-    void prepare_camera_uniform();
 
     void load_fonts();
 
@@ -355,6 +357,7 @@ class Renderer {
     SharedPtr<Shader> m_skybox_fragment_shader;
     VertexBufferDescription m_skybox_vertex_buffer_description;
     SharedPtr<Mesh> m_skybox_mesh;
+    SharedPtr<Texture> m_skybox_texture;
 
     uint32_t m_available_texture_index = 0;
 

@@ -17,9 +17,11 @@ layout(location = 11) in vec4 inTintColor;
 
 layout(set = 0, binding = 0) uniform CameraUniform {
 	mat4 perspective_view_proj;
+	mat4 perspective_proj;
+	mat4 perspective_view_no_translation;
 	vec3 perspective_pos; 
 
-	mat4 orthographic_view_proj;
+	mat4 orthographic_proj;
 } uCamera;
 
 layout (location = 0) out vec4 fragColor;

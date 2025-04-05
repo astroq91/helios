@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Helios/Vulkan/VulkanUtils.h"
+#include <cwchar>
 #include <volk/volk.h>
 
 #include <ft2build.h>
@@ -108,32 +109,30 @@ std::vector<VertexAttribute> skybox_vertex_attributes = {
 };
 
 std::vector<SkyboxVertex> skybox_vertices = {
-    {{-1.0f, -1.0f, 1.0f}},  // 0
-    {{1.0f, -1.0f, 1.0f}},   // 1
-    {{1.0f, 1.0f, 1.0f}},    // 2
-    {{-1.0f, 1.0f, 1.0f}},   // 3
-    {{-1.0f, -1.0f, -1.0f}}, // 4
-    {{1.0f, -1.0f, -1.0f}},  // 5
-    {{1.0f, 1.0f, -1.0f}},   // 6
-    {{-1.0f, 1.0f, -1.0f}},  // 7
+    {{-1.0f, -1.0f, 1.0f}}, // 0
+    {{1.0f, -1.0f, 1.0f}},  // 1
+    {{1.0f, 1.0f, 1.0f}},   // 2
+    {{-1.0f, 1.0f, 1.0f}},  // 3
+
+    {{-1.0f, -1.0f, -1.0f}}, // 0
+    {{1.0f, -1.0f, -1.0f}},  // 1
+    {{1.0f, 1.0f, -1.0f}},   // 2
+    {{-1.0f, 1.0f, -1.0f}},  // 3
 };
 
 std::vector<uint32_t> skybox_indices = {
-    // Front face
-    0, 1, 2, 2, 3, 0,
-    // Back face
-    4, 5, 6, 6, 7, 4,
-    // Left face
-    4, 0, 3, 3, 7, 4,
-    // Right face
-    1, 5, 6, 6, 2, 1,
-    // Top face
-    3, 2, 6, 6, 7, 3,
-    // Bottom face
-    4, 5, 1, 1, 0, 4};
+    2, 5, 1, 2, 6, 5, // Right
+    4, 3, 0, 4, 7, 3, // Left
+    3, 6, 2, 3, 7, 6, // Top
+    0, 5, 4, 0, 1, 5, // Bottom
+    4, 5, 6, 4, 6, 7, // Back
+    0, 3, 1, 1, 3, 2, // Front
+};
 
 struct CameraUniformBuffer {
     alignas(16) glm::mat4 perspective_view_proj;
+    alignas(16) glm::mat4 perspective_proj;
+    alignas(16) glm::mat4 perspective_view_no_translation;
     alignas(16) glm::vec3 perspective_pos;
 
     alignas(16) glm::mat4 orthographic_proj;
@@ -156,8 +155,6 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     m_max_frames_in_flight = max_frames_in_flight;
     m_num_threads_for_instancing = k_mesh_instance_preparation_thread_count;
     m_min_instances_for_mt = k_min_instances_for_mt;
-
-    stbi_set_flip_vertically_on_load(true);
 
     // create the command buffers from the pool. We have one for each frame in
     // flight.
@@ -520,6 +517,36 @@ void Renderer::submit_ui_quad_instances(
     m_ui_quad_shader_instances[m_current_frame].clear();
 }
 
+void Renderer::render_skybox(const BeginRenderingSpec& begin_rendering_spec) {
+    begin_rendering(begin_rendering_spec);
+    {
+        vkCmdBindPipeline(
+            m_command_buffers[m_current_frame]->get_command_buffer(),
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            m_skybox_pipeline->get_vk_pipeline());
+
+        VkDeviceSize offsets[1]{0};
+        vkCmdBindVertexBuffers(
+            m_command_buffers[m_current_frame]->get_command_buffer(), 0, 1,
+            &m_skybox_mesh->get_vertex_buffer()->get_vk_buffer(), offsets);
+        vkCmdBindIndexBuffer(
+            m_command_buffers[m_current_frame]->get_command_buffer(),
+            m_skybox_mesh->get_index_buffer()->get_vk_buffer(), 0,
+            VK_INDEX_TYPE_UINT32);
+        VkDescriptorSet sets[2]{
+            m_skybox_texture_sets[m_current_frame]->get_vk_set(),
+            m_camera_uniform_sets[m_current_frame]->get_vk_set()};
+        vkCmdBindDescriptorSets(
+            m_command_buffers[m_current_frame]->get_command_buffer(),
+            VK_PIPELINE_BIND_POINT_GRAPHICS, m_skybox_pipeline->get_vk_layout(),
+            0, 2, sets, 0, 0);
+        vkCmdDrawIndexed(
+            m_command_buffers[m_current_frame]->get_command_buffer(),
+            m_skybox_mesh->get_index_buffer()->get_index_count(), 1, 0, 0, 0);
+    }
+    end_rendering();
+}
+
 void Renderer::submit_command_buffer() {
     // Check for swap chain recreation?
     end_recording();
@@ -726,6 +753,11 @@ void Renderer::end_frame() {
 }
 
 int32_t Renderer::register_texture(const Texture& texture) {
+    if (texture.is_cube_map()) {
+        // TODO: Handle cube map
+        return -1;
+    }
+
     if (m_available_texture_index == k_max_textures) {
         HL_ERROR("Maximum number of textures reached ({}).", k_max_textures);
         return -1;
@@ -974,7 +1006,6 @@ SharedPtr<Texture> Renderer::get_texture(const std::string& key) {
 }
 
 void Renderer::draw_meshes() {
-    prepare_camera_uniform();
     for (auto& geometry_instances :
          m_mesh_rendering_instances[m_current_frame]) {
 
@@ -1074,7 +1105,7 @@ void Renderer::draw_quads() {
         return;
     }
 
-    prepare_camera_uniform();
+    update_camera_uniform();
 
     vkCmdBindPipeline(m_command_buffers[m_current_frame]->get_command_buffer(),
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1276,7 +1307,7 @@ void Renderer::setup_skybox_pipeline() {
             1,
         }});
 
-    auto test = Texture::create(CubeMapInfo{
+    m_skybox_texture = Texture::create(CubeMapInfo{
         .right = RESOURCES_PATH "skybox/right.jpg",
         .left = RESOURCES_PATH "skybox/left.jpg",
         .top = RESOURCES_PATH "skybox/top.jpg",
@@ -1293,7 +1324,8 @@ void Renderer::setup_skybox_pipeline() {
                 .binding = 0,
                 .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                 .descriptor_class = DescriptorClass::Image,
-                .image_view = test->get_image()->get_vk_image_view(),
+                .image_view =
+                    m_skybox_texture->get_image()->get_vk_image_view(),
                 .sampler = m_skybox_texture_sampler->get_vk_sampler(),
             }});
     }
@@ -1374,9 +1406,12 @@ void Renderer::recreate_swapchain() {
     create_ui_camera();
 }
 
-void Renderer::prepare_camera_uniform() {
+void Renderer::update_camera_uniform() {
     CameraUniformBuffer ubo{
         .perspective_view_proj = m_perspective_camera.view_projection_matrix,
+        .perspective_proj = m_perspective_camera.projection_matrix,
+        .perspective_view_no_translation =
+            m_perspective_camera.view_no_translation_matrix,
         .perspective_pos = m_perspective_camera.position,
         .orthographic_proj = m_ui_projection,
     };

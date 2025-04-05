@@ -13,7 +13,9 @@ layout (location = 1) out flat int outTextureIndex;
 layout (location = 2) out vec4 outTintColor;
 
 layout(set = 1, binding = 0) uniform CameraUniform {
-	mat4 perspective_view_proj;
+  mat4 perspective_view_proj;
+	mat4 perspective_proj;
+	mat4 perspective_view_no_translation;
 	vec3 perspective_pos; 
 
 	mat4 orthographic_proj;

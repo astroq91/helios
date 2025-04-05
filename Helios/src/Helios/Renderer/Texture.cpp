@@ -28,6 +28,8 @@ void Texture::init(const std::filesystem::path& path, VkFormat format) {
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
 
+    stbi_set_flip_vertically_on_load(true);
+
     m_name = path.string();
 
     if (path.empty()) {
@@ -107,6 +109,8 @@ void Texture::init(void* data, uint32_t width, uint32_t height, size_t size,
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
 
+    stbi_set_flip_vertically_on_load(true);
+
     std::unique_ptr<Buffer> staging_buffer =
         Buffer::create_unique(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -164,7 +168,10 @@ void Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
 
+    stbi_set_flip_vertically_on_load(false);
+
     m_name = cube_map_info.front.string();
+    m_cube_map = true;
 
     int tex_width, tex_height, tex_channels;
     stbi_uc* texture_data[6];
@@ -177,9 +184,9 @@ void Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
     texture_data[3] = load_image(cube_map_info.bottom, &tex_width, &tex_height,
                                  &tex_channels);
     texture_data[4] =
-        load_image(cube_map_info.back, &tex_width, &tex_height, &tex_channels);
-    texture_data[5] =
         load_image(cube_map_info.front, &tex_width, &tex_height, &tex_channels);
+    texture_data[5] =
+        load_image(cube_map_info.back, &tex_width, &tex_height, &tex_channels);
 
     m_image = Image::create({
         .width = static_cast<uint32_t>(tex_width),

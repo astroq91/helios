@@ -101,10 +101,22 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
     if (m_scene_camera) {
         draw_systems(m_scene_camera->get_camera());
     }
-    renderer.submit_mesh_instances({
+    renderer.update_camera_uniform();
+    renderer.render_skybox({
         .color_image = editor_spec.color_image,
         .color_image_layout = editor_spec.color_image_layout,
         .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
+        .color_clear_value = editor_spec.color_clear_value,
+        .depth_image = editor_spec.depth_image,
+        .width = editor_spec.width,
+        .height = editor_spec.height,
+    });
+
+    renderer.submit_mesh_instances({
+        .color_image = editor_spec.color_image,
+        .color_image_layout = editor_spec.color_image_layout,
+        .color_load_op = VK_ATTACHMENT_LOAD_OP_LOAD,
         .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
         .color_clear_value = editor_spec.color_clear_value,
         .depth_image = editor_spec.depth_image,
@@ -121,6 +133,7 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
     if (m_has_vaild_camera) {
         draw_systems(m_current_camera);
     }
+    renderer.update_camera_uniform();
     renderer.submit_mesh_instances({
         .color_image = game_spec.color_image,
         .color_image_layout = game_spec.color_image_layout,
