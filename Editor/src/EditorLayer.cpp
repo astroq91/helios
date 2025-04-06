@@ -58,6 +58,11 @@ EditorLayer::EditorLayer()
           .fov_y = 80,
       }) {
     m_fps_clock = std::chrono::high_resolution_clock::now();
+
+    m_editor_settings = EditorSettings{
+        .gizmo_mode = ImGuizmo::MODE::LOCAL,
+        .editor_grid = true,
+    };
 }
 
 EditorLayer::~EditorLayer() {
@@ -168,7 +173,9 @@ void EditorLayer::on_update(float ts) {
         });
 
     update_entity_picking();
-    render_editor_grid();
+    if (m_editor_settings.editor_grid) {
+        render_editor_grid();
+    }
 
     // Transition the game viewport image (to be used in imgui image)
     VulkanUtils::transition_image_layout(
@@ -547,7 +554,8 @@ void EditorLayer::on_imgui_render() {
 
                     ImGuizmo::Manipulate(glm::value_ptr(cam.view_matrix),
                                          glm::value_ptr(cam.projection_matrix),
-                                         m_gizmo_operation, m_gizmo_mode,
+                                         m_gizmo_operation,
+                                         m_editor_settings.gizmo_mode,
                                          glm::value_ptr(model), nullptr,
                                          m_use_snap ? &snap.x : nullptr);
 
@@ -588,32 +596,53 @@ void EditorLayer::on_imgui_render() {
             }
             ImGui::End();
 
-            ImGui::Begin("Settings");
+            ImGui::Begin("Editor settings");
             {
-                static bool toggle = false;
-                if (ImGui::Checkbox("World gizmo mode", &toggle)) {
-                    if (toggle) {
-                        m_gizmo_mode = ImGuizmo::MODE::WORLD;
+                static bool gizmo_toggle = false;
+                if (ImGui::Checkbox("World gizmo mode", &gizmo_toggle)) {
+                    if (gizmo_toggle) {
+                        m_editor_settings.gizmo_mode = ImGuizmo::MODE::WORLD;
                     } else {
-                        m_gizmo_mode = ImGuizmo::MODE::LOCAL;
+                        m_editor_settings.gizmo_mode = ImGuizmo::MODE::LOCAL;
                     }
                 }
 
-                static int min_instances_for_mt =
-                    app.get_renderer().get_min_instances_for_mt();
-                static int num_threads_for_mt =
-                    app.get_renderer().get_num_threads_for_instancing();
+                ImGui::Checkbox("Grid", &m_editor_settings.editor_grid);
+            }
+            ImGui::End();
+
+            ImGui::Begin("Project settings");
+            {
+                const auto& proj_settings = m_project.value().get_settings();
+                int min_instances_for_mt =
+                    proj_settings.instancing_settings.min_instances_for_mt;
+                int num_threads_for_mt =
+                    proj_settings.instancing_settings.num_threads_for_mt;
 
                 if (ImGui::TreeNode("Instancing")) {
                     if (ImGui::TreeNode("Multithreading")) {
                         if (ImGui::InputInt("Minimum number of instances",
                                             &min_instances_for_mt)) {
+                            m_project->set_instancing_settings({
+                                .min_instances_for_mt =
+                                    static_cast<uint32_t>(min_instances_for_mt),
+                                .num_threads_for_mt =
+                                    proj_settings.instancing_settings
+                                        .num_threads_for_mt,
+                            });
                             app.get_renderer().set_min_instances_for_mt(
                                 min_instances_for_mt);
                         }
 
                         if (ImGui::InputInt("Number of threads",
                                             &num_threads_for_mt)) {
+                            m_project->set_instancing_settings({
+                                .min_instances_for_mt =
+                                    proj_settings.instancing_settings
+                                        .min_instances_for_mt,
+                                .num_threads_for_mt =
+                                    static_cast<uint32_t>(num_threads_for_mt),
+                            });
                             app.get_renderer().set_num_threads_for_instancing(
                                 num_threads_for_mt);
                         }
@@ -623,9 +652,10 @@ void EditorLayer::on_imgui_render() {
                     ImGui::TreePop();
                 }
 
-                static bool vsync = app.get_renderer().vsync_enabled();
+                bool vsync = proj_settings.vsync;
 
                 if (ImGui::Checkbox("Vertical Sync", &vsync)) {
+                    m_project->set_vsync(vsync);
                     app.get_renderer().recreate_swapchain_next_frame(vsync);
                 }
             }
@@ -1293,7 +1323,7 @@ void EditorLayer::update_window_title(
     const std::optional<std::string>& scene_path) {
     if (m_project) {
         Application::get().get_window().set_title(
-            "Helios - " + m_project.value().get_properties().name + " [" +
+            "Helios - " + m_project.value().get_settings().name + " [" +
             scene_path.value_or("Untitled scene") + "]");
     } else {
         Application::get().get_window().set_title("Helios");
@@ -1453,19 +1483,19 @@ bool EditorLayer::new_project(const std::filesystem::path& project_path) {
             m_project.value().get_project_path());
         m_assets_browser.set_project(&m_project.value());
 
-        if (m_project.value().get_properties().default_scene) {
+        if (m_project.value().get_settings().default_scene) {
             new_scene({.reset_window_title = false});
             m_loaded_scene_path = fs::path(
-                m_project.value().get_properties().default_scene.value());
+                m_project.value().get_settings().default_scene.value());
 
             SceneSerializer scene_serializer(m_scene);
             scene_serializer.deserialize_from_path(
                 m_loaded_scene_path.value().string());
         }
-        update_window_title(m_project.value().get_properties().default_scene);
+        update_window_title(m_project.value().get_settings().default_scene);
 
         Application::get().set_fixed_update_rate(
-            m_project->get_properties().fixed_update_rate);
+            m_project->get_settings().fixed_update_rate);
 
         return true;
     }

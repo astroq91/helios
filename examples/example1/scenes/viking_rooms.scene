@@ -1,6 +1,5 @@
 entities:
-  - entity_dependencies:
-      []
+  - entity_dependencies: []
     components:
       persistent_id_component:
         id: 153d71b7-232e-4a43-a249-2170f14c372e
@@ -14,8 +13,7 @@ entities:
         mesh: Cube
         material: materials/cube_mat.mat
         tint_color: [1, 1, 1, 1]
-  - entity_dependencies:
-      []
+  - entity_dependencies: []
     components:
       name_component:
         name: Room 1
@@ -33,8 +31,7 @@ entities:
           - field: CubeEntity
             value: 00000000-0000-0000-0000-000000000000
     children:
-      - entity_dependencies:
-          []
+      - entity_dependencies: []
         components:
           name_component:
             name: Room 2
@@ -51,8 +48,7 @@ entities:
             exposed_fields:
               - field: CubeEntity
                 value: 00000000-0000-0000-0000-000000000000
-  - entity_dependencies:
-      []
+  - entity_dependencies: []
     components:
       name_component:
         name: Light
@@ -61,8 +57,7 @@ entities:
         ambient: [1, 1, 1]
         diffuse: [1, 1, 1]
         specular: [1, 1, 1]
-  - entity_dependencies:
-      []
+  - entity_dependencies: []
     components:
       name_component:
         name: Camera
@@ -74,3 +69,4 @@ entities:
         fov_y: 120
         near: 0.100000001
         far: 100
+default_scene: scenes/viking_rooms.scene

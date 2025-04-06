@@ -30,6 +30,11 @@ struct EntityPickingData {
     Helios::SharedPtr<Helios::Mesh> mesh;
 };
 
+struct EditorSettings {
+    ImGuizmo::MODE gizmo_mode = ImGuizmo::MODE::LOCAL;
+    bool editor_grid;
+};
+
 struct ViewportData {
     std::vector<Helios::SharedPtr<Helios::Image>>
         images; // One for each frame in flight
@@ -109,7 +114,8 @@ class EditorLayer : public Helios::Layer {
     Helios::AssetsBrowser m_assets_browser;
 
     // Scene camera //
-    std::vector<Helios::SharedPtr<Helios::Buffer>> m_scene_camera_uniform_buffers;
+    std::vector<Helios::SharedPtr<Helios::Buffer>>
+        m_scene_camera_uniform_buffers;
     Helios::SharedPtr<Helios::DescriptorSetLayout> m_scene_camera_set_layout;
     std::vector<std::unique_ptr<Helios::DescriptorSet>>
         m_scene_camera_descriptor_sets;
@@ -117,7 +123,8 @@ class EditorLayer : public Helios::Layer {
 
     // Entity picking //
     std::unique_ptr<Helios::Pipeline> m_entity_picking_pipeline;
-    std::vector<Helios::SharedPtr<Helios::VertexBuffer>> m_entity_picking_buffers;
+    std::vector<Helios::SharedPtr<Helios::VertexBuffer>>
+        m_entity_picking_buffers;
     // Maybe use multi-buffering for these as well?
     std::vector<EntityPickingShaderData> m_entity_picking_shader_data;
     std::vector<Helios::SharedPtr<Helios::Image>>
@@ -125,13 +132,13 @@ class EditorLayer : public Helios::Layer {
     std::vector<Helios::SharedPtr<Helios::Image>>
         m_entity_picking_depth_images; // One for each frame in flight
     Helios::SharedPtr<Helios::Buffer> m_entity_picking_staging_buffer;
+
     bool m_use_mouse_picking = false;
 
     // Editor grid //
     std::unique_ptr<Helios::Pipeline> m_grid_pipeline;
 
     ImGuizmo::OPERATION m_gizmo_operation = ImGuizmo::OPERATION::TRANSLATE;
-    ImGuizmo::MODE m_gizmo_mode = ImGuizmo::MODE::LOCAL;
     bool m_using_gizmo = false;
     bool m_use_snap = false;
 
@@ -141,6 +148,8 @@ class EditorLayer : public Helios::Layer {
     uint32_t m_frame_counter = 0;
     std::chrono::time_point<std::chrono::high_resolution_clock> m_fps_clock;
     double m_fps_sampling_rate = 1.0; // s
+
+    EditorSettings m_editor_settings;
 
     std::string m_scene_copy;
 };

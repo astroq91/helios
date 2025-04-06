@@ -1,2 +1,3 @@
 project_name: "example1"
 default_scene: "scenes/viking_rooms.scene"
+vsync:true 

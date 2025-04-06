@@ -1,5 +1,6 @@
 #include "Project.h"
 #include "Helios/Core/Log.h"
+#include "yaml-cpp/emittermanip.h"
 #include "yaml-cpp/node/parse.h"
 #include <filesystem>
 #include <fstream>
@@ -9,19 +10,24 @@
 namespace fs = std::filesystem;
 
 Project::Project(const std::filesystem::path& project_path)
-    : m_project_path(project_path), m_props({
+    : m_project_path(project_path), m_settings({
                                         .name = "Project",
                                         .default_scene = "scenes/main.scene",
                                         .fixed_update_rate = 1.0f / 50,
+                                        .vsync = true,
+                                        .instancing_settings =
+                                            {
+                                                .min_instances_for_mt = 100,
+                                                .num_threads_for_mt = 15,
+                                            },
                                     }) {
-    fs::path proj_path = project_path;
+    m_project_file_path = m_project_path / "settings.proj";
 
-    fs::path project_file_path = proj_path / "settings.proj";
-
-    if (fs::exists(proj_path)) {
-        load_project(project_file_path);
+    if (fs::exists(m_project_path)) {
+        load_project();
     } else {
-        new_project(proj_path, project_file_path);
+        m_settings.name = project_path.filename().string();
+        new_project();
     }
 }
 
@@ -39,60 +45,91 @@ void Project::set_default_scene(const std::string& path) {
     file << data;
     file.close();
 
-    m_props.default_scene = path;
+    m_settings.default_scene = path;
 }
 
-void Project::new_project(std::filesystem::path project_path,
-                          std::filesystem::path project_file_path) {
-    fs::create_directory(project_path);
-
-    fs::create_directory(project_path / "scenes/");
-
-    std::ofstream default_scene(project_path / m_props.default_scene.value());
-
+void Project::save() {
     YAML::Emitter out;
 
     out << YAML::BeginMap;
-    out << YAML::Key << "project_name" << YAML::Value
-        << project_path.filename().string();
+    out << YAML::Key << "project_name" << YAML::Value << m_settings.name;
     out << YAML::Key << "default_scene" << YAML::Value
-        << m_props.default_scene.value();
+        << m_settings.default_scene.value();
     out << YAML::Key << "fixed_update_rate" << YAML::Value
-        << m_props.fixed_update_rate;
+        << m_settings.fixed_update_rate;
+    out << YAML::Key << "vsync" << YAML::Value << m_settings.vsync;
+
+    {
+        out << YAML::Key << "instancing" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "min_instances_for_mt" << YAML::Value
+            << m_settings.instancing_settings.min_instances_for_mt;
+        out << YAML::Key << "num_threads_for_mt" << YAML::Value
+            << m_settings.instancing_settings.num_threads_for_mt;
+
+        out << YAML::EndMap;
+    }
     out << YAML::EndMap;
 
     std::ofstream file;
-    file.open(project_file_path);
+    file.open(m_project_path);
     file << out.c_str();
     file.close();
-
-    m_props.name = project_path.filename().string();
 }
 
-void Project::load_project(std::filesystem::path project_file_path) {
-    if (fs::exists(project_file_path)) {
-        std::ifstream stream(project_file_path);
+void Project::new_project() {
+    fs::create_directory(m_project_path);
+    fs::create_directory(m_project_path / "scenes/");
+
+    std::ofstream default_scene(m_project_path /
+                                m_settings.default_scene.value());
+
+    save();
+}
+
+void Project::load_project() {
+    if (fs::exists(m_project_file_path)) {
+        std::ifstream stream(m_project_file_path);
         std::stringstream str_stream;
         str_stream << stream.rdbuf();
 
         YAML::Node data = YAML::Load(str_stream.str());
 
         if (data["project_name"]) {
-            m_props.name = data["project_name"].as<std::string>();
+            m_settings.name = data["project_name"].as<std::string>();
         }
         if (data["default_scene"]) {
             std::string default_scene = data["default_scene"].as<std::string>();
             auto scene_path = m_project_path / default_scene;
             if (!default_scene.empty() && std::filesystem::exists(scene_path)) {
-                m_props.default_scene = default_scene;
+                m_settings.default_scene = default_scene;
             } else {
                 HL_ERROR("Could not load default scene: {}", default_scene);
-                m_props.default_scene = std::nullopt;
+                m_settings.default_scene = std::nullopt;
             }
         }
         auto fixed_update_rate = data["fixed_update_rate"];
         if (!fixed_update_rate.IsNull() && fixed_update_rate.IsScalar()) {
-            m_props.fixed_update_rate = fixed_update_rate.as<float>();
+            m_settings.fixed_update_rate = fixed_update_rate.as<float>();
+        }
+
+        auto vsync = data["vsync"];
+        if (!vsync.IsNull() && vsync.IsScalar()) {
+            m_settings.vsync = vsync.as<bool>();
+        }
+
+        auto instancing = data["instancing"];
+        if (!instancing.IsNull() && instancing.IsMap()) {
+            auto min_instances_for_mt = instancing["min_instances_for_mt"];
+            if (!min_instances_for_mt.IsNull() &&
+                min_instances_for_mt.IsScalar()) {
+                m_settings.instancing_settings.min_instances_for_mt =
+                    min_instances_for_mt.as<uint32_t>();
+            }
+            auto num_threads_for_mt = instancing["num_threads_for_mt"];
+            if (!num_threads_for_mt.IsNull() && num_threads_for_mt.IsScalar()) {
+                m_settings.instancing_settings.num_threads_for_mt =
+                    num_threads_for_mt.as<uint32_t>();
+            }
         }
     } else {
         m_valid = false;
