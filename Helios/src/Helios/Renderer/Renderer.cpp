@@ -518,6 +518,9 @@ void Renderer::submit_ui_quad_instances(
 }
 
 void Renderer::render_skybox(const BeginRenderingSpec& begin_rendering_spec) {
+    if (!m_skybox_texture) {
+        return;
+    }
     begin_rendering(begin_rendering_spec);
     {
         vkCmdBindPipeline(
@@ -785,9 +788,11 @@ int32_t Renderer::register_texture(const Texture& texture) {
     return static_cast<int32_t>(m_available_texture_index - 1);
 }
 
-void Renderer::deregister_texture(uint32_t textureIndex) {
+void Renderer::deregister_texture(uint32_t textureIndex, bool cube_texture) {
     // Prevent deregistering textures on program destruction
-    if (m_shutting_down) {
+    if (m_shutting_down ||
+        cube_texture) { // TODO: Fix the quick hack for cube texture
+                        // registration, and deregistration
         return;
     }
 
@@ -1307,27 +1312,10 @@ void Renderer::setup_skybox_pipeline() {
             1,
         }});
 
-    m_skybox_texture = Texture::create(CubeMapInfo{
-        .right = RESOURCES_PATH "skybox/right.jpg",
-        .left = RESOURCES_PATH "skybox/left.jpg",
-        .top = RESOURCES_PATH "skybox/top.jpg",
-        .bottom = RESOURCES_PATH "skybox/bottom.jpg",
-        .back = RESOURCES_PATH "skybox/back.jpg",
-        .front = RESOURCES_PATH "skybox/front.jpg",
-    });
-
     m_skybox_texture_sets.resize(m_max_frames_in_flight);
     for (size_t i = 0; i < m_skybox_texture_sets.size(); i++) {
         m_skybox_texture_sets[i] = DescriptorSet::create(
-            m_sampler_descriptor_pool, m_skybox_texture_layout,
-            {DescriptorSpec{
-                .binding = 0,
-                .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptor_class = DescriptorClass::Image,
-                .image_view =
-                    m_skybox_texture->get_image()->get_vk_image_view(),
-                .sampler = m_skybox_texture_sampler->get_vk_sampler(),
-            }});
+            m_sampler_descriptor_pool, m_skybox_texture_layout);
     }
 
     m_skybox_vertex_buffer_description = VertexBufferDescription(
@@ -1418,6 +1406,29 @@ void Renderer::update_camera_uniform() {
 
     memcpy(m_camera_uniform_buffers[m_current_frame]->get_mapped_data(), &ubo,
            sizeof(CameraUniformBuffer));
+}
+
+void Renderer::set_skybox(const SharedPtr<Texture>& skybox) {
+    if (skybox == m_skybox_texture) {
+        // No need to update if the texture is the same
+        return;
+    }
+    // Save it, in case the texture were to be destroyed
+    m_skybox_texture = skybox;
+
+    for (uint32_t i = 0; i < m_skybox_texture_sets.size(); i++) {
+        Application::get().get_vulkan_manager()->enqueue_deferred_action(
+            i, [&, i] {
+                m_skybox_texture_sets[i]->update_descriptor_set({DescriptorSpec{
+                    .binding = 0,
+                    .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                    .descriptor_class = DescriptorClass::Image,
+                    .image_view =
+                        m_skybox_texture->get_image()->get_vk_image_view(),
+                    .sampler = m_skybox_texture_sampler->get_vk_sampler(),
+                }});
+            });
+    }
 }
 
 void Renderer::load_fonts() {

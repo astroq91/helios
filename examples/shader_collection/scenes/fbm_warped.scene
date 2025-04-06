@@ -10,3 +10,12 @@ entities:
         mesh: Cube
         material: materials/fbm_warped.mat
         tint_color: [1, 1, 1, 1]
+skybox:
+  enabled: true
+  custom:
+    right: images/skybox/right.png
+    left: images/skybox/left.png
+    top: images/skybox/top.png
+    bottom: images/skybox/bottom.png
+    front: images/skybox/front.png
+    back: images/skybox/back.png

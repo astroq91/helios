@@ -170,7 +170,7 @@ class Renderer {
      * shaders. \param texture The texture. \return The texture index.
      */
     int32_t register_texture(const Texture& texture);
-    void deregister_texture(uint32_t textureIndex);
+    void deregister_texture(uint32_t textureIndex, bool cube_texture = false);
 
     void draw_ui_quad(const Transform& transform, const glm::vec4& color,
                       const SharedPtr<Texture>& texture = nullptr);
@@ -297,6 +297,8 @@ class Renderer {
 
     void update_camera_uniform();
 
+    void set_skybox(const SharedPtr<Texture>& skybox);
+
   private:
     void draw_meshes();
     void draw_quads();
@@ -357,7 +359,7 @@ class Renderer {
     SharedPtr<Shader> m_skybox_fragment_shader;
     VertexBufferDescription m_skybox_vertex_buffer_description;
     SharedPtr<Mesh> m_skybox_mesh;
-    SharedPtr<Texture> m_skybox_texture;
+    SharedPtr<Texture> m_skybox_texture = nullptr;
 
     uint32_t m_available_texture_index = 0;
 

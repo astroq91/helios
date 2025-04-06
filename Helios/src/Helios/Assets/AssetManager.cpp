@@ -1,5 +1,6 @@
 ﻿#include "AssetManager.h"
 
+#include "Helios/Core/Log.h"
 #include "Helios/Renderer/MeshVertex.h"
 
 namespace {
@@ -59,6 +60,17 @@ void AssetManager::init() {
         "Cube", cube_vertices.data(), sizeof(MeshVertex) * cube_vertices.size(),
         cube_indices.data(), sizeof(uint32_t) * cube_indices.size(),
         cube_indices.size()));
+
+    add_texture(Texture::create(
+        {
+            .right = RESOURCES_PATH "images/default_skybox/right.jpg",
+            .left = RESOURCES_PATH "images/default_skybox/left.jpg",
+            .top = RESOURCES_PATH "images/default_skybox/top.jpg",
+            .bottom = RESOURCES_PATH "images/default_skybox/bottom.jpg",
+            .front = RESOURCES_PATH "images/default_skybox/front.jpg",
+            .back = RESOURCES_PATH "images/default_skybox/back.jpg",
+        },
+        "default_skybox"));
 }
 
 void AssetManager::clear_assets() {

@@ -118,6 +118,12 @@ class Scene {
         m_game_viewport_position = position;
     }
 
+    void set_skybox_enabled(bool use_skybox) { m_skybox_enabled = use_skybox; }
+    void set_custom_skybox(const SharedPtr<Texture>& skybox);
+
+    bool skybox_enabled() const { return m_skybox_enabled; }
+    const SharedPtr<Texture>& get_custom_skybox() const { return m_skybox; }
+
   private:
     // SYSTEMS //
 
@@ -166,6 +172,9 @@ class Scene {
     bool m_game_viewport_focused = false;
 
     std::chrono::time_point<std::chrono::system_clock> m_start_time;
+
+    bool m_skybox_enabled = true;
+    SharedPtr<Texture> m_skybox = nullptr;
 
     friend class Entity;
 };

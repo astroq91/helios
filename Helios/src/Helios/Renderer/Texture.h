@@ -16,8 +16,8 @@ struct CubeMapInfo {
     std::filesystem::path left;
     std::filesystem::path top;
     std::filesystem::path bottom;
-    std::filesystem::path back;
     std::filesystem::path front;
+    std::filesystem::path back;
 };
 
 class Texture : public Asset {
@@ -32,16 +32,20 @@ class Texture : public Asset {
            VkFormat format = VK_FORMAT_R8G8B8A8_SRGB) {
         SharedPtr<Texture> obj = SharedPtr<Texture>::create();
         obj->init_asset(path.string());
-        obj->init(path, format);
+        if (!obj->init(path, format)) {
+            return nullptr;
+        }
         return obj;
     }
 
     static SharedPtr<Texture>
-    create(const CubeMapInfo& cube_map_info,
+    create(const CubeMapInfo& cube_map_info, const std::string& name,
            VkFormat format = VK_FORMAT_R8G8B8A8_SRGB) {
         SharedPtr<Texture> obj = SharedPtr<Texture>::create();
-        obj->init_asset(cube_map_info.front.string());
-        obj->init_cube_map(cube_map_info, format);
+        obj->init_asset(name);
+        if (!obj->init_cube_map(cube_map_info, format)) {
+            return nullptr;
+        }
         return obj;
     }
 
@@ -59,7 +63,9 @@ class Texture : public Asset {
            size_t size, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB) {
         SharedPtr<Texture> obj = SharedPtr<Texture>::create();
         obj->init_asset(name);
-        obj->init(data, width, height, size, format);
+        if (!obj->init(data, width, height, size, format)) {
+            return nullptr;
+        }
         return obj;
     }
 
@@ -68,6 +74,7 @@ class Texture : public Asset {
     int32_t GetTextureIndex() const { return m_texture_index; }
 
     bool is_cube_map() const { return m_cube_map; }
+    const CubeMapInfo& get_cube_map_info() const { return m_cube_map_info; }
 
     Texture() = default;
     ~Texture();
@@ -78,9 +85,9 @@ class Texture : public Asset {
     Texture& operator=(Texture&&) = delete;
 
   private:
-    void init(const std::filesystem::path& path, VkFormat format);
-    void init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format);
-    void init(void* data, uint32_t width, uint32_t height, size_t size,
+    bool init(const std::filesystem::path& path, VkFormat format);
+    bool init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format);
+    bool init(void* data, uint32_t width, uint32_t height, size_t size,
               VkFormat format);
 
   private:
@@ -88,5 +95,6 @@ class Texture : public Asset {
     bool m_cube_map = false;
 
     SharedPtr<Image> m_image;
+    CubeMapInfo m_cube_map_info;
 };
 } // namespace Helios

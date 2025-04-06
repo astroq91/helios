@@ -9,11 +9,14 @@
 #include "Entity.h"
 #include "Helios/Core/Application.h"
 #include "Helios/Core/IOUtils.h"
+#include "Helios/Core/SharedPtr.h"
 #include "Helios/ECSComponents/Components.h"
 #include "entt/entity/fwd.hpp"
 #include "stduuid/uuid.h"
 #include "yaml-cpp/emittermanip.h"
 #include "yaml-cpp/exceptions.h"
+
+namespace fs = std::filesystem;
 
 namespace YAML {
 template <> struct convert<glm::vec3> {
@@ -369,9 +372,34 @@ void SceneSerializer::serialize_to_string(std::string& buffer) {
     }
 
     out << YAML::EndSeq;
+    out << YAML::Key << "skybox" << YAML::Value << YAML::BeginMap;
+    out << YAML::Key << "enabled" << YAML::Value << m_scene->skybox_enabled();
+
+    auto& custom_skybox = m_scene->get_custom_skybox();
+    if (custom_skybox) {
+        auto& cube_map_info = custom_skybox->get_cube_map_info();
+        out << YAML::Key << "right" << YAML::Value
+            << cube_map_info.right.string();
+        out << YAML::Key << "left" << YAML::Value
+            << cube_map_info.left.string();
+        out << YAML::Key << "top" << YAML::Value << cube_map_info.top.string();
+        out << YAML::Key << "bottom" << YAML::Value
+            << cube_map_info.bottom.string();
+        out << YAML::Key << "front" << YAML::Value
+            << cube_map_info.front.string();
+        out << YAML::Key << "back" << YAML::Value
+            << cube_map_info.back.string();
+    }
+
+    out << YAML::EndMap;
     out << YAML::EndMap;
 
     buffer = out.c_str();
+}
+
+fs::path resolve_path(const std::string& path) {
+    return IOUtils::resolve_path(Application::get().get_asset_base_path(),
+                                 fs::path(path));
 }
 
 void SceneSerializer::deserialize_from_string(const std::string& buffer) {
@@ -380,6 +408,57 @@ void SceneSerializer::deserialize_from_string(const std::string& buffer) {
         auto entities = data["entities"];
         if (entities) {
             deserialize_from_string_with_parent(entities, Entity());
+        }
+        auto skybox = data["skybox"];
+        if (skybox && skybox.IsMap()) {
+            auto skybox_enabled = skybox["enabled"];
+            if (skybox_enabled && skybox_enabled.IsScalar()) {
+                m_scene->set_skybox_enabled(skybox_enabled.as<bool>());
+            }
+
+            if (m_scene->skybox_enabled()) {
+                auto custom_skybox = skybox["custom"];
+                if (custom_skybox && custom_skybox.IsMap()) {
+                    auto right = custom_skybox["right"];
+                    auto left = custom_skybox["left"];
+                    auto top = custom_skybox["top"];
+                    auto bottom = custom_skybox["bottom"];
+                    auto front = custom_skybox["front"];
+                    auto back = custom_skybox["back"];
+                    if (right && right.IsScalar() && left && left.IsScalar() &&
+                        top && top.IsScalar() && bottom && bottom.IsScalar() &&
+                        front && front.IsScalar() && back && back.IsScalar()) {
+                        auto& asset_manager =
+                            Application::get().get_asset_manager();
+                        auto maybe_texture =
+                            asset_manager.get_texture(right.as<std::string>());
+                        if (maybe_texture) {
+                            m_scene->set_custom_skybox(maybe_texture);
+                        } else {
+                            SharedPtr<Texture> texture = Texture::create(
+                                {
+                                    .right =
+                                        resolve_path(right.as<std::string>()),
+                                    .left =
+                                        resolve_path(left.as<std::string>()),
+                                    .top = resolve_path(top.as<std::string>()),
+                                    .bottom =
+                                        resolve_path(bottom.as<std::string>()),
+                                    .front =
+                                        resolve_path(front.as<std::string>()),
+                                    .back =
+                                        resolve_path(back.as<std::string>()),
+                                },
+                                right.as<std::string>());
+                            m_scene->set_custom_skybox(texture);
+                            asset_manager.add_texture(texture);
+                        }
+
+                    } else {
+                        HL_ERROR("Invalid custom skybox for scene");
+                    }
+                }
+            }
         }
     } catch (YAML::Exception& e) {
         HL_ERROR("Failed to parse scene file: {}", e.what());

@@ -20,10 +20,10 @@ stbi_uc* load_image(const std::filesystem::path& path, int* width, int* height,
 
 Texture::~Texture() {
     Renderer& renderer = Application::get().get_renderer();
-    renderer.deregister_texture(m_texture_index);
+    renderer.deregister_texture(m_texture_index, m_cube_map);
 }
 
-void Texture::init(const std::filesystem::path& path, VkFormat format) {
+bool Texture::init(const std::filesystem::path& path, VkFormat format) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
@@ -33,7 +33,7 @@ void Texture::init(const std::filesystem::path& path, VkFormat format) {
     m_name = path.string();
 
     if (path.empty()) {
-        return;
+        return false;
     }
 
     int tex_width, tex_height, tex_channels;
@@ -46,6 +46,7 @@ void Texture::init(const std::filesystem::path& path, VkFormat format) {
 
     if (!pixles) {
         HL_ERROR("Failed to load texture image: {0}", path.string());
+        return false;
     }
 
     std::unique_ptr<Buffer> staging_buffer =
@@ -101,9 +102,10 @@ void Texture::init(const std::filesystem::path& path, VkFormat format) {
                                           context.graphics_queue);
 
     m_texture_index = renderer.register_texture(*this);
+    return true;
 }
 
-void Texture::init(void* data, uint32_t width, uint32_t height, size_t size,
+bool Texture::init(void* data, uint32_t width, uint32_t height, size_t size,
                    VkFormat format) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
@@ -161,16 +163,17 @@ void Texture::init(void* data, uint32_t width, uint32_t height, size_t size,
                                           context.graphics_queue);
 
     m_texture_index = renderer.register_texture(*this);
+    return true;
 }
 
-void Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
+bool Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
     const VulkanContext& context =
         Application::get().get_vulkan_manager()->get_context();
     Renderer& renderer = Application::get().get_renderer();
 
     stbi_set_flip_vertically_on_load(false);
 
-    m_name = cube_map_info.front.string();
+    m_cube_map_info = cube_map_info;
     m_cube_map = true;
 
     int tex_width, tex_height, tex_channels;
@@ -188,6 +191,12 @@ void Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
     texture_data[5] =
         load_image(cube_map_info.back, &tex_width, &tex_height, &tex_channels);
 
+    if (!(texture_data[0] && texture_data[1] && texture_data[2] &&
+          texture_data[3] && texture_data[4] && texture_data[5])) {
+        HL_ERROR("Failed to load cube map");
+        return false;
+    }
+
     m_image = Image::create({
         .width = static_cast<uint32_t>(tex_width),
         .height = static_cast<uint32_t>(tex_height),
@@ -198,7 +207,6 @@ void Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
         .memory_property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
     });
 
-    // TODO: Checks
     VkDeviceSize image_size = tex_width * tex_height * 4;
 
     std::unique_ptr<Buffer> staging_buffer =
@@ -247,5 +255,6 @@ void Texture::init_cube_map(const CubeMapInfo& cube_map_info, VkFormat format) {
                                               context.graphics_queue);
     }
     m_texture_index = renderer.register_texture(*this);
+    return true;
 }
 } // namespace Helios

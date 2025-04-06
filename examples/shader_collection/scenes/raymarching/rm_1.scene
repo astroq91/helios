@@ -1,0 +1,20 @@
+entities:
+  - components:
+      name_component:
+        name: Screen
+      transform_component:
+        position: [0, 3.70266008, -2]
+        rotation: [0, 0, 0, 1]
+        scale: [7, 7, 1]
+      mesh_renderer_component:
+        mesh: Cube
+        material: materials/raymarching/rm_1.mat
+        tint_color: [1, 1, 1, 1]
+skybox:
+  enabled: true
+  right: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/right.jpg
+  left: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/left.jpg
+  top: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/top.jpg
+  bottom: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/bottom.jpg
+  front: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/front.jpg
+  back: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/back.jpg

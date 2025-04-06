@@ -58,6 +58,11 @@ void Scene::scene_load_done() {
             }
         }
     }
+
+    if (m_skybox_enabled && !m_skybox) {
+        set_custom_skybox(Application::get().get_asset_manager().get_texture(
+            "default_skybox"));
+    }
 }
 
 Entity Scene::create_entity(const std::string& name) {
@@ -102,21 +107,26 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
         draw_systems(m_scene_camera->get_camera());
     }
     renderer.update_camera_uniform();
-    renderer.render_skybox({
-        .color_image = editor_spec.color_image,
-        .color_image_layout = editor_spec.color_image_layout,
-        .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
-        .color_clear_value = editor_spec.color_clear_value,
-        .depth_image = editor_spec.depth_image,
-        .width = editor_spec.width,
-        .height = editor_spec.height,
-    });
+    if (m_skybox_enabled) {
+
+        renderer.render_skybox({
+            .color_image = editor_spec.color_image,
+            .color_image_layout = editor_spec.color_image_layout,
+            .color_load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
+            .color_clear_value = editor_spec.color_clear_value,
+            .depth_image = editor_spec.depth_image,
+            .width = editor_spec.width,
+            .height = editor_spec.height,
+        });
+    }
 
     renderer.submit_mesh_instances({
         .color_image = editor_spec.color_image,
         .color_image_layout = editor_spec.color_image_layout,
-        .color_load_op = VK_ATTACHMENT_LOAD_OP_LOAD,
+        // Only clear if we are not using a skybox
+        .color_load_op = m_skybox_enabled ? VK_ATTACHMENT_LOAD_OP_LOAD
+                                          : VK_ATTACHMENT_LOAD_OP_CLEAR,
         .color_store_op = VK_ATTACHMENT_STORE_OP_STORE,
         .color_clear_value = editor_spec.color_clear_value,
         .depth_image = editor_spec.depth_image,
@@ -612,6 +622,13 @@ Scene::try_get_entity_children(Entity entity) const {
         return &m_entity_children.find(entity)->second;
     }
     return nullptr;
+}
+
+void Scene::set_custom_skybox(const SharedPtr<Texture>& skybox) {
+    m_skybox = skybox;
+    if (m_skybox) {
+        Application::get().get_renderer().set_skybox(m_skybox);
+    }
 }
 
 void Scene::setup_signals() {
