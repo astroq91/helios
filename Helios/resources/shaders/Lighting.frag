@@ -27,19 +27,17 @@ struct PointLight {
 #define MAX_POINT_LIGHTS 32
 #define MAX_TEXTURES 32
 
+layout (location = 0) in vec2 inFragTexCoord;
+layout (location = 1) in vec3 inFragPos;
+layout (location = 2) in vec3 inNormal;
 
-layout (location = 0) in vec4 inFragColor;
-layout (location = 1) in vec2 inFragTexCoord;
-layout (location = 2) in vec3 inFragPos;
-layout (location = 3) in vec3 inNormal;
+layout(location = 3) in flat int inDiffuseIndex;
+layout(location = 4) in flat int inSpecularIndex;
+layout(location = 5) in flat int inEmissionIndex;
+layout(location = 6) in flat float inShininess;
+layout(location = 7) in vec4 tintColor;
 
-layout(location = 4) in flat int inDiffuseIndex;
-layout(location = 5) in flat int inSpecularIndex;
-layout(location = 6) in flat int inEmissionIndex;
-layout(location = 7) in flat float inShininess;
-layout(location = 8) in vec4 tintColor;
-
-layout(location = 9) in vec3 viewPos;
+layout(location = 8) in vec3 viewPos;
 
 layout(set = 1, binding = 0) uniform sampler samp;
 layout (set = 1, binding = 1) uniform texture2D textures[32];

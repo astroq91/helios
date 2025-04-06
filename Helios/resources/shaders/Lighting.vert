@@ -24,24 +24,22 @@ layout(set = 0, binding = 0) uniform CameraUniform {
 	mat4 orthographic_proj;
 } uCamera;
 
-layout (location = 0) out vec4 fragColor;
-layout (location = 1) out vec2 fragTexCoord;
-layout (location = 2) out vec3 fragPos;
-layout (location = 3) out vec3 normal;
+layout (location = 0) out vec2 fragTexCoord;
+layout (location = 1) out vec3 fragPos;
+layout (location = 2) out vec3 normal;
 
-layout(location = 4) out flat int diffuseIndex;
-layout(location = 5) out flat int specularIndex;
-layout(location = 6) out flat int emissionIndex;
-layout(location = 7) out flat float shininess;
-layout(location = 8) out vec4 tintColor;
+layout(location = 3) out flat int diffuseIndex;
+layout(location = 4) out flat int specularIndex;
+layout(location = 5) out flat int emissionIndex;
+layout(location = 6) out flat float shininess;
+layout(location = 7) out vec4 tintColor;
 
-layout(location = 9) out vec3 viewPos;
+layout(location = 8) out vec3 viewPos;
 
 
 void main() 
 {
 	gl_Position = uCamera.perspective_view_proj * inModel * vec4(inPosition, 1.0);
-	fragColor = vec4(.4f);
 	fragTexCoord = inTexCoord;
 	fragPos = vec3(inModel * vec4(inPosition, 1.0));
 
