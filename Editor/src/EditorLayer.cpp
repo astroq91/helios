@@ -370,7 +370,7 @@ void EditorLayer::on_imgui_render() {
                                 m_loaded_scene_path.value().string());
                         }
                     }
-                    if (ImGui::MenuItem("Reload scene")) {
+                    if (ImGui::MenuItem("Reload scene and assets")) {
                         if (m_loaded_scene_path) {
                             Application::get()
                                 .get_asset_manager()
