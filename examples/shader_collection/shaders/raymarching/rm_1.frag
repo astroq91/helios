@@ -18,6 +18,8 @@ layout(location = 6) in flat float v_shininess;
 
 layout(location = 7) in vec4 v_tint_color;
 
+layout(location = 8) in vec3 v_view_pos;
+
 layout(set = 1, binding = 0) uniform sampler u_samp;
 layout (set = 1, binding = 1) uniform texture2D u_textures[1000];
 
@@ -68,8 +70,10 @@ void main()
   vec2 st = v_frag_tex_coord - 0.5; // Move 0,0 to center
   st.x *= 7.0 / 7.0; // Aspect ratio
 
-  vec3 ro = vec3(0, 0, 5.0);
+  vec3 ro = vec3(0.0, 0.0, 3.0);
   vec3 rd = normalize(vec3(st, -1.0));
+  //vec3 ro = v_view_pos;
+  //vec3 rd = normalize(v_frag_pos - v_view_pos);
   vec3 light_pos = vec3(0.0, 0.0, 3.0);
 
   float t = raymarch(ro, rd);

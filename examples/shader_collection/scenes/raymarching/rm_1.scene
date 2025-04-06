@@ -5,7 +5,7 @@ entities:
       transform_component:
         position: [0, 3.70266008, -2]
         rotation: [0, 0, 0, 1]
-        scale: [7, 7, 1]
+        scale: [20, 20, 1]
       mesh_renderer_component:
         mesh: Cube
         material: materials/raymarching/rm_1.mat

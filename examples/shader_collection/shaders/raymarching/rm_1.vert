@@ -27,6 +27,8 @@ layout(location = 6) out float o_shininess;
 
 layout(location = 7) out vec4 o_tint_color;
 
+layout(location = 8) out vec3 o_view_pos;
+
 layout(set = 0, binding = 0) uniform CameraUniform {
 	mat4 perspective_view_proj;
 	mat4 perspective_proj;
@@ -48,4 +50,6 @@ void main() {
   o_emission_index = i_emission_index;
   o_shininess = i_shininess;
   o_tint_color = i_tint_color;
+
+  o_view_pos = u_camera.perspective_pos;
 }
