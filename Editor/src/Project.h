@@ -30,7 +30,9 @@ class Project {
 
     bool is_valid() const { return m_valid; };
 
-    void set_default_scene(const std::string& path);
+    void set_default_scene(const std::optional<std::string>& path) {
+        m_settings.default_scene = path;
+    };
     void set_fixed_update_rate(float rate) {
         m_settings.fixed_update_rate = rate;
     }

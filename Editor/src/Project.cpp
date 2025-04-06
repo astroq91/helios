@@ -31,30 +31,17 @@ Project::Project(const std::filesystem::path& project_path)
     }
 }
 
-void Project::set_default_scene(const std::string& path) {
-    fs::path scene_path = m_project_path / path;
-    std::ifstream stream(scene_path);
-    std::stringstream str_stream;
-    str_stream << stream.rdbuf();
-
-    YAML::Node data = YAML::Load(str_stream.str());
-    data["default_scene"] = path;
-
-    std::ofstream file;
-    file.open(scene_path);
-    file << data;
-    file.close();
-
-    m_settings.default_scene = path;
-}
-
 void Project::save() {
     YAML::Emitter out;
 
     out << YAML::BeginMap;
     out << YAML::Key << "project_name" << YAML::Value << m_settings.name;
-    out << YAML::Key << "default_scene" << YAML::Value
-        << m_settings.default_scene.value();
+    out << YAML::Key << "default_scene" << YAML::Value;
+    if (m_settings.default_scene) {
+        out << m_settings.default_scene.value();
+    } else {
+        out << YAML::Null;
+    }
     out << YAML::Key << "fixed_update_rate" << YAML::Value
         << m_settings.fixed_update_rate;
     out << YAML::Key << "vsync" << YAML::Value << m_settings.vsync;
@@ -71,7 +58,7 @@ void Project::save() {
     out << YAML::EndMap;
 
     std::ofstream file;
-    file.open(m_project_path);
+    file.open(m_project_file_path);
     file << out.c_str();
     file.close();
 }
@@ -94,18 +81,24 @@ void Project::load_project() {
 
         YAML::Node data = YAML::Load(str_stream.str());
 
-        if (data["project_name"]) {
-            m_settings.name = data["project_name"].as<std::string>();
+        auto project_name = data["project_name"];
+        if (!project_name.IsNull() && project_name.IsScalar()) {
+            m_settings.name = project_name.as<std::string>();
         }
-        if (data["default_scene"]) {
-            std::string default_scene = data["default_scene"].as<std::string>();
-            auto scene_path = m_project_path / default_scene;
-            if (!default_scene.empty() && std::filesystem::exists(scene_path)) {
-                m_settings.default_scene = default_scene;
+
+        auto default_scene = data["default_scene"];
+        if (!default_scene.IsNull() && default_scene.IsScalar()) {
+            std::string default_scene_str = default_scene.as<std::string>();
+            auto scene_path = m_project_path / default_scene_str;
+            if (!default_scene_str.empty() &&
+                std::filesystem::exists(scene_path)) {
+                m_settings.default_scene = default_scene_str;
             } else {
-                HL_ERROR("Could not load default scene: {}", default_scene);
+                HL_ERROR("Could not load default scene: {}", default_scene_str);
                 m_settings.default_scene = std::nullopt;
             }
+        } else {
+            m_settings.default_scene = std::nullopt;
         }
         auto fixed_update_rate = data["fixed_update_rate"];
         if (!fixed_update_rate.IsNull() && fixed_update_rate.IsScalar()) {

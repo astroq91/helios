@@ -1,3 +1,7 @@
-project_name: "example1"
-default_scene: "scenes/viking_rooms.scene"
-vsync:true 
+project_name: example1
+default_scene: scenes/viking_rooms.scene
+fixed_update_rate: 0.0199999996
+vsync: true
+instancing:
+  min_instances_for_mt: 100
+  num_threads_for_mt: 15

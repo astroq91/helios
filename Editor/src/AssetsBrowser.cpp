@@ -30,6 +30,7 @@ const std::unordered_map<Helios::FileType, const char*>
         {Helios::FileType::Script, "PAYLOAD_SCRIPT"},
         {Helios::FileType::Material, "PAYLOAD_MATERIAL"},
         {Helios::FileType::Mesh, "PAYLOAD_MESH"},
+        {Helios::FileType::Scene, "PAYLOAD_SCENE"},
     };
 
 namespace Helios {

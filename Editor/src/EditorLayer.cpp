@@ -390,13 +390,14 @@ void EditorLayer::on_imgui_render() {
                     ImGui::EndMenu();
                 }
                 if (ImGui::BeginMenu("Project")) {
-                    if (ImGui::MenuItem("Set scene as default")) {
+                    if (ImGui::MenuItem("Save project")) {
+                        if (m_project) {
+                            m_project->save();
+                        }
                         if (m_loaded_scene_path) {
-                            m_project.value().set_default_scene(
-                                m_loaded_scene_path.value().string());
-                        } else {
-                            HL_ERROR("Tried to set default scene path, but no "
-                                     "loaded scene");
+                            SceneSerializer serializer(m_scene);
+                            serializer.serialize_to_path(
+                                m_loaded_scene_path.value());
                         }
                     }
                     ImGui::EndMenu();
@@ -613,45 +614,90 @@ void EditorLayer::on_imgui_render() {
 
             ImGui::Begin("Project settings");
             {
-                const auto& proj_settings = m_project.value().get_settings();
-                int min_instances_for_mt =
-                    proj_settings.instancing_settings.min_instances_for_mt;
-                int num_threads_for_mt =
-                    proj_settings.instancing_settings.num_threads_for_mt;
-
-                if (ImGui::TreeNode("Instancing")) {
-                    if (ImGui::TreeNode("Multithreading")) {
-                        if (ImGui::InputInt("Minimum number of instances",
-                                            &min_instances_for_mt)) {
-                            m_project->set_instancing_settings({
-                                .min_instances_for_mt =
-                                    static_cast<uint32_t>(min_instances_for_mt),
-                                .num_threads_for_mt =
-                                    proj_settings.instancing_settings
-                                        .num_threads_for_mt,
-                            });
-                            app.get_renderer().set_min_instances_for_mt(
-                                min_instances_for_mt);
+                const auto& proj_settings = m_project->get_settings();
+                {
+                    if (ImGui::TreeNode("Default scene")) {
+                        if (ImGui::Button("Choose")) {
+                            DialogReturn dialog_ret = IOUtils::open_file(
+                                {
+                                    {
+                                        .name = "Scene",
+                                        .filter = "*.scene",
+                                    },
+                                },
+                                m_project->get_project_path());
+                            m_project->set_default_scene(IOUtils::relative_path(
+                                m_project->get_project_path(),
+                                dialog_ret.path));
                         }
 
-                        if (ImGui::InputInt("Number of threads",
-                                            &num_threads_for_mt)) {
-                            m_project->set_instancing_settings({
-                                .min_instances_for_mt =
-                                    proj_settings.instancing_settings
-                                        .min_instances_for_mt,
-                                .num_threads_for_mt =
-                                    static_cast<uint32_t>(num_threads_for_mt),
-                            });
-                            app.get_renderer().set_num_threads_for_instancing(
-                                num_threads_for_mt);
+                        if (ImGui::BeginDragDropTarget()) {
+                            if (const ImGuiPayload* payload =
+                                    ImGui::AcceptDragDropPayload(
+                                        "PAYLOAD_SCENE")) {
+                                fs::path scene_path =
+                                    *static_cast<fs::path*>(payload->Data);
+                                m_project->set_default_scene(
+                                    IOUtils::relative_path(
+                                        m_project->get_project_path(),
+                                        scene_path));
+                            }
+                            ImGui::EndDragDropTarget();
                         }
+
+                        ImGui::SameLine();
+                        if (ImGui::Button("Clear")) {
+                            m_project->set_default_scene(std::nullopt);
+                        }
+
+                        ImGui::SameLine();
+                        ImGui::Text("(Current: %s)",
+                                    proj_settings.default_scene.value_or("None")
+                                        .c_str());
                         ImGui::TreePop();
                     }
-
-                    ImGui::TreePop();
                 }
 
+                {
+                    int min_instances_for_mt =
+                        proj_settings.instancing_settings.min_instances_for_mt;
+                    int num_threads_for_mt =
+                        proj_settings.instancing_settings.num_threads_for_mt;
+                    if (ImGui::TreeNode("Instancing")) {
+                        if (ImGui::TreeNode("Multithreading")) {
+                            if (ImGui::InputInt("Minimum number of instances",
+                                                &min_instances_for_mt)) {
+                                m_project->set_instancing_settings({
+                                    .min_instances_for_mt =
+                                        static_cast<uint32_t>(
+                                            min_instances_for_mt),
+                                    .num_threads_for_mt =
+                                        proj_settings.instancing_settings
+                                            .num_threads_for_mt,
+                                });
+                                app.get_renderer().set_min_instances_for_mt(
+                                    min_instances_for_mt);
+                            }
+
+                            if (ImGui::InputInt("Number of threads",
+                                                &num_threads_for_mt)) {
+                                m_project->set_instancing_settings({
+                                    .min_instances_for_mt =
+                                        proj_settings.instancing_settings
+                                            .min_instances_for_mt,
+                                    .num_threads_for_mt = static_cast<uint32_t>(
+                                        num_threads_for_mt),
+                                });
+                                app.get_renderer()
+                                    .set_num_threads_for_instancing(
+                                        num_threads_for_mt);
+                            }
+                            ImGui::TreePop();
+                        }
+
+                        ImGui::TreePop();
+                    }
+                }
                 bool vsync = proj_settings.vsync;
 
                 if (ImGui::Checkbox("Vertical Sync", &vsync)) {
@@ -695,10 +741,12 @@ void EditorLayer::setup_editor_grid() {
 
                     .blendEnable = VK_TRUE, // Enable blending
                     .srcColorBlendFactor =
-                        VK_BLEND_FACTOR_SRC_ALPHA, // Source blend factor
+                        VK_BLEND_FACTOR_SRC_ALPHA, // Source blend
+                                                   // factor
                     .dstColorBlendFactor =
                         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Destination
-                                                             // blend factor
+                                                             // blend
+                                                             // factor
                     .colorBlendOp = VK_BLEND_OP_ADD,         // Blend operation
                                                      // (equivalent to addition)
                     .srcAlphaBlendFactor =
@@ -707,7 +755,8 @@ void EditorLayer::setup_editor_grid() {
                     .dstAlphaBlendFactor =
                         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Alpha
                                                              // destination
-                                                             // blend factor
+                                                             // blend
+                                                             // factor
                     .alphaBlendOp = VK_BLEND_OP_ADD, // Alpha blend operation
                     .colorWriteMask =
                         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -725,8 +774,8 @@ void EditorLayer::populate_viewport_data(ViewportData& viewport) {
     const auto& vulkan_context =
         Application::get().get_vulkan_manager()->get_context();
 
-    // Set the default viewport size to non-zero in case it is not updated
-    // before rendering
+    // Set the default viewport size to non-zero in case it is not
+    // updated before rendering
     viewport.size = {1, 1};
 
     viewport.sampler = TextureSampler::create_unique();
@@ -941,7 +990,8 @@ void EditorLayer::update_entity_picking() {
                     ->get_vk_image(),
                 m_entity_picking_images[app.get_current_frame()]->get_width(),
                 m_entity_picking_images[app.get_current_frame()]->get_height(),
-                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, // TODO: Transition to
+                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, // TODO:
+                                                      // Transition to
                 // VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL?
                 staging_buffer->get_vk_buffer());
 
@@ -1000,9 +1050,10 @@ void EditorLayer::resize_viewport(ViewportData& viewport) {
                            VK_IMAGE_USAGE_SAMPLED_BIT,
                   .memory_property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT});
 
-    // Transition to SHADER_READ because if resize_viewport is called from
-    // the imgui render loop, then the viewport won't be transitioned from
-    // UNDEFINED before being rendered to the viewport texture
+    // Transition to SHADER_READ because if resize_viewport is called
+    // from the imgui render loop, then the viewport won't be
+    // transitioned from UNDEFINED before being rendered to the viewport
+    // texture
     VulkanUtils::transition_image_layout(
         {.image = viewport.images[app.get_current_frame()]->get_vk_image(),
          .old_layout = VK_IMAGE_LAYOUT_UNDEFINED,

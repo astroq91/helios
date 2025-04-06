@@ -27,7 +27,7 @@ struct FileNode {
 
     bool draggable() const {
         return type == FileType::Script || type == FileType::Material ||
-               type == FileType::Mesh;
+               type == FileType::Mesh || type == FileType::Scene;
     }
 };
 

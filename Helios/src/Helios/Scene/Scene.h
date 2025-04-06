@@ -119,7 +119,7 @@ class Scene {
     }
 
     void set_skybox_enabled(bool use_skybox) { m_skybox_enabled = use_skybox; }
-    void set_custom_skybox(const SharedPtr<Texture>& skybox);
+    void set_skybox(const SharedPtr<Texture>& skybox);
 
     bool skybox_enabled() const { return m_skybox_enabled; }
     const SharedPtr<Texture>& get_custom_skybox() const { return m_skybox; }

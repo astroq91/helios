@@ -433,7 +433,7 @@ void SceneSerializer::deserialize_from_string(const std::string& buffer) {
                         auto maybe_texture =
                             asset_manager.get_texture(right.as<std::string>());
                         if (maybe_texture) {
-                            m_scene->set_custom_skybox(maybe_texture);
+                            m_scene->set_skybox(maybe_texture);
                         } else {
                             SharedPtr<Texture> texture = Texture::create(
                                 {
@@ -450,7 +450,7 @@ void SceneSerializer::deserialize_from_string(const std::string& buffer) {
                                         resolve_path(back.as<std::string>()),
                                 },
                                 right.as<std::string>());
-                            m_scene->set_custom_skybox(texture);
+                            m_scene->set_skybox(texture);
                             asset_manager.add_texture(texture);
                         }
 

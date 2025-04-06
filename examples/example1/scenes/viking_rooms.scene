@@ -1,6 +1,5 @@
 entities:
-  - entity_dependencies: []
-    components:
+  - components:
       persistent_id_component:
         id: 153d71b7-232e-4a43-a249-2170f14c372e
       name_component:
@@ -13,8 +12,7 @@ entities:
         mesh: Cube
         material: materials/cube_mat.mat
         tint_color: [1, 1, 1, 1]
-  - entity_dependencies: []
-    components:
+  - components:
       name_component:
         name: Room 1
       transform_component:
@@ -31,13 +29,12 @@ entities:
           - field: CubeEntity
             value: 00000000-0000-0000-0000-000000000000
     children:
-      - entity_dependencies: []
-        components:
+      - components:
           name_component:
             name: Room 2
           transform_component:
             position: [8.78488159, 0.66010052, -16.39114]
-            rotation: [-0.622295022, 0.00219726562, -0.00276380777, 0.782774806]
+            rotation: [-0.622295022, 0.00219726562, -0.00276381522, 0.782774806]
             scale: [3.00098491, 2.99978757, 2.99999356]
           mesh_renderer_component:
             mesh: models/viking_room.obj
@@ -48,8 +45,7 @@ entities:
             exposed_fields:
               - field: CubeEntity
                 value: 00000000-0000-0000-0000-000000000000
-  - entity_dependencies: []
-    components:
+  - components:
       name_component:
         name: Light
       directional_light_component:
@@ -57,8 +53,7 @@ entities:
         ambient: [1, 1, 1]
         diffuse: [1, 1, 1]
         specular: [1, 1, 1]
-  - entity_dependencies: []
-    components:
+  - components:
       name_component:
         name: Camera
       transform_component:
@@ -69,4 +64,11 @@ entities:
         fov_y: 120
         near: 0.100000001
         far: 100
-default_scene: scenes/viking_rooms.scene
+skybox:
+  enabled: true
+  right: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/right.jpg
+  left: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/left.jpg
+  top: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/top.jpg
+  bottom: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/bottom.jpg
+  front: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/front.jpg
+  back: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/back.jpg

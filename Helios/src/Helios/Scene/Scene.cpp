@@ -29,6 +29,9 @@ Scene::Scene(SceneCamera* sceneCamera) : m_scene_camera(sceneCamera) {
 
     setup_signals();
     m_start_time = std::chrono::high_resolution_clock::now();
+
+    set_skybox(
+        Application::get().get_asset_manager().get_texture("default_skybox"));
 }
 
 Scene::~Scene() { m_destroyed = true; }
@@ -57,11 +60,6 @@ void Scene::scene_load_done() {
                 }
             }
         }
-    }
-
-    if (m_skybox_enabled && !m_skybox) {
-        set_custom_skybox(Application::get().get_asset_manager().get_texture(
-            "default_skybox"));
     }
 }
 
@@ -624,7 +622,7 @@ Scene::try_get_entity_children(Entity entity) const {
     return nullptr;
 }
 
-void Scene::set_custom_skybox(const SharedPtr<Texture>& skybox) {
+void Scene::set_skybox(const SharedPtr<Texture>& skybox) {
     m_skybox = skybox;
     if (m_skybox) {
         Application::get().get_renderer().set_skybox(m_skybox);
