@@ -1,1 +1,2 @@
-*.frag.out
+shaders/bin/
+shaders/raymarching/bin/
