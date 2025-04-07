@@ -1,2 +1,2 @@
 shaders:
-  fragment_shader: "shaders/fbm.frag.out" 
+  fragment_shader: "shaders/bin/fbm.frag" 

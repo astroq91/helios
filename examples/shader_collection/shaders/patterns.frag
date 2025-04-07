@@ -1,20 +1,21 @@
 #version 450
 #extension GL_EXT_nonuniform_qualifier : require
 
+layout(location = 0) out vec4 out_color;
+
 #define PI 3.14159265359
 
-layout (location = 0) out vec4 outColor;
-
-layout (location = 0) in vec2 v_frag_tex_coord;
-layout (location = 1) in vec3 v_frag_pos;
-layout (location = 2) in vec3 v_normal;
-
-layout(location = 3) in flat int v_diffuse_index;
-layout(location = 4) in flat int v_specular_index;
-layout(location = 5) in flat int v_emission_index;
-layout(location = 6) in flat float v_shininess;
-
-layout(location = 7) in vec4 v_tint_color;
+layout(location = 0) in VertexInput {
+    vec2 frag_tex_coord;
+    vec3 frag_pos;
+    vec3 normal;
+    flat int diffuse_index;
+    flat int specular_index;
+    flat int emission_index;
+    flat float shininess;
+    vec4 tint_color;
+    vec3 view_pos;
+} v_in;
 
 layout(set = 1, binding = 0) uniform sampler u_samp;
 layout (set = 1, binding = 1) uniform texture2D u_textures[32];
@@ -43,12 +44,12 @@ void main()
   vec2 mouse = p_stats.mouse / p_stats.resolution;
   mouse.y = 1.0 - mouse.y;
 
-  vec2 uv = v_frag_tex_coord;
+  vec2 uv = v_in.frag_tex_coord;
   uv *= 200;
   uv.x += step(1.0, mod(uv.y, 2.0)) * fract(p_stats.time);
   uv = fract(uv);
 
-  color = vec3(circle(uv, vec2(0.5), 0.5)) * vec3(v_frag_tex_coord, 1.0);
+  color = vec3(circle(uv, vec2(0.5), 0.5)) * vec3(v_in.frag_tex_coord, 1.0);
 
-  outColor = vec4(color, 1.0);
+  out_color = vec4(color, 1.0);
 } 

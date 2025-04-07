@@ -1,26 +1,19 @@
 #version 450
 #extension GL_EXT_nonuniform_qualifier : require
 
-layout (location = 0) out vec4 outColor;
+layout (location = 0) out vec4 out_color;
 
-layout (location = 0) in vec2 inTexCoord;
-layout (location = 1) flat in int inTextureIndex;
-layout (location = 2) in vec4 inTintColor;
+layout(location = 0) in VertexInput {
+  vec2 tex_coord;
+  flat int texture_index;
+  vec4 tint_color;
+} v_in;
 
-layout(set = 0, binding = 0) uniform sampler samp;
-layout (set = 0, binding = 1) uniform texture2D textures[1000];
-
-vec3 linearizeSRGB(vec3 srgbColor) {
-    return mix(srgbColor / 12.92, pow((srgbColor + vec3(0.055)) / 1.055, vec3(2.4)), step(vec3(0.04045), srgbColor));
-}
-
-vec4 linearizeSRGB(vec4 srgbColor) {
-    return vec4(linearizeSRGB(srgbColor.rgb), srgbColor.a);
-}
-
+layout(set = 0, binding = 0) uniform sampler u_samp;
+layout (set = 0, binding = 1) uniform texture2D u_textures[1000];
 
 void main()
 {
-    vec4 texColor = texture(sampler2D(textures[nonuniformEXT(inTextureIndex)], samp), inTexCoord);
-    outColor = inTintColor * vec4(texColor.r, texColor.r, texColor.r, 1.0);
+    vec4 tex_color = texture(sampler2D(u_textures[nonuniformEXT(v_in.texture_index)], u_samp), v_in.tex_coord);
+    out_color = v_in.tint_color * vec4(tex_color.r, tex_color.r, tex_color.r, 1.0);
 } 

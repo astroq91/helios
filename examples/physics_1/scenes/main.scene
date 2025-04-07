@@ -1,48 +1,51 @@
 entities:
-  - name_component:
-      name: Floor
-    transform_component:
-      position: [0, 0, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [10, 1, 10]
-    mesh_renderer_component:
-      mesh: Cube
-      material: "materials/floor.mat"
-    rigid_body_component:
-      type: static
-      mass: 1
-      kinematic: false
-      static_friction: 0.5
-      dynamic_friction: 0.5
-      restitution: 0.600000024
-      override_dynamic_physics: false
-    box_collider_component:
-      size: [5, 0.5, 5]
-  - name_component:
-      name: Light
-    directional_light_component:
-      direction: [1, 1, 1]
-      ambient: [1, 1, 1]
-      diffuse: [1, 1, 1]
-      specular: [1, 1, 1]
-  - name_component:
-      name: Object
-    transform_component:
-      position: [0.295640141, 3.4457438, -0.544879258]
-      rotation: [-0.666240871, -0.0073246439, 0.732958138, 0.137265623]
-      scale: [1.00000012, 1.00000036, 1]
-    mesh_renderer_component:
-      mesh: Cube
-      material: "materials/box.mat"
-    rigid_body_component:
-      type: dynamic
-      mass: 1
-      kinematic: false
-      static_friction: 0.5
-      dynamic_friction: 0.5
-      restitution: 0.100000001
-      override_dynamic_physics: false
-    box_collider_component:
-      size: [0.5, 0.5, 0.5]
-    script_component:
-      path: scripts/bouncy.lua
+  - components:
+      name_component:
+        name: Floor
+      transform_component:
+        position: [0, 0, 0]
+        rotation: [0, 0, 0, 1]
+        scale: [10, 1, 10]
+      mesh_renderer_component:
+        mesh: Cube
+        material: "materials/floor.mat"
+      rigid_body_component:
+        type: static
+        mass: 1
+        kinematic: false
+        static_friction: 0.5
+        dynamic_friction: 0.5
+        restitution: 0.600000024
+        override_dynamic_physics: false
+      box_collider_component:
+        size: [5, 0.5, 5]
+  - components:
+      name_component:
+        name: Light
+      directional_light_component:
+        direction: [1, 1, 1]
+        ambient: [1, 1, 1]
+        diffuse: [1, 1, 1]
+        specular: [1, 1, 1]
+  - components:
+      name_component:
+        name: Object
+      transform_component:
+        position: [0.295640141, 3.4457438, -0.544879258]
+        rotation: [-0.666240871, -0.0073246439, 0.732958138, 0.137265623]
+        scale: [1.00000012, 1.00000036, 1]
+      mesh_renderer_component:
+        mesh: Cube
+        material: "materials/box.mat"
+      rigid_body_component:
+        type: dynamic
+        mass: 1
+        kinematic: false
+        static_friction: 0.5
+        dynamic_friction: 0.5
+        restitution: 0.100000001
+        override_dynamic_physics: false
+      box_collider_component:
+        size: [0.5, 0.5, 0.5]
+      script_component:
+        path: scripts/bouncy.lua

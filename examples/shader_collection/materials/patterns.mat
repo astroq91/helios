@@ -1,2 +1,2 @@
 shaders:
-  fragment_shader: "shaders/patterns.frag.out"
+  fragment_shader: "shaders/bin/patterns.frag"

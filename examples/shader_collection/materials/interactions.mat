@@ -1,2 +1,2 @@
 shaders:
-  fragment_shader: "shaders/interactions.frag.out"
+  fragment_shader: "shaders/bin/interactions.frag"
