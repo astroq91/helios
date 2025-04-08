@@ -18,9 +18,9 @@ Helios is a general purpose 3D game engine written in C++23, for Windows and Lin
 
 Regardless of the platform, the following dependencies need to be installed:
 
-* CMake (min version 3.4).
+* CMake (min version 3.5).
 * glslc (for compiling shaders).
-* Vulkan drivers.
+* Vulkan drivers (and preferably validation layers).
 
 For Windows you need:
 
