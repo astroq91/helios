@@ -14,6 +14,7 @@ add_subdirectory("Helios")
 add_subdirectory("Editor")
 add_subdirectory("Sandbox")
 
+if (WIN32)
 # For Visual Studio folder organization
 set_property(TARGET 
 	format
@@ -28,3 +29,5 @@ set_property(TARGET
 	yaml-cpp-sandbox 
 	PROPERTY FOLDER "Dependencies"
 )
+endif()
+
