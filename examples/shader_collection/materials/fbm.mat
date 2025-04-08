@@ -1,2 +1,2 @@
 shaders:
-  fragment_shader: "shaders/bin/fbm.frag" 
+  fragment_shader: "shaders/bin/fbm.frag.spv" 

@@ -5,7 +5,7 @@ function compile_shaders {
 	    if [ -f "$file" ]; then
 		filename=$(basename "$file")
 		printf "Compiling $file...\n"
-		glslc "$file" -o "bin/${filename}"
+		glslc "$file" -o "bin/${filename}.spv"
 	    fi
 	done
 }

@@ -1,2 +1,2 @@
 shaders:
-  fragment_shader: "shaders/bin/custom_lighting.frag"
+  fragment_shader: "shaders/bin/custom_lighting.frag.spv"

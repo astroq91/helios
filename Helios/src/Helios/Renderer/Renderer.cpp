@@ -1202,14 +1202,12 @@ void Renderer::load_default_shaders(
         return;
     }
 
-    // get all files with a .vert extension
+    // get all files with a .spv extension
     for (const auto& entry : iter) {
         if ((entry.path().has_extension() &&
-             entry.path().extension() == ".vert") ||
-            (entry.path().has_extension() &&
-             entry.path().extension() == ".frag")) {
+             entry.path().extension() == ".spv")) {
             SharedPtr<Shader> shader = Shader::create(
-                entry.path().filename().string(), entry.path().string());
+                entry.path().filename().stem().string(), entry.path().string());
             shader_lib->add_shader(shader);
         }
     }

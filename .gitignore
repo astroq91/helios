@@ -22,3 +22,5 @@ x64/
 .vs/
 .idea/git branch -D master
 .idea
+
+**/*.spv
