@@ -70,7 +70,8 @@ void VulkanUtils::create_instance(bool use_validation_layers,
     }
 
     if (use_validation_layers && !check_validation_layer_support()) {
-        HL_ERROR("Validation layers requested, but not available!");
+        HL_WARN("Validation layers are not available.");
+        use_validation_layers = false;
     }
 
     // TODO: Check if Vulkan 1.2 is supported

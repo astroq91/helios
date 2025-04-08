@@ -26,9 +26,13 @@ struct VulkanContext {
 
     void Init() {
         // Initialize vulkan, and device related states
+        bool validation_layers_available;
         VulkanUtils::create_instance(use_validation_layers,
                                      VulkanInstanceProps(), instance);
-        VulkanUtils::setup_debug_messenger(instance, debug_messenger);
+        if (use_validation_layers &&
+            VulkanUtils::check_validation_layer_support()) {
+            VulkanUtils::setup_debug_messenger(instance, debug_messenger);
+        }
         VulkanUtils::create_surface(instance, surface);
         VulkanUtils::pick_physical_device(instance, surface, physical_device);
         VulkanUtils::create_logical_device(use_validation_layers, surface,
