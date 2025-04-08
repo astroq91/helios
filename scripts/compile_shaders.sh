@@ -1,49 +1,39 @@
 #!/bin/bash
+# Compiles shaders recursively for the given directories.
 
-function compile_shaders {
-	for file in *.{vert,frag}; do
-	    if [ -f "$file" ]; then
-		filename=$(basename "$file")
-		printf "Compiling $file...\n"
-		glslc "$file" -o "bin/${filename}.spv"
-	    fi
-	done
-}
+shopt -s globstar nullglob
 
 base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../"
-function new_target {
-	printf "___________________\n"
-	cd $base_dir
-	printf "[$1]\n"
+
+WHITE='\033[1;37m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+function compile_shaders {
+  cd "$base_dir"
+  current_dir=""
+  for file in "$1"/**/*.{vert,frag}; do
+      if [ -f "$file" ]; then
+          # Get the directory the file is in
+          dir=$(dirname "$file")
+
+          # Print the directory (if new)
+          if [ "$dir" != "$current_dir" ]; then
+            printf "\n[${WHITE}$dir${NC}]\n"
+            current_dir="$dir"
+          fi
+
+          # Make a bin/ version of that directory
+          out_dir="$dir/bin"
+          mkdir -p "$out_dir"
+
+          # Compile to bin/dir/filename.spv
+          filename=$(basename "$file")
+          printf "Compiling $filename -> bin/${filename}.spv\n"
+          glslc "$file" -o "$out_dir/${filename}.spv"
+      fi
+  done
 }
 
-cd $base_dir
-
-new_target "Helios"
-cd Helios/resources/shaders
-mkdir -p bin
-compile_shaders
-
-new_target "Editor"
-cd Editor/resources/shaders
-mkdir -p bin
-
-compile_shaders
-
-printf "___________________\n\n"
-printf "     Examples\n"
-
-new_target "example1"
-cd examples/example1/shaders
-mkdir -p bin
-compile_shaders
-
-new_target "shader_collection"
-cd examples/shader_collection/shaders
-mkdir -p bin
-compile_shaders
-
-new_target "shader_collection - raymarching"
-cd examples/shader_collection/shaders/raymarching
-mkdir -p bin
-compile_shaders
+compile_shaders "Helios/resources/shaders"
+compile_shaders "examples"
