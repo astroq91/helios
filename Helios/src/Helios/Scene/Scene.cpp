@@ -105,7 +105,7 @@ void Scene::on_update(float ts, const SceneViewportInfo& editor_spec,
         draw_systems(m_scene_camera->get_camera());
     }
     renderer.update_camera_uniform();
-    if (m_skybox_enabled) {
+    if (m_skybox_enabled && m_skybox) {
 
         renderer.render_skybox({
             .color_image = editor_spec.color_image,
@@ -620,6 +620,18 @@ Scene::try_get_entity_children(Entity entity) const {
         return &m_entity_children.find(entity)->second;
     }
     return nullptr;
+}
+
+void Scene::set_custom_skybox(const SharedPtr<Texture>& skybox) {
+    m_custom_skybox = skybox == true;
+
+    // If the skybox is nullptr, and it's enabled, use the default skybox
+    if (!m_custom_skybox && m_skybox_enabled) {
+        set_skybox(Application::get().get_asset_manager().get_texture(
+            "default_skybox"));
+    } else {
+        set_skybox(skybox);
+    }
 }
 
 void Scene::set_skybox(const SharedPtr<Texture>& skybox) {

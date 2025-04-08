@@ -119,10 +119,11 @@ class Scene {
     }
 
     void set_skybox_enabled(bool use_skybox) { m_skybox_enabled = use_skybox; }
-    void set_skybox(const SharedPtr<Texture>& skybox);
+    void set_custom_skybox(const SharedPtr<Texture>& skybox);
 
     bool skybox_enabled() const { return m_skybox_enabled; }
-    const SharedPtr<Texture>& get_custom_skybox() const { return m_skybox; }
+    bool has_custom_skybox() const { return m_custom_skybox; }
+    const SharedPtr<Texture>& get_skybox() const { return m_skybox; }
 
   private:
     // SYSTEMS //
@@ -151,6 +152,8 @@ class Scene {
 
     void create_custom_pipelines();
 
+    void set_skybox(const SharedPtr<Texture>& skybox);
+
   private:
     entt::registry m_registry;
     SceneCamera* m_scene_camera;
@@ -174,6 +177,7 @@ class Scene {
     std::chrono::time_point<std::chrono::system_clock> m_start_time;
 
     bool m_skybox_enabled = true;
+    bool m_custom_skybox = false;
     SharedPtr<Texture> m_skybox = nullptr;
 
     friend class Entity;

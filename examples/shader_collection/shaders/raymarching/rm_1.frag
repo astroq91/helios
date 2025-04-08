@@ -117,11 +117,14 @@ void main()
   vec2 st = v_frag_tex_coord - 0.5; // Move 0,0 to center
   st.x *= 7.0 / 7.0; // Aspect ratio
 
+  vec2 mouse = p_stats.mouse / p_stats.resolution;
+  mouse.y *= -1;
+
   vec3 ro = vec3(0.0, 0.0, 3.0);
   vec3 rd = normalize(vec3(st, -1.0));
   //vec3 ro = v_view_pos;
   //vec3 rd = normalize(v_frag_pos - v_view_pos);
-  vec3 light_pos = vec3(0.0, 0.0, 3.0);
+  vec3 light_pos = vec3(mouse * 4, 3.0);
 
   float t = raymarch(ro, rd);
   vec3 pos = ro + rd * t;

@@ -12,9 +12,10 @@ entities:
         tint_color: [1, 1, 1, 1]
 skybox:
   enabled: true
-  right: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/right.jpg
-  left: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/left.jpg
-  top: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/top.jpg
-  bottom: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/bottom.jpg
-  front: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/front.jpg
-  back: /home/joli/dev/c++/helios/Helios/resources/images/default_skybox/back.jpg
+  custom:
+    right: images/skybox/right.png
+    left: images/skybox/left.png
+    top: images/skybox/top.png
+    bottom: images/skybox/bottom.png
+    front: images/skybox/front.png
+    back: images/skybox/back.png
