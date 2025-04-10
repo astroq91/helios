@@ -9,10 +9,10 @@ add_subdirectory("vendor/freetype")
  
 # Find the correct path for physx libraries
 if (WIN32)
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc143.md/debug")
-        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc143.md/debug")
-    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc142.md/debug")
-        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc142.md/debug")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc143.mt/debug")
+        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc143.mt/debug")
+    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc142.mt/debug")
+        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc142.mt/debug")
     else()
         message(FATAL_ERROR "Could not find (MDd static debug) PhysX libraries for vc17 or vc16. Change this if you are using a different compiler.")
     endif()
@@ -26,9 +26,6 @@ if (WIN32)
         "${PHYSX}/PhysXCommon_static_64.lib"
         "${PHYSX}/PhysXFoundation_static_64.lib"
         "${PHYSX}/PhysXVehicle2_static_64.lib"
-        "${PHYSX}/PhysXVehicle_static_64.lib"
-        "${PHYSX}/SnippetRender_static_64.lib"
-        "${PHYSX}/SnippetUtils_static_64.lib"
     )
 
 
@@ -59,7 +56,6 @@ endif()
 
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS "src/*.h")
-
 add_library(Helios STATIC
     ${SOURCE_FILES} 
     ${HEADER_FILES} 

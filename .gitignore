@@ -9,11 +9,12 @@ x64/
 CMakeCache.txt
 CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
 
 **/*.sln
 **/*.vcxproj
-**/*.vcxproj.filters
-**/*.vcxproj.user
+**/*.vcxproj.*
 
 x64/
 

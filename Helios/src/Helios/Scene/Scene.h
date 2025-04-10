@@ -174,7 +174,7 @@ class Scene {
     glm::vec2 m_game_viewport_position;
     bool m_game_viewport_focused = false;
 
-    std::chrono::time_point<std::chrono::system_clock> m_start_time;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 
     bool m_skybox_enabled = true;
     bool m_custom_skybox = false;

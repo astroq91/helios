@@ -505,11 +505,10 @@ void Scene::draw_meshes() {
     const auto& window = Application::get().get_window();
     Application::get().get_window().get_width();
 
+    auto duration = std::chrono::high_resolution_clock::now() - m_start_time;
     ShaderPushConstantsData push_constants{
-        .time = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::high_resolution_clock::now() - m_start_time)
-                    .count() /
-                1000.f,
+        .time = std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+                    .count() / 1000.f,
         .resolution = {window.get_width(), window.get_height()},
         .mouse = Input::get_mouse_pos(),
     };

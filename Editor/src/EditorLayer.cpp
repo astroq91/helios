@@ -628,7 +628,7 @@ void EditorLayer::on_imgui_render() {
                                 m_project->get_project_path());
                             m_project->set_default_scene(IOUtils::relative_path(
                                 m_project->get_project_path(),
-                                dialog_ret.path));
+                                dialog_ret.path).string());
                         }
 
                         if (ImGui::BeginDragDropTarget()) {
@@ -640,7 +640,7 @@ void EditorLayer::on_imgui_render() {
                                 m_project->set_default_scene(
                                     IOUtils::relative_path(
                                         m_project->get_project_path(),
-                                        scene_path));
+                                        scene_path).string());
                             }
                             ImGui::EndDragDropTarget();
                         }
@@ -724,9 +724,9 @@ void EditorLayer::on_imgui_render() {
 
 void EditorLayer::setup_editor_grid() {
     SharedPtr<Shader> vertex_shader = Shader::create(
-        "editor_grid.vert", RESOURCES_PATH "shaders/bin/EditorGrid.vert");
+        "editor_grid.vert", RESOURCES_PATH "shaders/bin/EditorGrid.vert.spv");
     SharedPtr<Shader> fragment_shader = Shader::create(
-        "editor_grid.frag", RESOURCES_PATH "shaders/bin/EditorGrid.frag");
+        "editor_grid.frag", RESOURCES_PATH "shaders/bin/EditorGrid.frag.spv");
 
     m_grid_pipeline = Pipeline::create_unique({
         .color_attachment_format =
@@ -1188,9 +1188,9 @@ void EditorLayer::setup_entity_picking() {
                                  }};
 
     auto vertex_shader =
-        Shader::create("", RESOURCES_PATH "shaders/bin/EntityPicking.vert");
+        Shader::create("", RESOURCES_PATH "shaders/bin/EntityPicking.vert.spv");
     auto fragment_shader =
-        Shader::create("", RESOURCES_PATH "shaders/bin/EntityPicking.frag");
+        Shader::create("", RESOURCES_PATH "shaders/bin/EntityPicking.frag.spv");
 
     m_scene_camera_set_layout =
         DescriptorSetLayout::create({DescriptorSetLayoutBinding{

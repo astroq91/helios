@@ -9,5 +9,3 @@ add_library(Volk STATIC
 target_include_directories(Volk PUBLIC
   "./include"
 )
-
-
