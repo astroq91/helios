@@ -60,6 +60,12 @@ For Linux you need:
     .\generate_projects.bat
     ```
 
+5. Or build the editor directly
+
+    ```batch
+    .\build_editor.bat
+    ```    
+
 There is also ``delete_projects.bat`` that deletes all generated Visual Studio project files. 
 Be careful as it does this recursively.
 
@@ -85,10 +91,10 @@ Be careful as it does this recursively.
     ./compile_shaders.sh
    ```
 
-4. Compiling and running the editor
+4. Building and running the editor
 
     ```bash
-    ./compile_editor.sh
+    ./build_editor.sh
     cd ../build/Editor
     ./Editor
     ```
