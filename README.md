@@ -76,7 +76,7 @@ Be careful as it does this recursively.
     git clone --recurse-submodules https://gitlab.com/astroq/helios
    ```
 
-2. Build the PhysX libraries, select cpu-only gcc. If that doesn't work, try a different compiler.
+2. Build the PhysX libraries, select gcc cpu-only. If that doesn't work, try a using clang cpu-only.
 
    ```bash
     cd Helios/scripts
