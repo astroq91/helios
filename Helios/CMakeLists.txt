@@ -48,9 +48,6 @@ elseif (UNIX AND NOT APPLE)
         "${PHYSX}/libPhysXCommon_static_64.a"
         "${PHYSX}/libPhysXFoundation_static_64.a"
         "${PHYSX}/libPhysXVehicle2_static_64.a"
-        "${PHYSX}/libPhysXVehicle_static_64.a"
-        "${PHYSX}/libSnippetRender_static_64.a"
-        "${PHYSX}/libSnippetUtils_static_64.a"
     )
 endif()
 
