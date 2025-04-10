@@ -41,7 +41,7 @@ For Linux you need:
     git clone --recurse-submodules https://gitlab.com/astroq/helios
    ```
 
-2. Build the PhysX libraries, and select VC17.
+2. Build the PhysX libraries, and select VC17 (cpu-only).
 
    ```batch
     cd .\helios\scripts
