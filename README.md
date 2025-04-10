@@ -29,7 +29,6 @@ For Windows you need:
 For Linux you need:
 
 * gcc13 and g++13. Other C++23 compatible compilers could also work, but haven't been tested. The compilation scripts would need to be updated as well.
-* clang (version 18.1.3 tested), for PhysX library generation.
 
 ## Installation
 
@@ -77,7 +76,7 @@ Be careful as it does this recursively.
     git clone --recurse-submodules https://gitlab.com/astroq/helios
    ```
 
-2. Build the PhysX libraries
+2. Build the PhysX libraries, select gcc cpu-only. If that doesn't work, try a using clang cpu-only.
 
    ```bash
     cd Helios/scripts
