@@ -54,16 +54,10 @@ For Linux you need:
     .\compile_shaders.bat
    ```
 
-4. Generate the Visual Studio projects
+4. Generate the Visual Studio projects, and build the `Editor` project
 
     ```batch
     .\generate_projects.bat
-    ```
-
-5. Or just compile with cmake
-
-    ```batch
-    .\compile_editor.bat
     ```
 
 There is also ``delete_projects.bat`` that deletes all generated Visual Studio project files. 
