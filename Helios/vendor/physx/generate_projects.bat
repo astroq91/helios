@@ -94,4 +94,5 @@ if %ERRORLEVEL% neq 0 (
 )
 
 :CLEAN_EXIT
+pause
 @exit /b 0
