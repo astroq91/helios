@@ -7,4 +7,3 @@ if NOT ["%errorlevel%"]==["0"] (
     pause
     exit /b %errorlevel%
 )
-pause

@@ -10,7 +10,6 @@ CALL :compile_shaders "%base_dir%\Helios\resources\shaders"
 CALL :compile_shaders "%base_dir%\Editor\resources\shaders"
 CALL :compile_shaders "%base_dir%\examples"
 
-PAUSE
 GOTO :EOF
 
 :compile_shaders
