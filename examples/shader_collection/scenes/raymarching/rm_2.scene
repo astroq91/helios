@@ -1,0 +1,21 @@
+entities:
+  - components:
+      name_component:
+        name: Screen
+      transform_component:
+        position: [0, 3.70266008, -17.7833004]
+        rotation: [0, 0, 0, 1]
+        scale: [20, 20, 1]
+      mesh_renderer_component:
+        mesh: Cube
+        material: materials/raymarching/rm_2.mat
+        tint_color: [1, 1, 1, 1]
+skybox:
+  enabled: true
+  custom:
+    right: images/skybox/right.png
+    left: images/skybox/left.png
+    top: images/skybox/top.png
+    bottom: images/skybox/bottom.png
+    front: images/skybox/front.png
+    back: images/skybox/back.png

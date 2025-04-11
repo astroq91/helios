@@ -1,0 +1,3 @@
+shaders:
+  fragment_shader: "shaders/raymarching/bin/rm_2.frag.spv" 
+  vertex_shader: "shaders/raymarching/bin/rm_2.vert.spv"
