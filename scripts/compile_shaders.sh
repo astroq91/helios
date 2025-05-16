@@ -36,4 +36,5 @@ function compile_shaders {
 }
 
 compile_shaders "Helios/resources/shaders"
+compile_shaders "Editor/resources/shaders"
 compile_shaders "examples"
