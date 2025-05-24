@@ -107,9 +107,10 @@ void VulkanUtils::create_instance(bool use_validation_layers,
 
         create_info.pNext = nullptr;
     }
-
-    if (vkCreateInstance(&create_info, nullptr, &instance) != VK_SUCCESS) {
-        HL_ERROR("Failed to create instance!");
+    VkResult res = vkCreateInstance(&create_info, nullptr, &instance);
+    if (res != VK_SUCCESS) {
+        HL_ERROR("Failed to create instance! (Error: {})",
+                 static_cast<int32_t>(res));
     }
 
     volkLoadInstance(instance);
