@@ -17,7 +17,7 @@ void Semaphore::init() {
     m_initialized = true;
     auto& context = Application::get().get_vulkan_manager()->get_context();
     VkSemaphoreCreateInfo info{
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO,
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
     };
     if (vkCreateSemaphore(context.device, &info, nullptr, &m_semaphore) !=
         VK_SUCCESS) {

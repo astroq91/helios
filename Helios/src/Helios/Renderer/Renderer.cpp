@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Helios/Vulkan/VulkanUtils.h"
+#include <algorithm>
 #include <cwchar>
 #include <volk/volk.h>
 
@@ -170,13 +171,6 @@ void Renderer::init(uint32_t max_frames_in_flight) {
     // create the swap chain and the default render pass.
     recreate_swapchain();
 
-    VulkanUtils::create_semaphores(m_vulkan_state->device,
-                                   m_max_frames_in_flight,
-                                   m_image_available_semaphores);
-    VulkanUtils::create_semaphores(m_vulkan_state->device,
-                                   m_max_frames_in_flight,
-                                   m_render_available_semaphores);
-
     VulkanUtils::create_fences(m_vulkan_state->device, m_max_frames_in_flight,
                                m_main_fences);
 
@@ -323,10 +317,6 @@ void Renderer::shutdown() {
     vkDeviceWaitIdle(m_vulkan_state->device);
 
     for (size_t i = 0; i < m_max_frames_in_flight; i++) {
-        vkDestroySemaphore(m_vulkan_state->device,
-                           m_image_available_semaphores[i], nullptr);
-        vkDestroySemaphore(m_vulkan_state->device,
-                           m_render_available_semaphores[i], nullptr);
         vkDestroyFence(m_vulkan_state->device, m_main_fences[i], nullptr);
     }
 }
@@ -555,7 +545,8 @@ void Renderer::submit_command_buffer() {
     end_recording();
 
     VkSemaphore wait_semaphores[] = {
-        m_image_available_semaphores[m_current_frame]};
+        m_image_available_semaphores[m_current_swapchain_frame]
+            ->get_vk_semaphore()};
     VkPipelineStageFlags wait_stages[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
@@ -573,7 +564,8 @@ void Renderer::submit_command_buffer() {
     // because we wait for the queue right after.
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores =
-        &m_image_available_semaphores[m_current_frame];
+        &m_image_available_semaphores[m_current_swapchain_frame]
+             ->get_vk_semaphore();
 
     // Submit the commands recorded so far
     if (vkQueueSubmit(m_vulkan_state->graphics_queue, 1, &submit_info,
@@ -682,8 +674,9 @@ void Renderer::begin_frame() {
 
     VkResult result = vkAcquireNextImageKHR(
         m_vulkan_state->device, m_swapchain->get_vk_swapchain(), UINT64_MAX,
-        m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE,
-        &m_current_image_index);
+        m_image_available_semaphores[m_current_swapchain_frame]
+            ->get_vk_semaphore(),
+        VK_NULL_HANDLE, &m_current_image_index);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         recreate_swapchain();
@@ -706,7 +699,8 @@ void Renderer::end_frame() {
     }
 
     VkSemaphore wait_semaphores[] = {
-        m_image_available_semaphores[m_current_frame]};
+        m_image_available_semaphores[m_current_swapchain_frame]
+            ->get_vk_semaphore()};
     VkPipelineStageFlags wait_stages[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
@@ -714,7 +708,8 @@ void Renderer::end_frame() {
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     VkSemaphore render_available_semaphores[] = {
-        m_render_available_semaphores[m_current_frame]};
+        m_render_available_semaphores[m_current_swapchain_frame]
+            ->get_vk_semaphore()};
     submit_info.waitSemaphoreCount = 1;
     submit_info.pWaitSemaphores = wait_semaphores;
     submit_info.pWaitDstStageMask = wait_stages;
@@ -753,6 +748,9 @@ void Renderer::end_frame() {
     } else if (result != VK_SUCCESS) {
         HL_ERROR("Failed to present swap chain image");
     }
+
+    m_current_swapchain_frame =
+        (m_current_swapchain_frame + 1) % m_swapchain->get_image_count();
 }
 
 int32_t Renderer::register_texture(const Texture& texture) {
@@ -1385,6 +1383,13 @@ void Renderer::recreate_swapchain() {
     // Destroy and recreate the swap chain, image views
     m_swapchain.reset();
     m_swapchain = SwapChain::create(m_vsync);
+
+    m_image_available_semaphores.resize(m_swapchain->get_image_count());
+    m_render_available_semaphores.resize(m_swapchain->get_image_count());
+    for (size_t i = 0; i < m_swapchain->get_image_count(); i++) {
+        m_image_available_semaphores[i] = Semaphore::create();
+        m_render_available_semaphores[i] = Semaphore::create();
+    }
 
     // And also the depth image
     create_depth_image();

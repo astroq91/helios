@@ -5,6 +5,7 @@
 #include "CommandBuffer.h"
 #include "DescriptorSet.h"
 #include "FontLibrary.h"
+#include "Helios/Renderer/Semaphore.h"
 #include "Helios/Scene/PerspectiveCamera.h"
 #include "Helios/Scene/Transform.h"
 #include "Helios/Vulkan/VulkanContext.h"
@@ -325,13 +326,14 @@ class Renderer {
 
     uint32_t m_current_frame = 0;
     uint32_t m_current_image_index = 0;
+    uint32_t m_current_swapchain_frame = 0;
     uint32_t m_max_frames_in_flight;
 
     bool m_is_recording = false;
 
     std::vector<SharedPtr<CommandBuffer>> m_command_buffers;
-    std::vector<VkSemaphore> m_image_available_semaphores;
-    std::vector<VkSemaphore> m_render_available_semaphores;
+    std::vector<SharedPtr<Semaphore>> m_image_available_semaphores;
+    std::vector<SharedPtr<Semaphore>> m_render_available_semaphores;
     std::vector<VkFence> m_main_fences;
 
     SharedPtr<SwapChain> m_swapchain;
