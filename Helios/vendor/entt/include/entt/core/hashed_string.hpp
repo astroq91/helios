@@ -1,9 +1,9 @@
 #ifndef ENTT_CORE_HASHED_STRING_HPP
 #define ENTT_CORE_HASHED_STRING_HPP
 
+#include "fwd.hpp"
 #include <cstddef>
 #include <cstdint>
-#include "fwd.hpp"
 
 namespace entt {
 
@@ -14,30 +14,26 @@ namespace entt {
 
 namespace internal {
 
-template<typename>
-struct fnv1a_traits;
+template <typename> struct fnv1a_traits;
 
-template<>
-struct fnv1a_traits<std::uint32_t> {
+template <> struct fnv1a_traits<std::uint32_t> {
     using type = std::uint32_t;
     static constexpr std::uint32_t offset = 2166136261;
     static constexpr std::uint32_t prime = 16777619;
 };
 
-template<>
-struct fnv1a_traits<std::uint64_t> {
+template <> struct fnv1a_traits<std::uint64_t> {
     using type = std::uint64_t;
     static constexpr std::uint64_t offset = 14695981039346656037ull;
     static constexpr std::uint64_t prime = 1099511628211ull;
 };
 
-template<typename Char>
-struct basic_hashed_string {
+template <typename Char> struct basic_hashed_string {
     using value_type = Char;
     using size_type = std::size_t;
     using hash_type = id_type;
 
-    const value_type *repr;
+    const value_type* repr;
     size_type length;
     hash_type hash;
 };
@@ -64,42 +60,45 @@ struct basic_hashed_string {
  *
  * @tparam Char Character type.
  */
-template<typename Char>
-class basic_hashed_string: internal::basic_hashed_string<Char> {
+template <typename Char>
+class basic_hashed_string : internal::basic_hashed_string<Char> {
     using base_type = internal::basic_hashed_string<Char>;
     using traits_type = internal::fnv1a_traits<id_type>;
 
     struct const_wrapper {
         // non-explicit constructor on purpose
-        constexpr const_wrapper(const Char *str) noexcept
-            : repr{str} {}
+        constexpr const_wrapper(const Char* str) noexcept : repr{str} {}
 
-        const Char *repr;
+        const Char* repr;
     };
 
     // Fowler–Noll–Vo hash function v. 1a - the good
-    [[nodiscard]] static constexpr auto helper(const Char *str) noexcept {
+    [[nodiscard]] static constexpr auto helper(const Char* str) noexcept {
         base_type base{str, 0u, traits_type::offset};
 
-        for(; str[base.length]; ++base.length) {
-            base.hash = (base.hash ^ static_cast<traits_type::type>(str[base.length])) * traits_type::prime;
+        for (; str[base.length]; ++base.length) {
+            base.hash =
+                (base.hash ^ static_cast<traits_type::type>(str[base.length])) *
+                traits_type::prime;
         }
 
         return base;
     }
 
     // Fowler–Noll–Vo hash function v. 1a - the good
-    [[nodiscard]] static constexpr auto helper(const Char *str, const std::size_t len) noexcept {
+    [[nodiscard]] static constexpr auto helper(const Char* str,
+                                               const std::size_t len) noexcept {
         base_type base{str, len, traits_type::offset};
 
-        for(size_type pos{}; pos < len; ++pos) {
-            base.hash = (base.hash ^ static_cast<traits_type::type>(str[pos])) * traits_type::prime;
+        for (size_type pos{}; pos < len; ++pos) {
+            base.hash = (base.hash ^ static_cast<traits_type::type>(str[pos])) *
+                        traits_type::prime;
         }
 
         return base;
     }
 
-public:
+  public:
     /*! @brief Character type. */
     using value_type = typename base_type::value_type;
     /*! @brief Unsigned integer type. */
@@ -113,7 +112,8 @@ public:
      * @param len Length of the string to hash.
      * @return The numeric representation of the string.
      */
-    [[nodiscard]] static constexpr hash_type value(const value_type *str, const size_type len) noexcept {
+    [[nodiscard]] static constexpr hash_type
+    value(const value_type* str, const size_type len) noexcept {
         return basic_hashed_string{str, len};
     }
 
@@ -123,8 +123,9 @@ public:
      * @param str Human-readable identifier.
      * @return The numeric representation of the string.
      */
-    template<std::size_t N>
-    [[nodiscard]] static constexpr hash_type value(const value_type (&str)[N]) noexcept {
+    template <std::size_t N>
+    [[nodiscard]] static constexpr hash_type
+    value(const value_type (&str)[N]) noexcept {
         return basic_hashed_string{str};
     }
 
@@ -133,20 +134,21 @@ public:
      * @param wrapper Helps achieving the purpose by relying on overloading.
      * @return The numeric representation of the string.
      */
-    [[nodiscard]] static constexpr hash_type value(const_wrapper wrapper) noexcept {
+    [[nodiscard]] static constexpr hash_type
+    value(const_wrapper wrapper) noexcept {
         return basic_hashed_string{wrapper};
     }
 
     /*! @brief Constructs an empty hashed string. */
-    constexpr basic_hashed_string() noexcept
-        : base_type{} {}
+    constexpr basic_hashed_string() noexcept : base_type{} {}
 
     /**
      * @brief Constructs a hashed string from a string view.
      * @param str Human-readable identifier.
      * @param len Length of the string to hash.
      */
-    constexpr basic_hashed_string(const value_type *str, const size_type len) noexcept
+    constexpr basic_hashed_string(const value_type* str,
+                                  const size_type len) noexcept
         : base_type{helper(str, len)} {}
 
     /**
@@ -154,7 +156,7 @@ public:
      * @tparam N Number of characters of the identifier.
      * @param str Human-readable identifier.
      */
-    template<std::size_t N>
+    template <std::size_t N>
     constexpr basic_hashed_string(const value_type (&str)[N]) noexcept
         : base_type{helper(str)} {}
 
@@ -182,7 +184,7 @@ public:
      * @brief Returns the human-readable representation of a hashed string.
      * @return The string used to initialize the hashed string.
      */
-    [[nodiscard]] constexpr const value_type *data() const noexcept {
+    [[nodiscard]] constexpr const value_type* data() const noexcept {
         return base_type::repr;
     }
 
@@ -195,7 +197,7 @@ public:
     }
 
     /*! @copydoc data */
-    [[nodiscard]] constexpr operator const value_type *() const noexcept {
+    [[nodiscard]] constexpr operator const value_type*() const noexcept {
         return data();
     }
 
@@ -214,8 +216,9 @@ public:
  * @param str Human-readable identifier.
  * @param len Length of the string to hash.
  */
-template<typename Char>
-basic_hashed_string(const Char *str, const std::size_t len) -> basic_hashed_string<Char>;
+template <typename Char>
+basic_hashed_string(const Char* str, const std::size_t len)
+    -> basic_hashed_string<Char>;
 
 /**
  * @brief Deduction guide.
@@ -223,7 +226,7 @@ basic_hashed_string(const Char *str, const std::size_t len) -> basic_hashed_stri
  * @tparam N Number of characters of the identifier.
  * @param str Human-readable identifier.
  */
-template<typename Char, std::size_t N>
+template <typename Char, std::size_t N>
 basic_hashed_string(const Char (&str)[N]) -> basic_hashed_string<Char>;
 
 /**
@@ -233,8 +236,10 @@ basic_hashed_string(const Char (&str)[N]) -> basic_hashed_string<Char>;
  * @param rhs A valid hashed string.
  * @return True if the two hashed strings are identical, false otherwise.
  */
-template<typename Char>
-[[nodiscard]] constexpr bool operator==(const basic_hashed_string<Char> &lhs, const basic_hashed_string<Char> &rhs) noexcept {
+template <typename Char>
+[[nodiscard]] constexpr bool
+operator==(const basic_hashed_string<Char>& lhs,
+           const basic_hashed_string<Char>& rhs) noexcept {
     return lhs.value() == rhs.value();
 }
 
@@ -245,8 +250,10 @@ template<typename Char>
  * @param rhs A valid hashed string.
  * @return True if the two hashed strings differ, false otherwise.
  */
-template<typename Char>
-[[nodiscard]] constexpr bool operator!=(const basic_hashed_string<Char> &lhs, const basic_hashed_string<Char> &rhs) noexcept {
+template <typename Char>
+[[nodiscard]] constexpr bool
+operator!=(const basic_hashed_string<Char>& lhs,
+           const basic_hashed_string<Char>& rhs) noexcept {
     return !(lhs == rhs);
 }
 
@@ -257,8 +264,10 @@ template<typename Char>
  * @param rhs A valid hashed string.
  * @return True if the first element is less than the second, false otherwise.
  */
-template<typename Char>
-[[nodiscard]] constexpr bool operator<(const basic_hashed_string<Char> &lhs, const basic_hashed_string<Char> &rhs) noexcept {
+template <typename Char>
+[[nodiscard]] constexpr bool
+operator<(const basic_hashed_string<Char>& lhs,
+          const basic_hashed_string<Char>& rhs) noexcept {
     return lhs.value() < rhs.value();
 }
 
@@ -270,8 +279,10 @@ template<typename Char>
  * @return True if the first element is less than or equal to the second, false
  * otherwise.
  */
-template<typename Char>
-[[nodiscard]] constexpr bool operator<=(const basic_hashed_string<Char> &lhs, const basic_hashed_string<Char> &rhs) noexcept {
+template <typename Char>
+[[nodiscard]] constexpr bool
+operator<=(const basic_hashed_string<Char>& lhs,
+           const basic_hashed_string<Char>& rhs) noexcept {
     return !(rhs < lhs);
 }
 
@@ -283,8 +294,10 @@ template<typename Char>
  * @return True if the first element is greater than the second, false
  * otherwise.
  */
-template<typename Char>
-[[nodiscard]] constexpr bool operator>(const basic_hashed_string<Char> &lhs, const basic_hashed_string<Char> &rhs) noexcept {
+template <typename Char>
+[[nodiscard]] constexpr bool
+operator>(const basic_hashed_string<Char>& lhs,
+          const basic_hashed_string<Char>& rhs) noexcept {
     return rhs < lhs;
 }
 
@@ -296,8 +309,10 @@ template<typename Char>
  * @return True if the first element is greater than or equal to the second,
  * false otherwise.
  */
-template<typename Char>
-[[nodiscard]] constexpr bool operator>=(const basic_hashed_string<Char> &lhs, const basic_hashed_string<Char> &rhs) noexcept {
+template <typename Char>
+[[nodiscard]] constexpr bool
+operator>=(const basic_hashed_string<Char>& lhs,
+           const basic_hashed_string<Char>& rhs) noexcept {
     return !(lhs < rhs);
 }
 
@@ -314,7 +329,8 @@ inline namespace literals {
  * @param str The literal without its suffix.
  * @return A properly initialized hashed string.
  */
-[[nodiscard]] constexpr hashed_string operator"" _hs(const char *str, std::size_t) noexcept {
+[[nodiscard]] constexpr hashed_string operator""_hs(const char* str,
+                                                    std::size_t) noexcept {
     return hashed_string{str};
 }
 
@@ -323,7 +339,8 @@ inline namespace literals {
  * @param str The literal without its suffix.
  * @return A properly initialized hashed wstring.
  */
-[[nodiscard]] constexpr hashed_wstring operator"" _hws(const wchar_t *str, std::size_t) noexcept {
+[[nodiscard]] constexpr hashed_wstring operator""_hws(const wchar_t* str,
+                                                      std::size_t) noexcept {
     return hashed_wstring{str};
 }
 
