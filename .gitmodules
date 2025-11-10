@@ -1,12 +1,12 @@
 [submodule "Helios/vendor/sol2"]
 	path = Helios/vendor/sol2
-	url = git@gitlab.com:astroq/sol2.git
+	url = git@github.com:astroq91/sol2.git
 [submodule "Editor/vendor/ImGuizmo"]
 	path = Editor/vendor/ImGuizmo
-	url = git@gitlab.com:astroq/ImGuizmo.git
+	url = git@github.com:astroq91/ImGuizmo.git
 [submodule "Helios/vendor/ImGui"]
 	path = Helios/vendor/ImGui
-	url = git@gitlab.com:astroq/imgui.git
+	url = git@github.com:astroq91/imgui.git
 [submodule "Helios/vendor/glfw"]
 	path = Helios/vendor/glfw
-	url = git@gitlab.com:astroq/glfw.git
+	url = git@github.com:astroq91/glfw.git
