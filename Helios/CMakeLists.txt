@@ -6,6 +6,7 @@ add_subdirectory("vendor/yaml-cpp")
 add_subdirectory("vendor/lua-5.4.6")
 add_subdirectory("vendor/tinyfiledialogs")
 add_subdirectory("vendor/freetype")
+add_subdirectory("vendor/JoltPhysics/Build")
  
 # Find the correct path for physx libraries
 if (WIN32)
@@ -82,6 +83,7 @@ target_link_libraries(Helios PUBLIC
     lua
     Tinyfiledialogs
     freetype
+    JoltPhysics
 
     $<$<PLATFORM_ID:Linux>:uuid>
 
