@@ -8,50 +8,6 @@ add_subdirectory("vendor/tinyfiledialogs")
 add_subdirectory("vendor/freetype")
 add_subdirectory("vendor/JoltPhysics/Build")
  
-# Find the correct path for physx libraries
-if (WIN32)
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc143.mt/debug")
-        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc143.mt/debug")
-    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc142.mt/debug")
-        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/win.x86_64.vc142.mt/debug")
-    else()
-        message(FATAL_ERROR "Could not find (MDd static debug) PhysX libraries for vc17 or vc16. Change this if you are using a different compiler.")
-    endif()
-
-    set(PHYSX_LIBRARIES
-        "${PHYSX}/PhysXExtensions_static_64.lib"
-        "${PHYSX}/PhysXCooking_static_64.lib"
-        "${PHYSX}/PhysX_static_64.lib"
-        "${PHYSX}/PhysXPvdSDK_static_64.lib"
-        "${PHYSX}/PhysXCharacterKinematic_static_64.lib"
-        "${PHYSX}/PhysXCommon_static_64.lib"
-        "${PHYSX}/PhysXFoundation_static_64.lib"
-        "${PHYSX}/PhysXVehicle2_static_64.lib"
-    )
-
-
-elseif (UNIX AND NOT APPLE)
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/linux.x86_64/debug")
-        set(PHYSX "${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx/bin/linux.x86_64/debug")
-    else()
-        message(FATAL_ERROR "Could not find (debug) PhysX libraries. Change this if you are using a different compiler.")
-    endif()
-
-
-    # This is horrible. But this linking order works for my system
-    set(PHYSX_LIBRARIES
-        "${PHYSX}/libPhysXExtensions_static_64.a"
-        "${PHYSX}/libPhysXCooking_static_64.a"
-        "${PHYSX}/libPhysX_static_64.a"
-        "${PHYSX}/libPhysXPvdSDK_static_64.a"
-        "${PHYSX}/libPhysX_static_64.a"
-        "${PHYSX}/libPhysXCharacterKinematic_static_64.a"
-        "${PHYSX}/libPhysXCommon_static_64.a"
-        "${PHYSX}/libPhysXFoundation_static_64.a"
-        "${PHYSX}/libPhysXVehicle2_static_64.a"
-    )
-endif()
-
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS "src/*.h")
 add_library(Helios STATIC
@@ -72,7 +28,6 @@ target_include_directories(Helios PUBLIC
     "vendor/stduuid/include"
     "vendor/sol2/include"
     "vendor/spdlog/include"
-    "vendor/physx/include" 
 )
 
 target_link_libraries(Helios PUBLIC 
@@ -83,11 +38,9 @@ target_link_libraries(Helios PUBLIC
     lua
     Tinyfiledialogs
     freetype
-    JoltPhysics
+    Jolt
 
     $<$<PLATFORM_ID:Linux>:uuid>
-
-    ${PHYSX_LIBRARIES}
 
     # Platform-specific libraries
     $<$<PLATFORM_ID:Linux>:pthread> 

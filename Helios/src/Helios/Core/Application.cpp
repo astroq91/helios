@@ -5,8 +5,6 @@
 #include "Helios/Events/WindowEvents.h"
 #include "SharedPtr.h"
 
-#include <PxPhysicsAPI.h>
-using namespace physx;
 namespace Helios {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 

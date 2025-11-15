@@ -7,7 +7,6 @@
 #include "Helios/Physics/RigidBody.h"
 #include "Helios/Renderer/Renderer.h"
 #include "Helios/Scene/Transform.h"
-#include "PxRigidDynamic.h"
 #include "stduuid/uuid.h"
 #include "vulkan/vulkan_core.h"
 #include <chrono>
@@ -508,7 +507,8 @@ void Scene::draw_meshes() {
     auto duration = std::chrono::high_resolution_clock::now() - m_start_time;
     ShaderPushConstantsData push_constants{
         .time = std::chrono::duration_cast<std::chrono::milliseconds>(duration)
-                    .count() / 1000.f,
+                    .count() /
+                1000.f,
         .resolution = {window.get_width(), window.get_height()},
         .mouse = Input::get_mouse_pos(),
     };
@@ -569,24 +569,24 @@ void Scene::start_runtime() {
         Physics::Geometry geom = Physics::BoxGeometry();
         bool use_geometry = false;
 
-        physx::PxRigidDynamicLockFlags lock_flags;
+        // physx::PxRigidDynamicLockFlags lock_flags;
         if (rb.lock_linear_x) {
-            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X;
+            //    lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X;
         }
         if (rb.lock_linear_y) {
-            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y;
+            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y;
         }
         if (rb.lock_linear_z) {
-            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z;
+            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z;
         }
         if (rb.lock_angular_x) {
-            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X;
+            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X;
         }
         if (rb.lock_angular_y) {
-            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y;
+            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y;
         }
         if (rb.lock_angular_z) {
-            lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z;
+            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z;
         }
 
         BoxColliderComponent* bc =
@@ -601,7 +601,7 @@ void Scene::start_runtime() {
                          .type = rb.type,
                          .geometry = use_geometry ? &geom : nullptr,
                          .transform = {},
-                         .lock_flags = lock_flags,
+                         //.lock_flags = lock_flags,
                          .static_friction = rb.static_friction,
                          .dynamic_friction = rb.dynamic_friction,
                          .restitution = rb.restitution,

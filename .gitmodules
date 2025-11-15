@@ -10,3 +10,6 @@
 [submodule "Helios/vendor/glfw"]
 	path = Helios/vendor/glfw
 	url = git@github.com:astroq91/glfw.git
+[submodule "Helios/vendor/JoltPhysics"]
+	path = Helios/vendor/JoltPhysics
+	url = git@github.com:astroq91/JoltPhysics.git
