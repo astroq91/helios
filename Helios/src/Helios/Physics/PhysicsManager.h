@@ -32,9 +32,20 @@ class PhysicsManager {
     void init() noexcept;
 
     void create_body(uint32_t entity, const BodyInfo& info) noexcept;
+    void destroy_body(uint32_t entity) noexcept;
     void set_scene(const SceneInfo& info) noexcept;
 
+    Transform get_transform(uint32_t entity) noexcept;
+    void set_transform(uint32_t entity, const Transform& transform) noexcept;
+
+    void set_gravity_factor(uint32_t entity, float value) noexcept;
+    void set_friction(uint32_t entity, float value) noexcept;
+    void set_restitution(uint32_t entity, float value) noexcept;
     bool step(float ts) noexcept;
+
+    void add_force(uint32_t entity, const glm::vec3& force) {
+        // TODO: implement
+    }
 
   private:
     SceneInfo m_scene_info;

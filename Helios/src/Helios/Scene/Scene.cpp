@@ -4,7 +4,6 @@
 #include "Helios/Core/Core.h"
 #include "Helios/ECSComponents/Components.h"
 #include "Helios/Physics/PhysicsManager.h"
-#include "Helios/Physics/RigidBody.h"
 #include "Helios/Renderer/Renderer.h"
 #include "Helios/Scene/Transform.h"
 #include "stduuid/uuid.h"
@@ -177,31 +176,25 @@ void Scene::on_fixed_update() {
     update_scripts_fixed();
 }
 
-void Scene::update_rigid_body_mass(Entity entity, float value) {
+void Scene::update_physics_body_gravity_factor(Entity entity, float value) {
     PhysicsBodyComponent* body =
         entity.try_get_component<PhysicsBodyComponent>();
-    if (m_runtime && body && body->type == RigidBodyType::Dynamic) {
+    if (m_runtime && body && body->type == PhysicsBodyType::Dynamic) {
         auto& pm = Application::get().get_physics_manager();
-        pm.set_rigid_dynamic_mass(entity, value);
+        pm.set_gravity_factor(entity, value);
     }
 }
 
-void Scene::update_rigid_body_static_friction(Entity entity, float value) {
-    if (m_runtime && entity.has_component<RigidBodyComponent>()) {
+void Scene::update_physics_body_friction(Entity entity, float value) {
+    if (m_runtime && entity.has_component<PhysicsBodyComponent>()) {
         auto& pm = Application::get().get_physics_manager();
-        pm.set_material_static_friction(entity, value);
+        pm.set_friction(entity, value);
     }
 }
-void Scene::update_rigid_body_dynamic_friction(Entity entity, float value) {
-    if (m_runtime && entity.has_component<RigidBodyComponent>()) {
+void Scene::update_physics_body_restitution(Entity entity, float value) {
+    if (m_runtime && entity.has_component<PhysicsBodyComponent>()) {
         auto& pm = Application::get().get_physics_manager();
-        pm.set_material_dynamic_friction(entity, value);
-    }
-}
-void Scene::update_rigid_body_restitution(Entity entity, float value) {
-    if (m_runtime && entity.has_component<RigidBodyComponent>()) {
-        auto& pm = Application::get().get_physics_manager();
-        pm.set_material_restitution(entity, value);
+        pm.set_restitution(entity, value);
     }
 }
 
@@ -605,7 +598,7 @@ void Scene::setup_signals() {
         .connect<&Scene::on_persistent_id_component_added>(*this);
     m_registry.on_destroy<PersistentIdComponent>()
         .connect<&Scene::on_persistent_id_component_destroyed>(*this);
-    m_registry.on_destroy<RigidBodyComponent>()
+    m_registry.on_destroy<PhysicsBodyComponent>()
         .connect<&Scene::on_rigid_body_destroyed>(*this);
     m_registry.on_construct<ParentComponent>()
         .connect<&Scene::on_parent_component_added>(*this);
@@ -616,13 +609,13 @@ void Scene::setup_signals() {
 void Scene::scripting_to_physics() {
     auto& pm = Application::get().get_physics_manager();
     auto rigid_body_view =
-        m_registry.view<const TransformComponent, const RigidBodyComponent>(
+        m_registry.view<const TransformComponent, const PhysicsBodyComponent>(
             entt::exclude<ParentComponent>);
-    for (auto [entity, transform, rb] : rigid_body_view.each()) {
-        if (rb.type == RigidBodyType::Static || rb.kinematic ||
-            rb.override_dynamic_physics) {
-            pm.set_actor_transform(static_cast<uint32_t>(entity),
-                                   transform.to_transform());
+    for (auto [entity, transform, pb] : rigid_body_view.each()) {
+        if (pb.type == PhysicsBodyType::Static || pb.kinematic ||
+            pb.override_dynamic_physics) {
+            pm.set_transform(static_cast<uint32_t>(entity),
+                             transform.to_transform());
         }
     }
 }
@@ -630,10 +623,10 @@ void Scene::scripting_to_physics() {
 void Scene::physics_to_scripting() {
     auto& pm = Application::get().get_physics_manager();
     auto rigid_body_view =
-        m_registry.view<TransformComponent, const RigidBodyComponent>(
+        m_registry.view<TransformComponent, const PhysicsBodyComponent>(
             entt::exclude<ParentComponent>);
-    for (auto [entity, transform, rb] : rigid_body_view.each()) {
-        Transform t = pm.get_actor_transform(static_cast<uint32_t>(entity));
+    for (auto [entity, transform, pb] : rigid_body_view.each()) {
+        Transform t = pm.get_transform(static_cast<uint32_t>(entity));
         transform.position = t.position;
         transform.rotation = t.rotation;
     }
@@ -644,11 +637,7 @@ void Scene::on_rigid_body_destroyed(entt::registry& registry,
     if (m_runtime && !m_destroyed) {
         auto& pm = Application::get().get_physics_manager();
 
-        auto box_collider = registry.try_get<BoxColliderComponent>(entity);
-        if (box_collider) {
-            registry.remove<BoxColliderComponent>(entity);
-        }
-        pm.remove_actor(static_cast<uint32_t>(entity));
+        pm.destroy_body(static_cast<uint32_t>(entity));
     }
 }
 

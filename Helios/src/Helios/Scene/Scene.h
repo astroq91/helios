@@ -74,10 +74,9 @@ class Scene {
                                  const entt::entity rhs) { return lhs < rhs; });
     }
 
-    void update_rigid_body_mass(Entity entity, float value);
-    void update_rigid_body_static_friction(Entity entity, float value);
-    void update_rigid_body_dynamic_friction(Entity entity, float value);
-    void update_rigid_body_restitution(Entity entity, float value);
+    void update_physics_body_gravity_factor(Entity entity, float value);
+    void update_physics_body_friction(Entity entity, float value);
+    void update_physics_body_restitution(Entity entity, float value);
 
     void on_entity_transform_updated(Entity entity);
     // TODO?: void on_entity_local_transform_updated(Entity entity);

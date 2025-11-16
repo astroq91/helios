@@ -10,7 +10,7 @@
 #include "Helios/Scripting/ScriptUserTypes/Entity.h"
 #include "Helios/Scripting/ScriptUserTypes/Input.h"
 #include "Helios/Scripting/ScriptUserTypes/MeshRenderer.h"
-#include "Helios/Scripting/ScriptUserTypes/RigidBody.h"
+#include "Helios/Scripting/ScriptUserTypes/PhysicsBody.h"
 
 #include "Helios/Scripting/ScriptUserTypes/UI.h"
 #include "sol/property.hpp"
@@ -25,10 +25,16 @@
 namespace Helios {
 
 constexpr std::array<std::string_view, 21> k_global_types_and_fields{
-    "table",      "os",        "math",         "Vec2",       "Vec3",
-    "Vec4",       "Quat",      "Name",         "Camera",     "DirectionalLight",
-    "PointLight", "RigidBody", "MeshRenderer", "Components", "Entity",
-    "RootEntity", "Entities",  "Transform",    "Input",      "UI",
+    "table",        "os",
+    "math",         "Vec2",
+    "Vec3",         "Vec4",
+    "Quat",         "Name",
+    "Camera",       "DirectionalLight",
+    "PointLight",   "PhysicsBody",
+    "MeshRenderer", "Components",
+    "Entity",       "RootEntity",
+    "Entities",     "Transform",
+    "Input",        "UI",
     "Input",
 };
 
@@ -203,8 +209,10 @@ void Script::expose_helios_user_types() {
         &ScriptUserTypes::ScriptComponents::add_directional_light,
         "get_point_light", &ScriptUserTypes::ScriptComponents::get_point_light,
         "add_point_light", &ScriptUserTypes::ScriptComponents::add_point_light,
-        "get_rigid_body", &ScriptUserTypes::ScriptComponents::get_rigid_body,
-        "add_rigid_body", &ScriptUserTypes::ScriptComponents::add_rigid_body,
+        "get_physics_body",
+        &ScriptUserTypes::ScriptComponents::get_physics_body,
+        "add_physics_body",
+        &ScriptUserTypes::ScriptComponents::add_physics_body,
         "get_mesh_renderer",
         &ScriptUserTypes::ScriptComponents::get_mesh_renderer,
         "add_mesh_renderer",
@@ -248,38 +256,30 @@ void Script::expose_component_user_types() {
         &PointLightComponent::ambient, "diffuse", &PointLightComponent::diffuse,
         "specular", &PointLightComponent::specular);
 
-    m_state.new_usertype<ScriptUserTypes::ScriptRigidBody>(
-        "RigidBody", "add_force", &ScriptUserTypes::ScriptRigidBody::add_force,
-        "mass",
+    m_state.new_usertype<ScriptUserTypes::ScriptPhysicsBody>(
+        "PhysicsBody", "add_force",
+        &ScriptUserTypes::ScriptPhysicsBody::add_force, "gravity_factor",
         sol::property(
-            [&](ScriptUserTypes::ScriptRigidBody& component) {
-                return component.get_mass();
+            [&](ScriptUserTypes::ScriptPhysicsBody& component) {
+                return component.get_gravity_factor();
             },
-            [&](ScriptUserTypes::ScriptRigidBody& component, float value) {
-                component.set_mass(value);
+            [&](ScriptUserTypes::ScriptPhysicsBody& component, float value) {
+                component.set_gravity_factor(value);
             }),
-        "static_friction",
+        "friction",
         sol::property(
-            [&](ScriptUserTypes::ScriptRigidBody& component) {
-                return component.get_static_friction();
+            [&](ScriptUserTypes::ScriptPhysicsBody& component) {
+                return component.get_friction();
             },
-            [&](ScriptUserTypes::ScriptRigidBody& component, float value) {
-                component.set_static_friction(value);
-            }),
-        "dynamic_friction",
-        sol::property(
-            [&](ScriptUserTypes::ScriptRigidBody& component) {
-                return component.get_dynamic_friction();
-            },
-            [&](ScriptUserTypes::ScriptRigidBody& component, float value) {
-                component.set_dynamic_friction(value);
+            [&](ScriptUserTypes::ScriptPhysicsBody& component, float value) {
+                component.set_friction(value);
             }),
         "restitution",
         sol::property(
-            [&](ScriptUserTypes::ScriptRigidBody& component) {
+            [&](ScriptUserTypes::ScriptPhysicsBody& component) {
                 return component.get_restitution();
             },
-            [&](ScriptUserTypes::ScriptRigidBody& component, float value) {
+            [&](ScriptUserTypes::ScriptPhysicsBody& component, float value) {
                 component.set_restitution(value);
             }));
 

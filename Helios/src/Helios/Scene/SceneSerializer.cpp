@@ -227,9 +227,9 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
         out << YAML::EndMap;
     }
 
-    if (entity.has_component<RigidBodyComponent>()) {
-        const auto& component = entity.get_component<RigidBodyComponent>();
-        out << YAML::Key << "rigid_body_component" << YAML::Value
+    if (entity.has_component<PhysicsBodyComponent>()) {
+        const auto& component = entity.get_component<PhysicsBodyComponent>();
+        out << YAML::Key << "physics_body_component" << YAML::Value
             << YAML::BeginMap;
 
         out << YAML::Key << "type";
@@ -237,12 +237,16 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
         case PhysicsBodyType::Static:
             out << YAML::Value << "static";
             break;
+        case PhysicsBodyType::Kinematic:
+            out << YAML::Value << "kinematic";
+            break;
         case PhysicsBodyType::Dynamic:
             out << YAML::Value << "dynamic";
             break;
         }
 
-        out << YAML::Key << "mass" << YAML::Value << component.mass;
+        out << YAML::Key << "gravity_factor" << YAML::Value
+            << component.gravity_factor;
         out << YAML::Key << "kinematic" << YAML::Value << component.kinematic;
         out << YAML::Key << "static_friction" << YAML::Value
             << component.static_friction;
@@ -265,16 +269,6 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
             << component.lock_angular_y;
         out << YAML::Key << "lock_angular_z" << YAML::Value
             << component.lock_angular_z;
-
-        out << YAML::EndMap;
-    }
-
-    if (entity.has_component<BoxColliderComponent>()) {
-        const auto& component = entity.get_component<BoxColliderComponent>();
-        out << YAML::Key << "box_collider_component" << YAML::Value
-            << YAML::BeginMap;
-
-        out << YAML::Key << "size" << YAML::Value << component.size;
 
         out << YAML::EndMap;
     }
@@ -615,48 +609,46 @@ void SceneSerializer::deserialize_from_string_with_parent(
                 }
             }
 
-            auto rb_component = components["rigid_body_component"];
-            if (rb_component) {
-                auto& rb =
-                    deserialized_entity.add_component<RigidBodyComponent>();
-                std::string type = rb_component["type"].as<std::string>();
+            auto pb_component = components["physics_body_component"];
+            if (pb_component) {
+                auto& pb =
+                    deserialized_entity.add_component<PhysicsBodyComponent>();
+                std::string type = pb_component["type"].as<std::string>();
                 if (type == "static") {
-                    rb.type = RigidBodyType::Static;
+                    pb.type = PhysicsBodyType::Static;
+                } else if (type == "kinematic") {
+                    pb.type = PhysicsBodyType::Kinematic;
                 } else if (type == "dynamic") {
-                    rb.type = RigidBodyType::Dynamic;
+                    pb.type = PhysicsBodyType::Dynamic;
+                } else {
+                    HL_ERROR("Invalid PhysicBodyType");
                 }
 
-                rb.mass = rb_component["mass"].as<float>(rb.mass);
-                rb.kinematic = rb_component["kinematic"].as<bool>(rb.kinematic);
-                rb.static_friction = rb_component["static_friction"].as<float>(
-                    rb.static_friction);
-                rb.dynamic_friction =
-                    rb_component["dynamic_friction"].as<float>(
-                        rb.dynamic_friction);
-                rb.restitution =
-                    rb_component["restitution"].as<float>(rb.restitution);
-                rb.override_dynamic_physics =
-                    rb_component["override_dynamic_physics"].as<bool>(
-                        rb.override_dynamic_physics);
-                rb.lock_linear_x =
-                    rb_component["lock_linear_x"].as<bool>(rb.lock_linear_x);
-                rb.lock_linear_y =
-                    rb_component["lock_linear_y"].as<bool>(rb.lock_linear_y);
-                rb.lock_linear_z =
-                    rb_component["lock_linear_z"].as<bool>(rb.lock_linear_z);
-                rb.lock_angular_x =
-                    rb_component["lock_angular_x"].as<bool>(rb.lock_angular_x);
-                rb.lock_angular_y =
-                    rb_component["lock_angular_y"].as<bool>(rb.lock_angular_y);
-                rb.lock_angular_z =
-                    rb_component["lock_angular_z"].as<bool>(rb.lock_angular_z);
-            }
-
-            auto bc_component = components["box_collider_component"];
-            if (bc_component) {
-                auto& bc =
-                    deserialized_entity.add_component<BoxColliderComponent>();
-                bc.size = bc_component["size"].as<glm::vec3>(bc.size);
+                pb.gravity_factor =
+                    pb_component["gravity_factor"].as<float>(pb.gravity_factor);
+                pb.kinematic = pb_component["kinematic"].as<bool>(pb.kinematic);
+                pb.static_friction = pb_component["static_friction"].as<float>(
+                    pb.static_friction);
+                pb.dynamic_friction =
+                    pb_component["dynamic_friction"].as<float>(
+                        pb.dynamic_friction);
+                pb.restitution =
+                    pb_component["restitution"].as<float>(pb.restitution);
+                pb.override_dynamic_physics =
+                    pb_component["override_dynamic_physics"].as<bool>(
+                        pb.override_dynamic_physics);
+                pb.lock_linear_x =
+                    pb_component["lock_linear_x"].as<bool>(pb.lock_linear_x);
+                pb.lock_linear_y =
+                    pb_component["lock_linear_y"].as<bool>(pb.lock_linear_y);
+                pb.lock_linear_z =
+                    pb_component["lock_linear_z"].as<bool>(pb.lock_linear_z);
+                pb.lock_angular_x =
+                    pb_component["lock_angular_x"].as<bool>(pb.lock_angular_x);
+                pb.lock_angular_y =
+                    pb_component["lock_angular_y"].as<bool>(pb.lock_angular_y);
+                pb.lock_angular_z =
+                    pb_component["lock_angular_z"].as<bool>(pb.lock_angular_z);
             }
 
             auto script_component = components["script_component"];

@@ -59,20 +59,15 @@ class Entity {
         return m_scene->m_registry.try_get<Type>(m_handle);
     }
 
-    void update_rigid_body_mass(float value) {
-        m_scene->update_rigid_body_mass(*this, value);
+    void update_physics_body_gravity_factor(float value) {
+        m_scene->update_physics_body_gravity_factor(*this, value);
     }
 
-    void update_rigid_body_static_friction(float value) {
-        m_scene->update_rigid_body_static_friction(*this, value);
+    void update_physics_body_friction(float value) {
+        m_scene->update_physics_body_friction(*this, value);
     }
-
-    void update_rigid_body_dynamic_friction(float value) {
-        m_scene->update_rigid_body_dynamic_friction(*this, value);
-    }
-
-    void update_rigid_body_restitution(float value) {
-        m_scene->update_rigid_body_restitution(*this, value);
+    void update_physics_body_restitution(float value) {
+        m_scene->update_physics_body_restitution(*this, value);
     }
 
   private:

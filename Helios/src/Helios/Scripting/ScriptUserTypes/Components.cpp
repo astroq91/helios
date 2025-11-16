@@ -1,6 +1,6 @@
 #include "Components.h"
 #include "Helios/ECSComponents/Components.h"
-#include "Helios/Scripting/ScriptUserTypes/RigidBody.h"
+#include "Helios/Scripting/ScriptUserTypes/PhysicsBody.h"
 
 namespace Helios::ScriptUserTypes {
 
@@ -24,9 +24,9 @@ PointLightComponent* ScriptComponents::get_point_light() {
     return m_entity.try_get_component<PointLightComponent>();
 }
 
-ScriptRigidBody ScriptComponents::get_rigid_body() {
-    return ScriptRigidBody(m_entity.try_get_component<RigidBodyComponent>(),
-                           m_entity);
+ScriptPhysicsBody ScriptComponents::get_physics_body() {
+    return ScriptPhysicsBody(m_entity.try_get_component<PhysicsBodyComponent>(),
+                             m_entity);
 }
 
 ScriptMeshRenderer ScriptComponents::get_mesh_renderer() {
@@ -52,9 +52,9 @@ PointLightComponent* ScriptComponents::add_point_light() {
     return &m_entity.add_component<PointLightComponent>();
 }
 
-ScriptRigidBody ScriptComponents::add_rigid_body() {
-    return ScriptRigidBody(&m_entity.add_component<RigidBodyComponent>(),
-                           m_entity);
+ScriptPhysicsBody ScriptComponents::add_physics_body() {
+    return ScriptPhysicsBody(&m_entity.add_component<PhysicsBodyComponent>(),
+                             m_entity);
 }
 
 ScriptMeshRenderer ScriptComponents::add_mesh_renderer() {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Helios/Physics/PhysicsBody.h"
 #include <glm/glm.hpp>
 #include <stduuid/uuid.h>
 
@@ -136,10 +137,11 @@ struct ScriptComponent {
 };
 
 struct PhysicsBodyComponent {
-    RigidBodyType type = RigidBodyType::Dynamic;
+    PhysicsBodyType type = PhysicsBodyType::Dynamic;
     std::variant<BoxShape> shape;
     float gravity_factor = 1.0f;
     bool kinematic = false;
+    bool override_dynamic_physics = false;
 
     float static_friction = 0.5f;
     float dynamic_friction = 0.5f;
