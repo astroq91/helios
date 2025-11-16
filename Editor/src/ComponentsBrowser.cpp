@@ -158,11 +158,11 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 }
 
                 auto rb =
-                    selected_entity.try_get_component<RigidBodyComponent>();
-                bool disable_transform = scene->is_running() && rb &&
-                                         rb->type == RigidBodyType::Dynamic &&
-                                         !rb->kinematic &&
-                                         !rb->override_dynamic_physics;
+                    selected_entity.try_get_component<PhysicsBodyComponent>();
+                bool disable_transform =
+                    scene->is_running() && rb &&
+                    rb->type == PhysicsBodyType::Kinematic &&
+                    !rb->override_dynamic_physics;
 
                 if (disable_transform) {
                     ImGui::BeginDisabled();
@@ -401,22 +401,25 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
         );
 
         Utils::render_component<PhysicsBodyComponent>(
-            "Rigid Body", selected_entity, [&](auto component) {
+            "Physics body", selected_entity, [&](auto component) {
                 int current_type = static_cast<int>(component->type);
 
                 if (scene->is_running()) {
                     ImGui::BeginDisabled();
                 }
-                const char* rb_types[] = {"Dynamic", "Static"};
-                if (ImGui::BeginCombo("Type", rb_types[current_type])) {
+                const char* pb_types[] = {"Dynamic", "Kinematic", "Static"};
+                if (ImGui::BeginCombo("Type", pb_types[current_type])) {
                     // Check if this item is selected
-                    if (ImGui::Selectable(rb_types[0], current_type == 0)) {
-                        component->type = RigidBodyType::Dynamic;
+                    if (ImGui::Selectable(pb_types[0], current_type == 0)) {
+                        component->type = PhysicsBodyType::Dynamic;
                         ImGui::SetItemDefaultFocus();
                     }
-
-                    if (ImGui::Selectable(rb_types[1], current_type == 1)) {
-                        component->type = RigidBodyType::Static;
+                    if (ImGui::Selectable(pb_types[1], current_type == 1)) {
+                        component->type = PhysicsBodyType::Kinematic;
+                        ImGui::SetItemDefaultFocus();
+                    }
+                    if (ImGui::Selectable(pb_types[2], current_type == 2)) {
+                        component->type = PhysicsBodyType::Static;
                         ImGui::SetItemDefaultFocus();
                     }
                     ImGui::EndCombo();
@@ -428,28 +431,21 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
                 ImGui::Separator();
 
-                if (ImGui::InputFloat("Mass", &component->mass)) {
-                    scene->update_rigid_body_mass(selected_entity,
-                                                  component->mass);
+                if (ImGui::InputFloat("Gravity factor",
+                                      &component->gravity_factor)) {
+                    scene->update_physics_body_gravity_factor(
+                        selected_entity, component->gravity_factor);
                 }
                 if (ImGui::InputFloat("Static Friction",
-                                      &component->static_friction)) {
-                    scene->update_rigid_body_static_friction(
-                        selected_entity, component->static_friction);
-                }
-                if (ImGui::InputFloat("Dynamic Friction",
-                                      &component->dynamic_friction)) {
-                    scene->update_rigid_body_dynamic_friction(
-                        selected_entity, component->dynamic_friction);
+                                      &component->friction)) {
+                    scene->update_physics_body_friction(selected_entity,
+                                                        component->friction);
                 }
                 if (ImGui::InputFloat("Restitution", &component->restitution)) {
-                    scene->update_rigid_body_restitution(
+                    scene->update_physics_body_restitution(
                         selected_entity, component->restitution);
                 }
             });
-
-        Utils::render_component<PhysicsBodyComponent>(
-            "Physics Body", selected_entity, [](auto component) {});
 
         Utils::render_component<ScriptComponent>(
             "Script", selected_entity,

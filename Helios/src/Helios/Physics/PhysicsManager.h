@@ -19,10 +19,8 @@ struct BodyInfo {
     PhysicsBodyType type;
     std::variant<BoxShape> shape;
     Transform transform;
-    bool kinematic = false;
 
-    float static_friction = 0.5f;
-    float dynamic_friction = 0.5f;
+    float friction = 0.5f;
     float restitution = 0.6f;
 };
 

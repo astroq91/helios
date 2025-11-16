@@ -58,13 +58,12 @@ DirectionalLight = DirectionalLight
 ---@field specular Vec3     The specular color of the light
 PointLight = PointLight
 
----@class RigidBody 
----@field mass number The mass
----@field static_friction number The static friction
----@field dynamic_friction number The dynamic friction
+---@class PhysicsBody 
+---@field gravity_factor number The gravity factor 
+---@field friction number The friction
 ---@field restitution number The restitution
----@field add_force fun(self: RigidBody, force: Vec3) Applies a force to the rigid body (if dynamic)
-RigidBody = RigidBody
+---@field add_force fun(self: PhysicsBody, force: Vec3) Applies a force to the rigid body (if dynamic)
+PhysicsBody = PhysicsBody
 
 ---@class MeshRenderer
 ---@field load_mesh fun(self: MeshRenderer, name: string) Loads a mesh from a relative (based on project path), or absolute path.
@@ -80,14 +79,14 @@ MeshRenderer = MeshRenderer
 ---@field get_camera fun():Camera Gets the camera
 ---@field get_directional_light fun():DirectionalLight Gets the directional light
 ---@field get_point_light fun():PointLight Gets the point light
----@field get_rigid_body fun():RigidBody Gets the rigid body 
+---@field get_physics_body fun():PhysicsBody Gets the physics body 
 ---@field get_mesh_renderer fun():MeshRenderer Gets the mesh renderer
 ---
 ---@field add_transform fun():Transform Adds a transform component
 ---@field add_camera fun():Camera Adds a camera component
 ---@field add_directional_light fun():DirectionalLight Adds a directional light component
 ---@field add_point_light fun():PointLight Adds a point light component
----@field add_rigid_body fun():RigidBody Adds a rigid body component 
+---@field add_rigid_body fun():PhysicsBody Adds a rigid body component 
 ---@field add_mesh_renderer fun():MeshRenderer Adds a mesh renderer component 
 Components = Components
 

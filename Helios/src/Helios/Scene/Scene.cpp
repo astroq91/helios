@@ -560,7 +560,14 @@ void Scene::start_runtime() {
         m_registry.view<const TransformComponent, const PhysicsBodyComponent>(
             entt::exclude<ParentComponent>);
     for (auto [entity, transform, pb] : pb_view.each()) {
-        // TODO: Create bodies
+        pm.create_body(static_cast<uint32_t>(entity),
+                       Physics::BodyInfo{
+                           .type = pb.type,
+                           .shape = pb.shape,
+                           .transform = transform.to_transform(),
+                           .friction = pb.friction,
+                           .restitution = pb.restitution,
+                       });
     }
 
     m_runtime = true;
@@ -612,7 +619,8 @@ void Scene::scripting_to_physics() {
         m_registry.view<const TransformComponent, const PhysicsBodyComponent>(
             entt::exclude<ParentComponent>);
     for (auto [entity, transform, pb] : rigid_body_view.each()) {
-        if (pb.type == PhysicsBodyType::Static || pb.kinematic ||
+        if (pb.type == PhysicsBodyType::Static ||
+            pb.type == PhysicsBodyType::Kinematic ||
             pb.override_dynamic_physics) {
             pm.set_transform(static_cast<uint32_t>(entity),
                              transform.to_transform());

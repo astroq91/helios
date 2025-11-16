@@ -247,11 +247,7 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
 
         out << YAML::Key << "gravity_factor" << YAML::Value
             << component.gravity_factor;
-        out << YAML::Key << "kinematic" << YAML::Value << component.kinematic;
-        out << YAML::Key << "static_friction" << YAML::Value
-            << component.static_friction;
-        out << YAML::Key << "dynamic_friction" << YAML::Value
-            << component.dynamic_friction;
+        out << YAML::Key << "friction" << YAML::Value << component.friction;
         out << YAML::Key << "restitution" << YAML::Value
             << component.restitution;
         out << YAML::Key << "override_dynamic_physics" << YAML::Value
@@ -626,12 +622,7 @@ void SceneSerializer::deserialize_from_string_with_parent(
 
                 pb.gravity_factor =
                     pb_component["gravity_factor"].as<float>(pb.gravity_factor);
-                pb.kinematic = pb_component["kinematic"].as<bool>(pb.kinematic);
-                pb.static_friction = pb_component["static_friction"].as<float>(
-                    pb.static_friction);
-                pb.dynamic_friction =
-                    pb_component["dynamic_friction"].as<float>(
-                        pb.dynamic_friction);
+                pb.friction = pb_component["friction"].as<float>(pb.friction);
                 pb.restitution =
                     pb_component["restitution"].as<float>(pb.restitution);
                 pb.override_dynamic_physics =

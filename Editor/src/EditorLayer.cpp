@@ -520,13 +520,13 @@ void EditorLayer::on_imgui_render() {
                 // without override_dynamic_physics=true
                 bool disable_gizmo = false;
                 if (m_selected_entity != k_no_entity) {
-                    RigidBodyComponent* rb =
+                    PhysicsBodyComponent* pb =
                         m_selected_entity
-                            .try_get_component<RigidBodyComponent>();
+                            .try_get_component<PhysicsBodyComponent>();
 
-                    if (m_scene->is_running() && rb &&
-                        rb->type == PhysicsBodyType::Dynamic &&
-                        !rb->kinematic && !rb->override_dynamic_physics) {
+                    if (m_scene->is_running() && pb &&
+                        pb->type == PhysicsBodyType::Dynamic &&
+                        !pb->override_dynamic_physics) {
                         disable_gizmo = true;
                     }
                 }

@@ -9,12 +9,10 @@ entities:
       mesh_renderer_component:
         mesh: Cube
         material: "materials/floor.mat"
-      rigid_body_component:
+      physics_body_component:
         type: static
         mass: 1
-        kinematic: false
-        static_friction: 0.5
-        dynamic_friction: 0.5
+        friction: 0.5
         restitution: 0.600000024
         override_dynamic_physics: false
       box_collider_component:
@@ -37,12 +35,10 @@ entities:
       mesh_renderer_component:
         mesh: Cube
         material: "materials/box.mat"
-      rigid_body_component:
+      physics_body_component:
         type: dynamic
         mass: 1
-        kinematic: false
-        static_friction: 0.5
-        dynamic_friction: 0.5
+        friction: 0.5
         restitution: 0.100000001
         override_dynamic_physics: false
       box_collider_component:

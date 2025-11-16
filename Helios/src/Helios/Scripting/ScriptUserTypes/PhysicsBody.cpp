@@ -12,12 +12,10 @@ void ScriptPhysicsBody::set_gravity_factor(double value) {
     m_entity.update_physics_body_gravity_factor(value);
 }
 
-double ScriptPhysicsBody::get_friction() const {
-    return m_component->static_friction;
-}
+double ScriptPhysicsBody::get_friction() const { return m_component->friction; }
 
 void ScriptPhysicsBody::set_friction(double value) {
-    m_component->dynamic_friction = value;
+    m_component->friction = value;
     m_entity.update_physics_body_friction(value);
 }
 

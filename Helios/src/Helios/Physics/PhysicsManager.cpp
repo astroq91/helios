@@ -106,8 +106,7 @@ void PhysicsManager::create_body(uint32_t entity,
         motion_type, layer);
 
     BodyID body = m_physics_system.GetBodyInterface().CreateAndAddBody(
-        body_settings, EActivation::DontActivate);
-
+        body_settings, EActivation::Activate);
     m_body_forward_map[body] = entity;
     m_body_backward_map[entity] = body;
 }
@@ -129,6 +128,7 @@ Transform PhysicsManager::get_transform(uint32_t entity) noexcept {
     auto& interface = m_physics_system.GetBodyInterface();
     Mat44 transform =
         interface.GetCenterOfMassTransform(m_body_backward_map[entity]);
+    Vec3 pos = interface.GetCenterOfMassPosition(m_body_backward_map[entity]);
 
     Vec3 position = transform.GetTranslation();
     Quat rotation = transform.GetQuaternion();
@@ -143,12 +143,13 @@ void PhysicsManager::set_transform(uint32_t entity,
                                    const Transform& transform) noexcept {
     auto& interface = m_physics_system.GetBodyInterface();
     auto body_id = m_body_backward_map[entity];
-    interface.SetPositionAndRotation(
-        body_id,
-        Vec3(transform.position.x, transform.position.y, transform.position.z),
-        Quat(transform.rotation.x, transform.rotation.y, transform.rotation.z,
-             transform.rotation.w),
-        EActivation::DontActivate);
+    // interface.SetPositionAndRotation(
+    //     body_id,
+    //     Vec3(transform.position.x, transform.position.y,
+    //     transform.position.z), Quat(transform.rotation.x,
+    //     transform.rotation.y, transform.rotation.z,
+    //          transform.rotation.w),
+    //     EActivation::DontActivate);
 };
 void PhysicsManager::set_gravity_factor(uint32_t entity, float value) noexcept {
     auto& interface = m_physics_system.GetBodyInterface();
@@ -169,9 +170,6 @@ void PhysicsManager::set_restitution(uint32_t entity, float value) noexcept {
 
 bool PhysicsManager::step(float ts) noexcept {
     auto& interface = m_physics_system.GetBodyInterface();
-    for (auto& [body_id, entity_id] : m_body_forward_map) {
-        RVec3 position = interface.GetCenterOfMassPosition(body_id);
-    }
     m_physics_system.Update(m_scene_info.timestep, COLLISION_STEPS,
                             &*m_temp_allocator, &*m_job_system);
     return true;

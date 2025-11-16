@@ -140,11 +140,9 @@ struct PhysicsBodyComponent {
     PhysicsBodyType type = PhysicsBodyType::Dynamic;
     std::variant<BoxShape> shape;
     float gravity_factor = 1.0f;
-    bool kinematic = false;
     bool override_dynamic_physics = false;
 
-    float static_friction = 0.5f;
-    float dynamic_friction = 0.5f;
+    float friction = 0.5f;
     float restitution = 0.6f;
 
     bool lock_linear_x = false;
