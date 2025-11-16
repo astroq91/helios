@@ -525,8 +525,8 @@ void EditorLayer::on_imgui_render() {
                             .try_get_component<RigidBodyComponent>();
 
                     if (m_scene->is_running() && rb &&
-                        rb->type == RigidBodyType::Dynamic && !rb->kinematic &&
-                        !rb->override_dynamic_physics) {
+                        rb->type == PhysicsBodyType::Dynamic &&
+                        !rb->kinematic && !rb->override_dynamic_physics) {
                         disable_gizmo = true;
                     }
                 }
@@ -626,9 +626,11 @@ void EditorLayer::on_imgui_render() {
                                     },
                                 },
                                 m_project->get_project_path());
-                            m_project->set_default_scene(IOUtils::relative_path(
-                                m_project->get_project_path(),
-                                dialog_ret.path).string());
+                            m_project->set_default_scene(
+                                IOUtils::relative_path(
+                                    m_project->get_project_path(),
+                                    dialog_ret.path)
+                                    .string());
                         }
 
                         if (ImGui::BeginDragDropTarget()) {
@@ -640,7 +642,8 @@ void EditorLayer::on_imgui_render() {
                                 m_project->set_default_scene(
                                     IOUtils::relative_path(
                                         m_project->get_project_path(),
-                                        scene_path).string());
+                                        scene_path)
+                                        .string());
                             }
                             ImGui::EndDragDropTarget();
                         }

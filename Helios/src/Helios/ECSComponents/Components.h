@@ -3,12 +3,12 @@
 #include <glm/glm.hpp>
 #include <stduuid/uuid.h>
 
-#include "Helios/Physics/RigidBody.h"
 #include "Helios/Renderer/Light.h"
 #include "Helios/Renderer/Material.h"
 #include "Helios/Renderer/Mesh.h"
 #include "Helios/Scene/Transform.h"
 #include "Helios/Scripting/Script.h"
+#include "Helios/Physics/Shapes.h"
 
 namespace Helios {
 
@@ -135,26 +135,22 @@ struct ScriptComponent {
     std::vector<ExposedFieldEntry> exposed_fields;
 };
 
-struct RigidBodyComponent {
+struct PhysicsBodyComponent {
     RigidBodyType type = RigidBodyType::Dynamic;
-    float mass = 1.0f;
+    std::variant<BoxShape> shape;
+    float gravity_factor = 1.0f;
     bool kinematic = false;
 
     float static_friction = 0.5f;
     float dynamic_friction = 0.5f;
     float restitution = 0.6f;
 
-    bool override_dynamic_physics = false;
     bool lock_linear_x = false;
     bool lock_linear_y = false;
     bool lock_linear_z = false;
     bool lock_angular_x = false;
     bool lock_angular_y = false;
     bool lock_angular_z = false;
-};
-
-struct BoxColliderComponent {
-    glm::vec3 size = {0.5f, 0.5, 0.5f};
 };
 
 struct ParentComponent {

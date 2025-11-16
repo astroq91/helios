@@ -400,7 +400,7 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
         );
 
-        Utils::render_component<RigidBodyComponent>(
+        Utils::render_component<PhysicsBodyComponent>(
             "Rigid Body", selected_entity, [&](auto component) {
                 int current_type = static_cast<int>(component->type);
 
@@ -446,38 +446,10 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     scene->update_rigid_body_restitution(
                         selected_entity, component->restitution);
                 }
-
-                ImGui::Separator();
-                ImGui::Checkbox("Lock linear x", &component->lock_linear_x);
-                ImGui::Checkbox("Lock linear y", &component->lock_linear_y);
-                ImGui::Checkbox("Lock linear z", &component->lock_linear_z);
-                ImGui::Checkbox("Lock angular x", &component->lock_angular_x);
-                ImGui::Checkbox("Lock angular y", &component->lock_angular_y);
-                ImGui::Checkbox("Lock angular z", &component->lock_angular_z);
-
-                if (current_type == 0) {
-                    ImGui::Separator();
-                    if (ImGui::Checkbox("Kinematic", &component->kinematic)) {
-                        if (component->kinematic) {
-                            component->override_dynamic_physics = false;
-                        }
-                    }
-
-                    if (component->kinematic) {
-                        ImGui::BeginDisabled();
-                    }
-                    ImGui::Checkbox("Override Dynamic Physics",
-                                    &component->override_dynamic_physics);
-                    if (component->kinematic) {
-                        ImGui::EndDisabled();
-                    }
-                }
             });
 
-        Utils::render_component<BoxColliderComponent>(
-            "Box Collider", selected_entity, [](auto component) {
-                ImGui::InputFloat3("Size", &component->size.x);
-            });
+        Utils::render_component<PhysicsBodyComponent>(
+            "Physics Body", selected_entity, [](auto component) {});
 
         Utils::render_component<ScriptComponent>(
             "Script", selected_entity,
@@ -651,16 +623,10 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                     m_show_add_component_modal = false;
                 }
 
-                if (!selected_entity.try_get_component<RigidBodyComponent>() &&
-                    ImGui::Button("Rigid Body")) {
-                    selected_entity.add_component<RigidBodyComponent>();
-                    m_show_add_component_modal = false;
-                }
-
                 if (!selected_entity
-                         .try_get_component<BoxColliderComponent>() &&
-                    ImGui::Button("Box Collider")) {
-                    selected_entity.add_component<BoxColliderComponent>();
+                         .try_get_component<PhysicsBodyComponent>() &&
+                    ImGui::Button("Physics Body")) {
+                    selected_entity.add_component<PhysicsBodyComponent>();
                     m_show_add_component_modal = false;
                 }
 

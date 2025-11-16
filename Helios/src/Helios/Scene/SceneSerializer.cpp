@@ -234,10 +234,10 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
 
         out << YAML::Key << "type";
         switch (component.type) {
-        case RigidBodyType::Static:
+        case PhysicsBodyType::Static:
             out << YAML::Value << "static";
             break;
-        case RigidBodyType::Dynamic:
+        case PhysicsBodyType::Dynamic:
             out << YAML::Value << "dynamic";
             break;
         }

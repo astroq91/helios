@@ -1,9 +1,10 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <variant>
 
-#include "Geometry.h"
+#include "Shapes.h"
 #include "Helios/Scene/Transform.h"
-#include "RigidBody.h"
+#include "PhysicsBody.h"
 
 #include "JoltImpls.h"
 
@@ -14,11 +15,10 @@ struct SceneInfo {
     glm::vec3 gravity = {0.0f, -9.81f, 0.0f};
 };
 
-struct ActorInfo {
-    RigidBodyType type;
-    Geometry* geometry = nullptr;
+struct BodyInfo {
+    PhysicsBodyType type;
+    std::variant<BoxShape> shape;
     Transform transform;
-    // physx::PxRigidDynamicLockFlags lock_flags;
     bool kinematic = false;
 
     float static_friction = 0.5f;
@@ -29,11 +29,12 @@ struct ActorInfo {
 class PhysicsManager {
   public:
     ~PhysicsManager();
-    void init();
+    void init() noexcept;
 
-    void set_scene(const SceneInfo& info = {});
+    void create_body(uint32_t entity, const BodyInfo& info) noexcept;
+    void set_scene(const SceneInfo& info) noexcept;
 
-    bool step(float ts);
+    bool step(float ts) noexcept;
 
   private:
     SceneInfo m_scene_info;
@@ -47,5 +48,8 @@ class PhysicsManager {
 
     std::unique_ptr<JPH::TempAllocatorImpl> m_temp_allocator = nullptr;
     std::unique_ptr<JPH::JobSystemThreadPool> m_job_system = nullptr;
+
+    std::unordered_map<JPH::BodyID, uint32_t> m_body_forward_map;
+    std::unordered_map<uint32_t, JPH::BodyID> m_body_backward_map;
 };
 } // namespace Helios::Physics

@@ -24,7 +24,7 @@ namespace Helios {
 Scene::Scene(SceneCamera* sceneCamera) : m_scene_camera(sceneCamera) {
     const auto& renderer = Application::get().get_renderer();
     auto& pm = Application::get().get_physics_manager();
-    pm.new_scene();
+    pm.set_scene({});
 
     setup_signals();
     m_start_time = std::chrono::high_resolution_clock::now();
@@ -178,8 +178,9 @@ void Scene::on_fixed_update() {
 }
 
 void Scene::update_rigid_body_mass(Entity entity, float value) {
-    RigidBodyComponent* rb = entity.try_get_component<RigidBodyComponent>();
-    if (m_runtime && rb && rb->type == RigidBodyType::Dynamic) {
+    PhysicsBodyComponent* body =
+        entity.try_get_component<PhysicsBodyComponent>();
+    if (m_runtime && body && body->type == RigidBodyType::Dynamic) {
         auto& pm = Application::get().get_physics_manager();
         pm.set_rigid_dynamic_mass(entity, value);
     }
@@ -562,52 +563,11 @@ void Scene::start_runtime() {
         }
     }
 
-    auto rb_view =
-        m_registry.view<const TransformComponent, const RigidBodyComponent>(
+    auto pb_view =
+        m_registry.view<const TransformComponent, const PhysicsBodyComponent>(
             entt::exclude<ParentComponent>);
-    for (auto [entity, transform, rb] : rb_view.each()) {
-        Physics::Geometry geom = Physics::BoxGeometry();
-        bool use_geometry = false;
-
-        // physx::PxRigidDynamicLockFlags lock_flags;
-        if (rb.lock_linear_x) {
-            //    lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X;
-        }
-        if (rb.lock_linear_y) {
-            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y;
-        }
-        if (rb.lock_linear_z) {
-            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z;
-        }
-        if (rb.lock_angular_x) {
-            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X;
-        }
-        if (rb.lock_angular_y) {
-            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y;
-        }
-        if (rb.lock_angular_z) {
-            //   lock_flags |= physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z;
-        }
-
-        BoxColliderComponent* bc =
-            m_registry.try_get<BoxColliderComponent>(entity);
-        if (bc) {
-            geom = Physics::BoxGeometry(bc->size);
-            use_geometry = true;
-        }
-
-        pm.add_actor(static_cast<uint32_t>(entity),
-                     {
-                         .type = rb.type,
-                         .geometry = use_geometry ? &geom : nullptr,
-                         .transform = {},
-                         //.lock_flags = lock_flags,
-                         .static_friction = rb.static_friction,
-                         .dynamic_friction = rb.dynamic_friction,
-                         .restitution = rb.restitution,
-                     });
-        pm.set_actor_transform(static_cast<uint32_t>(entity),
-                               transform.to_transform());
+    for (auto [entity, transform, pb] : pb_view.each()) {
+        // TODO: Create bodies
     }
 
     m_runtime = true;
