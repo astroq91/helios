@@ -5,7 +5,7 @@
 Helios is a general purpose 3D game engine written in C++23, for Windows and Linux (Ubuntu 24.04 LTS with X11 tested). It currently has the following features:
 
 * Instance based rendering, using [Vulkan].
-* Physics using [Nvidia PhysX], for simulating rigidbodies (only boxes)
+* Physics using [JoltPhysics], for simulating rigidbodies (only boxes)
 * Scripting using [Lua].
 * ECS using [entt].
 * Simple project system.
@@ -41,20 +41,13 @@ For Linux you need:
     git clone --recurse-submodules https://gitlab.com/astroq/helios
    ```
 
-2. Build the PhysX libraries, and select VC17 (cpu-only).
-
-   ```batch
-    cd .\helios\scripts
-    .\build_physx.bat
-   ```
-
-3. Compile the shaders (make sure glslc is added to PATH)
+2. Compile the shaders (make sure glslc is added to PATH)
 
     ```batch
     .\compile_shaders.bat
    ```
 
-4. Generate the Visual Studio projects, and build the `Editor` project
+3. Generate the Visual Studio projects, and build the `Editor` project
 
     ```batch
     .\generate_projects.bat
@@ -71,21 +64,14 @@ Be careful as it does this recursively.
     git clone --recurse-submodules https://gitlab.com/astroq/helios
    ```
 
-2. Build the PhysX libraries, select gcc cpu-only. If that doesn't work, try a using clang cpu-only.
-
-   ```bash
-    cd Helios/scripts
-    ./build_physx.sh
-   ```
-
-3. Compile the shaders (make sure glslc is added to PATH)
+2. Compile the shaders (make sure glslc is added to PATH)
 
     ```bash
     cd Helios/scripts
     ./compile_shaders.sh
    ```
 
-4. Building and running the editor
+3. Building and running the editor
 
     ```bash
     ./run_editor.sh
@@ -156,7 +142,7 @@ Distributed under the MIT license. See `LICENSE.txt` for more information.
 
 * [Vulkan] - A rendering API.
 * [GLFW] - A window management library.
-* [Nvidia PhysX] - A physics engine. 
+* [JoltPhysics] - A physics engine. 
 * [Lua] - A simple scripting language.
 * [glm] - A math library.
 * [ImGui] - An immediate mode GUI library.
@@ -174,7 +160,7 @@ Distributed under the MIT license. See `LICENSE.txt` for more information.
 [ImGui]: https://github.com/ocornut/imgui
 [entt]: https://github.com/skypjack/entt
 [glm]: https://github.com/g-truc/glm
-[Nvidia PhysX]: https://github.com/NVIDIA-Omniverse/PhysX
+[JoltPhysics]: https://github.com/jrouwe/JoltPhysics
 [Lua]: https://www.lua.org/
 [sol2]: https://github.com/ThePhD/sol2
 [yaml-cpp]: https://github.com/jbeder/yaml-cpp
