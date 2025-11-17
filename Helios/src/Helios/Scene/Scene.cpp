@@ -569,6 +569,7 @@ void Scene::start_runtime() {
                            .type = pb.type,
                            .shape = pb.shape,
                            .transform = transform.to_transform(),
+                           .gravity_factor = pb.gravity_factor,
                            .friction = pb.friction,
                            .restitution = pb.restitution,
                        });

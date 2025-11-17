@@ -106,8 +106,13 @@ void PhysicsManager::create_body(uint32_t entity,
              info.transform.rotation.z, info.transform.rotation.w),
         motion_type, layer);
 
-    BodyID body = m_physics_system.GetBodyInterface().CreateAndAddBody(
-        body_settings, EActivation::Activate);
+    auto& interface = m_physics_system.GetBodyInterface();
+    BodyID body =
+        interface.CreateAndAddBody(body_settings, EActivation::Activate);
+    interface.SetFriction(body, info.friction);
+    interface.SetRestitution(body, info.restitution);
+    interface.SetGravityFactor(body, info.gravity_factor);
+
     m_body_forward_map[body] = entity;
     m_body_backward_map[entity] = body;
 }

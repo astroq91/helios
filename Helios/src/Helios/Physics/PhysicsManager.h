@@ -20,6 +20,7 @@ struct BodyInfo {
     std::variant<BoxShape> shape;
     Transform transform;
 
+    float gravity_factor = 1.0f;
     float friction = 0.5f;
     float restitution = 0.6f;
 };
