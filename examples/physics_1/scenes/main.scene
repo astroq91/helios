@@ -8,15 +8,23 @@ entities:
         scale: [10, 1, 10]
       mesh_renderer_component:
         mesh: Cube
-        material: "materials/floor.mat"
+        material: materials/floor.mat
+        tint_color: [1, 1, 1, 1]
       physics_body_component:
         type: static
-        mass: 1
+        gravity_factor: 1
         friction: 0.5
         restitution: 0.600000024
         override_dynamic_physics: false
-      box_collider_component:
-        size: [5, 0.5, 5]
+        lock_linear_x: false
+        lock_linear_y: false
+        lock_linear_z: false
+        lock_angular_x: false
+        lock_angular_y: false
+        lock_angular_z: false
+        shape:
+          type: box
+          size: [0.5, 0.5, 0.5]
   - components:
       name_component:
         name: Light
@@ -34,14 +42,26 @@ entities:
         scale: [1.00000012, 1.00000036, 1]
       mesh_renderer_component:
         mesh: Cube
-        material: "materials/box.mat"
+        material: materials/box.mat
+        tint_color: [1, 1, 1, 1]
       physics_body_component:
         type: dynamic
-        mass: 1
+        gravity_factor: 1
         friction: 0.5
         restitution: 0.100000001
         override_dynamic_physics: false
-      box_collider_component:
-        size: [0.5, 0.5, 0.5]
+        lock_linear_x: false
+        lock_linear_y: false
+        lock_linear_z: false
+        lock_angular_x: false
+        lock_angular_y: false
+        lock_angular_z: false
+        shape:
+          type: box
+          size: [1, 1, 1]
       script_component:
         path: scripts/bouncy.lua
+        exposed_fields:
+          []
+skybox:
+  enabled: true

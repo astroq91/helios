@@ -266,6 +266,16 @@ void SceneSerializer::serialize_entity_components(YAML::Emitter& out,
         out << YAML::Key << "lock_angular_z" << YAML::Value
             << component.lock_angular_z;
 
+        out << YAML::Key << "shape" << YAML::Value << YAML::BeginMap;
+        if (std::holds_alternative<BoxShape>(component.shape)) {
+            const BoxShape& shape = std::get<BoxShape>(component.shape);
+            out << YAML::Key << "type" << YAML::Value << "box";
+            out << YAML::Key << "size" << YAML::Value << shape.size;
+        } else {
+            HL_ERROR("Invalid physics shape");
+        }
+        out << YAML::EndMap;
+
         out << YAML::EndMap;
     }
 
@@ -640,6 +650,25 @@ void SceneSerializer::deserialize_from_string_with_parent(
                     pb_component["lock_angular_y"].as<bool>(pb.lock_angular_y);
                 pb.lock_angular_z =
                     pb_component["lock_angular_z"].as<bool>(pb.lock_angular_z);
+
+                if (pb_component["shape"].IsDefined()) {
+                    if (pb_component["shape"]["type"].IsDefined()) {
+                        std::string shape_type =
+                            pb_component["shape"]["type"].as<std::string>();
+                        if (shape_type == "box") {
+                            pb.shape = BoxShape{
+                                .size = pb_component["shape"]["size"]
+                                            .as<glm::vec3>(),
+                            };
+                        } else {
+                            HL_ERROR("Invalid physics body shape");
+                        }
+                    } else {
+                        HL_WARN("No physics body shape type specified");
+                    }
+                } else {
+                    HL_WARN("No physics shape specified");
+                }
             }
 
             auto script_component = components["script_component"];
