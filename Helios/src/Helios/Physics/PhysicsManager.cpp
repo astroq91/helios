@@ -70,8 +70,9 @@ void PhysicsManager::create_body(uint32_t entity,
     ShapeRefC shape_ref = nullptr;
     if (std::holds_alternative<BoxShape>(info.shape)) {
         auto shape = std::get<BoxShape>(info.shape);
-        BoxShapeSettings settings(
-            Vec3(shape.size.x, shape.size.y, shape.size.z));
+        BoxShapeSettings settings(Vec3(shape.size.x * info.transform.scale.x,
+                                       shape.size.y * info.transform.scale.y,
+                                       shape.size.z * info.transform.scale.z));
         // Unsure if this is needed
         settings.SetEmbedded();
 
@@ -118,6 +119,15 @@ void PhysicsManager::destroy_body(uint32_t entity) noexcept {
     m_body_backward_map.erase(entity);
     m_body_forward_map.erase(body_id);
 };
+void PhysicsManager::destroy_bodies() noexcept {
+    for (auto& [body, entity] : m_body_forward_map) {
+        auto& interface = m_physics_system.GetBodyInterface();
+        interface.RemoveBody(body);
+        interface.DestroyBody(body);
+    }
+    m_body_forward_map.clear();
+    m_body_backward_map.clear();
+}
 
 void PhysicsManager::set_scene(const SceneInfo& info) noexcept {
     m_scene_info = info;

@@ -32,7 +32,11 @@ Scene::Scene(SceneCamera* sceneCamera) : m_scene_camera(sceneCamera) {
         Application::get().get_asset_manager().get_texture("default_skybox"));
 }
 
-Scene::~Scene() { m_destroyed = true; }
+Scene::~Scene() {
+    m_destroyed = true;
+    auto& pm = Application::get().get_physics_manager();
+    pm.destroy_bodies();
+}
 
 void Scene::scene_load_done() {
     auto view = m_registry.view<ScriptComponent>();
@@ -606,7 +610,7 @@ void Scene::setup_signals() {
     m_registry.on_destroy<PersistentIdComponent>()
         .connect<&Scene::on_persistent_id_component_destroyed>(*this);
     m_registry.on_destroy<PhysicsBodyComponent>()
-        .connect<&Scene::on_rigid_body_destroyed>(*this);
+        .connect<&Scene::on_physics_body_destroyed>(*this);
     m_registry.on_construct<ParentComponent>()
         .connect<&Scene::on_parent_component_added>(*this);
     m_registry.on_destroy<ParentComponent>()
@@ -640,8 +644,8 @@ void Scene::physics_to_scripting() {
     }
 }
 
-void Scene::on_rigid_body_destroyed(entt::registry& registry,
-                                    entt::entity entity) {
+void Scene::on_physics_body_destroyed(entt::registry& registry,
+                                      entt::entity entity) {
     if (m_runtime && !m_destroyed) {
         auto& pm = Application::get().get_physics_manager();
 

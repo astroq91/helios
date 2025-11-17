@@ -6,6 +6,7 @@
 
 #include "Helios/ECSComponents/Components.h"
 #include "Helios/Physics/PhysicsManager.h"
+#include "Helios/Physics/Shapes.h"
 #include "Helios/Renderer/Renderer.h"
 #include "Helios/Scene/Entity.h"
 #include "Helios/Scene/Scene.h"
@@ -17,6 +18,7 @@
 #include "Helios/Core/IOUtils.h"
 #include "Helios/Scripting/Script.h"
 #include "Helios/Scripting/ScriptUserTypes/Entity.h"
+#include "glm/gtc/type_ptr.hpp"
 #include "stduuid/uuid.h"
 
 enum class TextureType { Diffuse, Specular, Emission };
@@ -402,23 +404,28 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
 
         Utils::render_component<PhysicsBodyComponent>(
             "Physics body", selected_entity, [&](auto component) {
-                int current_type = static_cast<int>(component->type);
+                enum TypeIdx { DYNAMIC, KINEMATIC, STATIC };
+                enum ShapeIdx { BOX };
 
+                int current_type = static_cast<int>(component->type);
                 if (scene->is_running()) {
                     ImGui::BeginDisabled();
                 }
                 const char* pb_types[] = {"Dynamic", "Kinematic", "Static"};
                 if (ImGui::BeginCombo("Type", pb_types[current_type])) {
                     // Check if this item is selected
-                    if (ImGui::Selectable(pb_types[0], current_type == 0)) {
+                    if (ImGui::Selectable(pb_types[DYNAMIC],
+                                          current_type == DYNAMIC)) {
                         component->type = PhysicsBodyType::Dynamic;
                         ImGui::SetItemDefaultFocus();
                     }
-                    if (ImGui::Selectable(pb_types[1], current_type == 1)) {
+                    if (ImGui::Selectable(pb_types[KINEMATIC],
+                                          current_type == KINEMATIC)) {
                         component->type = PhysicsBodyType::Kinematic;
                         ImGui::SetItemDefaultFocus();
                     }
-                    if (ImGui::Selectable(pb_types[2], current_type == 2)) {
+                    if (ImGui::Selectable(pb_types[STATIC],
+                                          current_type == STATIC)) {
                         component->type = PhysicsBodyType::Static;
                         ImGui::SetItemDefaultFocus();
                     }
@@ -444,6 +451,39 @@ void ComponentsBrowser::on_update(Scene* scene, Entity selected_entity,
                 if (ImGui::InputFloat("Restitution", &component->restitution)) {
                     scene->update_physics_body_restitution(
                         selected_entity, component->restitution);
+                }
+
+                ImGui::Separator();
+
+                int current_shape = 0;
+                if (std::holds_alternative<BoxShape>(component->shape)) {
+                    current_shape = BOX;
+                } else {
+                    HL_ERROR("No shape registered for physics body");
+                }
+                if (scene->is_running()) {
+                    ImGui::BeginDisabled();
+                }
+                const char* shapes[] = {"Box"};
+                if (ImGui::BeginCombo("Shape", shapes[current_shape])) {
+                    if (ImGui::Selectable(shapes[BOX], current_shape == BOX)) {
+                        // Do not override the shape if it already has that
+                        // shape
+                        if (current_shape != BOX) {
+                            component->shape = BoxShape{};
+                        }
+                        ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                if (current_shape == BOX) {
+                    BoxShape& shape = std::get<BoxShape>(component->shape);
+                    ImGui::InputFloat3("Size", glm::value_ptr(shape.size));
+                }
+
+                if (scene->is_running()) {
+                    ImGui::EndDisabled();
                 }
             });
 

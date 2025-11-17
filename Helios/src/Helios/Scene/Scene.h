@@ -138,7 +138,8 @@ class Scene {
     void scripting_to_physics();
     void physics_to_scripting();
 
-    void on_rigid_body_destroyed(entt::registry& registry, entt::entity entity);
+    void on_physics_body_destroyed(entt::registry& registry,
+                                   entt::entity entity);
     void on_parent_component_added(entt::registry& registry,
                                    entt::entity entity);
     void on_parent_component_destroyed(entt::registry& registry,

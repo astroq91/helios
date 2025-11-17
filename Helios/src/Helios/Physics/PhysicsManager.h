@@ -31,6 +31,7 @@ class PhysicsManager {
 
     void create_body(uint32_t entity, const BodyInfo& info) noexcept;
     void destroy_body(uint32_t entity) noexcept;
+    void destroy_bodies() noexcept;
     void set_scene(const SceneInfo& info) noexcept;
 
     Transform get_transform(uint32_t entity) noexcept;
