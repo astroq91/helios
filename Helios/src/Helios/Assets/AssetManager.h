@@ -6,6 +6,7 @@
 #include "Helios/Renderer/Texture.h"
 
 namespace Helios {
+
 class AssetManager {
   public:
     void init();
@@ -18,7 +19,9 @@ class AssetManager {
 
     void add_mesh(const SharedPtr<Mesh>& mesh) { m_meshes.add_asset(mesh); }
 
-    void add_shader(const SharedPtr<Shader>& shader) { m_shaders.add_asset(shader); }
+    void add_shader(const SharedPtr<Shader>& shader) {
+        m_shaders.add_asset(shader);
+    }
 
     void add_material(const SharedPtr<Material>& material) {
         m_materials.add_asset(material);

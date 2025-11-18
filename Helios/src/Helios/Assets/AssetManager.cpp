@@ -1,6 +1,7 @@
 ﻿#include "AssetManager.h"
 
 #include "Helios/Core/Log.h"
+#include "Helios/Core/SharedPtr.h"
 #include "Helios/Renderer/MeshVertex.h"
 
 namespace {
@@ -52,14 +53,30 @@ std::vector<uint32_t> cube_indices = {
     16, 18, 19, 18, 16, 17,
     // Right face
     20, 22, 23, 22, 20, 21};
+
+std::vector<MeshVertex> quad_vertices = {
+    // Front face
+    {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
+    {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+    {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+    {{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+};
+std::vector<uint32_t> quad_indices = {
+    0, 2, 3, 2, 0, 1,
+};
 } // namespace
 
 namespace Helios {
 void AssetManager::init() {
+    /* Create meshes */
     add_mesh(Mesh::create(
         "Cube", cube_vertices.data(), sizeof(MeshVertex) * cube_vertices.size(),
         cube_indices.data(), sizeof(uint32_t) * cube_indices.size(),
         cube_indices.size()));
+    add_mesh(Mesh::create(
+        "Quad", quad_vertices.data(), sizeof(MeshVertex) * quad_vertices.size(),
+        quad_indices.data(), sizeof(uint32_t) * quad_indices.size(),
+        quad_indices.size()));
 
     add_texture(Texture::create(
         {
